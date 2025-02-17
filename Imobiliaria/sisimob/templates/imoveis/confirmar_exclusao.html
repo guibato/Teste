@@ -1,0 +1,18 @@
+{% extends 'imoveis/base.html' %}
+{% block content %}
+<div class="container mx-auto p-4">
+    <h1 class="text-3xl font-bold text-gray-100 mb-6">Confirmar Exclusão</h1>
+    <p class="text-gray-300 mb-6">
+        Tem certeza que deseja excluir o {{ model_name }} <strong>{{ obj.nome|default:obj.endereco_completo|default:obj.descricao }}</strong>?
+    </p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">
+            Confirmar Exclusão
+        </button>
+        <a href="{% url 'listar_'|add:model_name|add:'s' %}" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors ml-2">
+            Cancelar
+        </a>
+    </form>
+</div>
+{% endblock %}

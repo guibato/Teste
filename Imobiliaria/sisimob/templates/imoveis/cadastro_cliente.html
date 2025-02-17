@@ -1,0 +1,107 @@
+{% extends 'imoveis/base.html' %}
+{% block content %}
+<h2 class="text-3xl font-bold text-gray-100 mb-6">{{ titulo|default:"Cadastro de Cliente" }}</h2>
+
+
+
+    <div>
+       
+        <form method="post" class="flex flex-wrap gap-4" enctype="multipart/form-data">
+            
+
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+            <div style="color: red;">
+                {% for error in form.non_field_errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% for field in form %}
+            <div>
+                <label>{{ field.label }}</label>
+                {% if field.field.required %}
+                <span style="color: red;">*</span>
+                {% endif %}
+                {{ field }}
+                {% if field.errors %}
+                <span style="color: red;">{{ field.errors|join:", " }}</span>
+                {% endif %}
+                {% if field.help_text %}
+                <p>{{ field.help_text }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="w-full bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">Cadastrar</button>
+        </form>
+    </div>
+    
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Aplicar classes aos inputs
+            const inputs = document.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                if (!input.classList.contains('bg-white')) {
+                    input.classList.add('bg-white', 'text-gray-900', 'p-2', 'rounded-lg', 'border', 'border-gray-300', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'w-full');
+                }
+            });
+        
+            // Função para consultar CEP
+            const consultarCEP = async (cep) => {
+                try {
+                    const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                    const data = await response.json();
+                    
+                    if (data.erro) {
+                        alert('CEP não encontrado');
+                        return;
+                    }
+        
+                    // Preenche os campos com os dados retornados
+                    document.getElementById('id_endereco').value = data.logradouro || '';
+                    document.getElementById('id_bairro').value = data.bairro || ''; // Preenche o bairro
+                    document.getElementById('id_cidade').value = data.localidade || '';
+                    document.getElementById('id_estado').value = data.uf || '';
+                } catch (error) {
+                    console.error('Erro ao consultar CEP:', error);
+                    alert('Erro ao consultar CEP. Tente novamente.');
+                }
+            };
+        
+            // Adiciona máscara ao campo de CEP
+            const cepInput = document.getElementById('id_cep');
+            cepInput.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, ''); // Remove caracteres não numéricos
+                if (value.length > 8) value = value.slice(0, 8); // Limita a 8 dígitos
+                if (value.length > 5) {
+                    value = value.slice(0, 5) + '-' + value.slice(5); // Adiciona o hífen
+                }
+                e.target.value = value;
+        
+                // Consulta o CEP automaticamente quando tiver 8 dígitos
+                if (value.replace('-', '').length === 8) {
+                    consultarCEP(value.replace('-', ''));
+                }
+            });
+        });
+        </script>
+        <script>
+        function toggleFields() {
+            const tipo = document.querySelector('select[name="tipo"]').value;
+            const anuenteField = document.querySelector('select[name="Anuente"]');
+    
+            // Desabilita o campo "anuente" se o tipo for "Anuente"
+            if (tipo === 'Anuente') {
+                anuenteField.disabled = true;
+            } else {
+                anuenteField.disabled = false;
+            }
+        }
+    
+        document.addEventListener('DOMContentLoaded', () => {
+            toggleFields();
+        });
+        </script>
+    
+{% endblock %}

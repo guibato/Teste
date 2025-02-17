@@ -1,0 +1,410 @@
+{% extends 'imoveis/base.html' %}
+{% block content %}
+
+{% if form.ativo.errors %}
+    <div class="alert alert-danger">
+        {{ form.ativo.errors }}
+    </div>
+{% endif %}
+
+<div class="container mx-auto p-4">
+    <h2 class="text-2xl font-bold text-gray-100 mb-6">Cadastro de Contrato</h2>
+    <form method="post" class="max-w-6xl mx-auto" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="flex flex-wrap gap-4">
+            <div class="mb-4 ">
+                <label for="id_ativo" class="block text-sm font-medium text-gray-300">Ativo?</label>
+                {{ form.ativo }}
+            </div>
+            
+            <div class="mb-4">
+                <label for="id_tipo_contrato" class="block text-sm font-medium text-gray-300">Contrato</label>
+                {{ form.tipo_contrato }}
+            </div>
+
+            <div class="mb-4">
+                <label for="id_proprietario" class="block text-sm font-medium text-gray-300">Proprietário</label>
+                {{ form.proprietario }}
+            </div>
+
+            <div class="mb-4">
+                <label for="id_inquilino" class="block text-sm font-medium text-gray-300">Inquilino</label>
+                {{ form.inquilino }}
+            </div>
+
+            <div class="mb-4">
+                <label for="id_imovel" class="block text-sm font-medium text-gray-300">Imóvel</label>
+                {{ form.imovel }}
+            </div>
+
+            <div class="mb-4 block text-sm font-medium text-gray-300">
+                <label for="data_inicio" >Data de Início</label>
+                <br>
+                <input type="date" name="data_inicio" required>
+            </div>
+
+            <div class="mb-4 block text-sm font-medium text-gray-300">
+                <label for="data_fim">Data de Fim</label>
+                <br>
+                <input type="date" name="data_fim" required>
+            </div>
+
+            <div class="mb-4 block text-sm font-medium text-gray-300">
+                <label for="carencia">Carência (dias)</label>
+                <br>
+                <input type="number" name="carencia" value="0" required>
+            </div>
+
+            <div class="mb-4 block text-sm font-medium text-gray-300">
+                <label for="fator_reajuste">Indice de Reajuste</label>
+                <br>
+                {{ form.fator_reajuste }}
+            </div>
+
+            <div class="mb-4 block text-sm font-medium text-gray-300">
+                <label for="multa_contratual">Multa Contratual</label>
+                <br>
+                {{ form.multa_contratual }}
+            </div>
+
+            <div class="mb-4">
+                <label for="id_tipo_pagamento" class="block text-sm font-medium text-gray-300">Tipo de Aluguel</label>
+                {{ form.tipo_pagamento }}
+            </div>
+            
+            <!-- Valor do Aluguel -->
+            <div id="valor_aluguel_field" class="mb-4 optional-field" style="display: none;">
+                <label for="id_valor_aluguel" class="block text-sm font-medium text-gray-300">Valor do Aluguel</label>
+                <input type="text" name="valor_aluguel" id="id_valor_aluguel" class="currency-input">
+            </div>
+            
+            <!-- Valor do Pacote -->
+            <div id="valor_pacote_field" class="mb-4 optional-field" style="display: none;">
+                <label for="id_valor_pacote" class="block text-sm font-medium text-gray-300">Valor do Pacote</label>
+                <input type="text" name="valor_pacote" id="id_valor_pacote" class="currency-input">
+            </div>
+            
+            <!-- Condomínio -->
+            <div id="valor_condominio_field" class="mb-4 optional-field" style="display: none;">
+                <label for="id_valor_condominio" class="block text-sm font-medium text-gray-300">Condomínio</label>
+                <input type="text" name="valor_condominio" id="id_valor_condominio" class="currency-input">
+            </div>
+            
+            <!-- IPTU -->
+            <div id="valor_iptu_field" class="mb-4 optional-field" style="display: none;">
+                <label for="id_valor_iptu" class="block text-sm font-medium text-gray-300">IPTU</label>
+                <input type="text" name="valor_iptu" id="id_valor_iptu" class="currency-input">
+            </div>
+            
+            <!-- Outros -->
+            <div id="valor_outros_field" class="mb-4 optional-field" style="display: none;">
+                <label for="id_valor_outros" class="block text-sm font-medium text-gray-300">Outros</label>
+                <input type="text" name="valor_outros" id="id_valor_outros" class="currency-input">
+            </div>
+
+            <div class="mb-4">
+                <label for="id_tipo_taxa" class="block text-sm font-medium text-gray-300">Tipo de Taxa</label>
+                {{ form.tipo_taxa }}
+            </div>
+            
+            <!-- Valor da Taxa de Administração -->
+            <div class="mb-4">
+                <label for="id_valor_taxa_admin" class="block text-sm font-medium text-gray-300">Valor da Taxa de Administração</label>
+                <input type="text" name="valor_taxa_admin" id="id_valor_taxa_admin" class="taxa-value" value="{{ form.valor_taxa_admin.value }}">
+            </div>
+
+            <div class="mb-4">
+                <label for="id_dia_pagamento" class="block text-sm font-medium text-gray-300">Dia de Pagamento</label>
+                {{ form.dia_pagamento }}
+            </div>
+            
+            <div class="mb-4">
+                <label for="id_garantia" class="mb-4 text-sm font-medium text-gray-300">Garantia</label>
+                <br>
+                {{ form.garantia }}
+            </div>
+
+            <div id="fiador_field" class="mb-4 optional-field" style="display: none;">
+                <label for="id_fiador" class="mb-4 text-sm font-medium text-gray-300">Fiador</label>
+                <br>
+                {{ form.fiador }}
+            </div>
+
+            <div id="caucao_field" class="mb-4 optional-field" style="display: none;">
+                <label for="id_valor_caucao">Valor Caução</label>
+                <br>
+                <input type="text" name="valor_caucao" id="id_valor_caucao" class="currency-input">
+            </div>
+
+            <div id="seguradora_caucao_field" class="mb-4 optional-field" style="display: none;">
+                <label for="id_seguradora_caucao">Seguradora</label>
+                <br>
+                <input type="text" name="seguradora_caucao" id="id_seguradora_caucao" class="form-control">
+            </div>
+
+            <div id="apolice_caucao_field" class="mb-4 optional-field" style="display: none;">
+                <label for="id_apolice_caucao">Número da Apólice</label>
+                <br>
+                <input type="text" name="apolice_caucao" id="id_apolice_caucao" class="form-control">
+            </div>
+            
+            <div class="mb-4">
+                <label for="id_clausula_12meses" class="mb-4 text-sm font-medium text-gray-300">Cláusula de 12 Meses?</label>
+                <br>
+                {{ form.clausula_12meses }}
+            </div>
+        </div>
+
+        <h3 class="text-xl font-bold text-gray-100 mb-4">Seguro Contra Incêndio</h3>
+
+        <div class="flex flex-wrap gap-4">
+            
+            <div class="mb-4">
+                <label for="id_seguradora_incendio" class=" mb-4 text-sm font-medium text-gray-300">Seguradora</label>
+                <br>
+                {{ form.seguradora_incendio }}
+            </div>
+            <div class="mb-4">
+                <label for="id_apolice_incendio" class=" mb-4 text-sm font-medium text-gray-300">Apólice</label>
+                <br>
+                {{ form.apolice_incendio }}
+            </div>
+
+            <div class="mb-4">
+                <label for="id_valor_seguro_incendio" class="mb-4 text-sm font-medium text-gray-300">Valor do Seguro</label>
+                <br>
+                <input type="text" name="valor_seguro_incendio" id="id_valor_seguro_incendio" class="currency-input">
+            </div>
+
+            <div class="mb-4">
+                <label for="vencimento_seguro_incendio" class="mb-4 text-sm font-medium text-gray-300">Vencimento do Seguro</label>
+                <br>
+                <input type="date" name="vencimento_seguro_incendio">
+            </div>
+
+        </div>
+
+        <h3 class="text-xl font-bold text-gray-100 mb-4">Documentos</h3>
+
+        <div class="flex flex-wrap gap-4">
+            <div class="mb-4">
+                {{ form.documentos }}
+                <p class="mt-1 text-sm text-gray-400">Aceita arquivos PDF, JPG ou PNG (máx. 5MB)</p>
+            </div>
+        </div>
+        <button type="submit" class="w-full bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">Cadastrar</button>
+    </form>
+
+    {% if form.errors %}
+    <div class="alert alert-danger">
+        <ul>
+        {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+                <li>{{ field }}: {{ error }}</li>
+            {% endfor %}
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+    const inputs = document.querySelectorAll('input, select, textarea');
+                inputs.forEach(input => {
+                input.classList.add(
+                    'bg-white',
+                    'text-gray-900',
+                    'p-2',
+                    'rounded-lg',
+                    'border',
+                    'border-gray-300',
+                    'focus:outline-none',
+                    'focus:ring-2',
+                    'focus:ring-blue-500'
+                );
+            });
+
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Seleciona os elementos relevantes
+        const tipoPagamento = document.querySelector('#id_tipo_pagamento');
+        const valorAluguelField = document.querySelector('#valor_aluguel_field');
+        const valorPacoteField = document.querySelector('#valor_pacote_field');
+        const condominioField = document.querySelector('#valor_condominio_field'); // Corrigido
+        const iptuField = document.querySelector('#valor_iptu_field'); // Corrigido
+        const outrosField = document.querySelector('#valor_outros_field'); // Corrigido
+    
+        // Função para atualizar a visibilidade dos campos
+        function updateFieldVisibility() {
+            if (tipoPagamento.value === 'PACOTE') { // Verifica se a opção selecionada é "Pacote"
+                valorAluguelField.style.display = 'none'; // Oculta o campo Valor do Aluguel
+                condominioField.style.display = 'none';  // Oculta o campo Condomínio
+                iptuField.style.display = 'none';        // Oculta o campo IPTU
+                outrosField.style.display = 'none';      // Oculta o campo Outros
+                valorPacoteField.style.display = 'block'; // Exibe o campo Valor do Pacote
+            } else if (tipoPagamento.value === 'DESPESAS_SEPARADAS') { // Verifica se a opção selecionada é "Despesas Separadas"
+                valorAluguelField.style.display = 'block'; // Exibe o campo Valor do Aluguel
+                condominioField.style.display = 'block';  // Exibe o campo Condomínio
+                iptuField.style.display = 'block';        // Exibe o campo IPTU
+                outrosField.style.display = 'block';      // Exibe o campo Outros
+                valorPacoteField.style.display = 'none';  // Oculta o campo Valor do Pacote
+            } else {
+                // Caso nenhuma opção válida seja selecionada, oculta todos os campos
+                valorAluguelField.style.display = 'none';
+                condominioField.style.display = 'none';
+                iptuField.style.display = 'none';
+                outrosField.style.display = 'none';
+                valorPacoteField.style.display = 'none';
+            }
+        }
+    
+        // Aplica a visibilidade inicial ao carregar a página
+        updateFieldVisibility();
+    
+        // Atualiza a visibilidade quando o tipo de pagamento é alterado
+        tipoPagamento.addEventListener('change', function () {
+            updateFieldVisibility();
+        });
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Seleciona os elementos relevantes
+        const garantiaField = document.querySelector('#id_garantia');
+        const fiadorField = document.querySelector('#fiador_field');
+        const caucaoField = document.querySelector('#caucao_field');
+        const seguradoraCaucaoField = document.querySelector('#seguradora_caucao_field');
+        const apoliceCaucaoField = document.querySelector('#apolice_caucao_field');
+    
+    
+        // Função para atualizar a visibilidade dos campos de garantia
+        function updateGarantiaVisibility() {
+            const garantiaValue = garantiaField.value;
+    
+            if (garantiaValue === 'FIADOR') {
+                fiadorField.style.display = 'block';
+                caucaoField.style.display = 'none';
+                seguradoraCaucaoField.style.display = 'none';
+                apoliceCaucaoField.style.display = 'none';
+            } else if (garantiaValue === 'CAUCAO') {
+                fiadorField.style.display = 'none';
+                caucaoField.style.display = 'block';
+                seguradoraCaucaoField.style.display = 'NONE';
+                apoliceCaucaoField.style.display = 'NONE';
+            } else if (garantiaValue === 'SEGURO_FIANCA') {
+                fiadorField.style.display = 'none';
+                caucaoField.style.display = 'none';
+                seguradoraCaucaoField.style.display = 'block';
+                apoliceCaucaoField.style.display = 'block';
+            } else if (garantiaValue === 'CAPITALIZAÇÃO') {
+                fiadorField.style.display = 'none';
+                caucaoField.style.display = 'none';
+                seguradoraCaucaoField.style.display = 'block';
+                apoliceCaucaoField.style.display = 'block';
+            } else {
+                // Oculta todos os campos de garantia
+                fiadorField.style.display = 'none';
+                caucaoField.style.display = 'none';
+                seguradoraCaucaoField.style.display = 'none';
+                apoliceCaucaoField.style.display = 'none';
+            }
+        }
+    
+        // Aplica a visibilidade inicial ao carregar a página
+        updateGarantiaVisibility();
+    
+        // Atualiza a visibilidade quando o tipo de garantia é alterado
+        garantiaField.addEventListener('change', function () {
+            updateGarantiaVisibility();
+        });
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        
+        function formatarMoeda(valor) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
+        }
+
+        function formatarPercentual(valor) {
+            return valor.toFixed(2) + '%';
+        }
+
+        // Exemplo de uso:
+        let preco = 1500.75;
+        console.log(formatarMoeda(preco)); // "R$ 1.500,75"
+
+        let taxa = 10.5;
+        console.log(formatarPercentual(taxa)); // "10.50%"
+
+        function converterParaNumero(valorFormatado) {
+            return parseFloat(valorFormatado.replace(/[^\d,.-]/g, '').replace(',', '.'));
+        }
+
+        // Exemplo:
+        let precoFormatado = "R$ 1.500,75";
+        console.log(converterParaNumero(precoFormatado)); // 1500.75
+
+        let taxaFormatada = "10,5%";
+        console.log(converterParaNumero(taxaFormatada)); // 10.5
+
+
+        
+    
+        // Lógica para visibilidade condicional dos campos
+        const tipoPagamento = document.querySelector('#id_tipo_pagamento');
+        const valorAluguelField = document.querySelector('#valor_aluguel_field');
+        const valorPacoteField = document.querySelector('#valor_pacote_field');
+        const condominioField = document.querySelector('#condominio_field');
+        const iptuField = document.querySelector('#iptu_field');
+        const outrosField = document.querySelector('#outros_field');
+    
+        function updateFieldVisibility() {
+            if (tipoPagamento.value === 'PACOTE') {
+                valorAluguelField.style.display = 'none';
+                condominioField.style.display = 'none';
+                iptuField.style.display = 'none';
+                outrosField.style.display = 'none';
+                valorPacoteField.style.display = 'block';
+            } else {
+                valorAluguelField.style.display = 'block';
+                condominioField.style.display = 'block';
+                iptuField.style.display = 'block';
+                outrosField.style.display = 'block';
+                valorPacoteField.style.display = 'none';
+            }
+        }
+    
+        tipoPagamento.addEventListener('change', updateFieldVisibility);
+        updateFieldVisibility();
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Função para remover formatação de moeda
+        function unformatCurrency(input) {
+            input.value = input.value.replace(/\D/g, ''); // Remove tudo que não é número
+        }
+    
+        // Remover formatação antes de enviar o formulário
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function () {
+            const currencyInputs = document.querySelectorAll('.currency-input');
+            currencyInputs.forEach(input => {
+                unformatCurrency(input);
+            });
+        });
+    });
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+
+{% endblock %}

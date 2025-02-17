@@ -1,0 +1,64 @@
+{% extends 'imoveis/base.html' %}
+
+{% block content %}
+<div class="container mx-auto p-4">
+    <!-- Formulário de Busca -->
+    <form method="get" action="{% url 'buscar' %}" class="mb-8">
+        <div class="flex items-center">
+            <input
+                type="text"
+                name="q"
+                placeholder="Buscar clientes, imóveis ou contratos"
+                class="flex-grow p-2 bg-gray-900 text-white border border-gray-800 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
+            />
+            <button
+                type="submit"
+                class="bg-gray-700 text-white px-6 py-2 rounded-r-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
+            >
+                Buscar
+            </button>
+        </div>
+    </form>
+
+    <!-- Botões de Ação -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <a
+            href="{% url 'cadastro_cliente' %}"
+            class="bg-gray-900 text-white px-6 py-4 rounded-full focus:outline-none border border-gray-200 text-center hover:bg-gray-800 transition-colors"
+        >
+            Cadastrar Cliente
+        </a>
+        <a
+            href="{% url 'cadastro_imovel' %}"
+            class="bg-gray-900 text-white px-6 py-4 rounded-full focus:outline-none border border-gray-200 text-center hover:bg-gray-800 transition-colors"
+        >
+            Cadastrar Imóvel
+        </a>
+        <a href="{% url 'cadastro_contrato' %}" class="bg-gray-900 text-white px-6 py-4 rounded-full focus:outline-none border border-gray-200 text-center hover:bg-gray-800 transition-colors">
+            Cadastrar Contrato
+        </a>
+        <a
+            href="{% url 'listar_clientes' %}"
+            class="bg-gray-900 text-white px-6 py-4 rounded-full focus:outline-none border border-gray-200 text-center hover:bg-gray-800 transition-colors"
+        >
+            Listar Clientes
+        </a>
+        <a
+            href="{% url 'listar_imoveis' %}"
+            class="bg-gray-900 text-white px-6 py-4 rounded-full focus:outline-none border border-gray-200 text-center hover:bg-gray-800 transition-colors"
+        >
+            Listar Imóveis
+        </a>
+        <a
+            href="{% url 'listar_contratos' %}"
+            class="bg-gray-900 text-white px-6 py-4 rounded-full focus:outline-none border border-gray-200 text-center hover:bg-gray-800 transition-colors"
+        >
+            Listar Contratos
+        </a>
+        
+    
+        
+
+    </div>
+</div>
+{% endblock %}
