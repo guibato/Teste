@@ -45,10 +45,12 @@ def cadastrar_imovel(request):
 
 def cadastrar_contrato(request):
     if request.method == 'POST':
-        form = ContratoForm(request.POST, request.FILES)  # Inclui suporte para upload de arquivos
+        form = ContratoForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            return redirect('lista_contratos')  # Redireciona para uma página de listagem (você pode ajustar isso)
+            return redirect('listar_contratos')
+        else:
+            print(form.errors)  # <<< Isso imprime os erros no terminal
     else:
         form = ContratoForm()
 

@@ -41,8 +41,21 @@ class ContratoForm(forms.ModelForm):
         widgets = {
             'data_inicio': forms.DateInput(attrs={'type': 'date'}),
             'data_fim': forms.DateInput(attrs={'type': 'date'}),
+            'tipo': forms.Select(attrs={'class': 'form-control'}),
+            'fator_reajuste': forms.Select(attrs={'class': 'form-control'}),
+            'multa_contratual': forms.Select(attrs={'class': 'form-control'}),
+            'carencia_dias': forms.NumberInput(attrs={'class': 'form-control'}),
         }
-        
-        def __init__(self, *args, **kwargs):
-            super(ContratoForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        # Validação adicional se necessário
+        return cleaned_data
+
+    def clean_carencia_dias(self):
+        carencia = self.cleaned_data.get('carencia_dias')
+        if carencia is None:
+            return 0  # Define como zero se estiver vazio
+        return carencia
+            
         

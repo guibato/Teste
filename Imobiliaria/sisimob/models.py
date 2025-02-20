@@ -86,65 +86,100 @@ class Contrato(models.Model):
         ('nao_residencial', 'Não-Residencial'),
     ]
     TIPO_CLIENTE_CHOICES = [
-        ('Proprietário(a)', 'Proprietário(a)'),
-        ('Inquilino(a)', 'Inquilino(a)'),
-        ('Anuente', 'Anuente'),
-        ('Fiador(a)', 'Fiador(a)'),
-    ]
+    ('Proprietario', 'Proprietário(a)'),
+    ('Inquilino', 'Inquilino(a)'),
+    ('Anuente', 'Anuente'),
+    ('Fiador', 'Fiador(a)'),
+]
+
     REAJUSTE_CHOICES = [
         ('IPCA', 'IPC-A'),
         ('IGPM', 'IGP-M'),
     ]
 
+    MULTA_CHOICES = [
+        ('3MPR', '3M Pró Rata'),
+        ('3MF', '3M Flat'),
+        ('6MPR', '6M Pró Rata'),
+        ('6MF', '6M Flat'),
+    ]
+
+    tipo_pagamento_CHOICES = [
+        ('Despesas_Separadas', 'Despesas Separadas'),
+        ('Pacote', 'Pacote'),
+    ]
+    TIPO_TAXA_CHOICES = [
+        ('percentual', 'Percentual (%)'),
+        ('fixo', 'Fixo (R$)'),
+    ]
+
+    CAUCAO_CHOICES = [
+        ('fiador', 'Fiador'),
+        ('caucao', 'Caução'),
+        ('seguro_fianca', 'Seguro Fiança'),
+        ('capitalizacao', 'Capitalização'),
+        ('sem_garantia', 'Sem Garantia'),
+    ]
+
     # Campos básicos
-    tipo = models.CharField(max_length=20, choices=TIPO_CLIENTE_CHOICES, verbose_name="Tipo")
+    tipo = models.CharField(max_length=20, choices=TIPO_CLIENTE_CHOICES, verbose_name="Tipo", null=True, blank=True)
     ativo = models.BooleanField(default=True, verbose_name="Ativo?")
     tipo_contrato = models.CharField(max_length=20, choices=CONTRATO_CHOICES, blank=True, null=True)
-    proprietario = models.ForeignKey(
-        Cliente,
-        on_delete=models.CASCADE,
-        related_name='contratos_proprietario', 
-        limit_choices_to={'tipo': 'Proprietário(a)'}, # Nome único para o acessor reverso
-        verbose_name="Proprietário"
-    )
-    inquilino = models.ForeignKey(
-        Cliente,
-        on_delete=models.CASCADE,
-        related_name='contratos_inquilino',
-          limit_choices_to={'tipo': 'Inquilino(a)'},  # Nome único para o acessor reverso
-        verbose_name="Inquilino"
-    )
-    imovel = models.ForeignKey(
-        Imovel,
-        on_delete=models.CASCADE,
-        related_name='contratos_imovel',  # Nome único para o acessor reverso
-        verbose_name="Imóvel"
-    )
+    proprietario = models.ForeignKey(Cliente,on_delete=models.CASCADE,related_name='contratos_proprietario', limit_choices_to={'tipo': 'Proprietário(a)'}, verbose_name="Proprietário")
+    inquilino = models.ForeignKey(Cliente,on_delete=models.CASCADE,related_name='contratos_inquilino',limit_choices_to={'tipo': 'Inquilino'}, verbose_name="Inquilino")
+    imovel = models.ForeignKey(Imovel,on_delete=models.CASCADE,related_name='contratos_imovel',verbose_name="Imóvel")
+    
 
     # Datas e condições
     data_inicio = models.DateField(verbose_name="Início")
     data_fim = models.DateField(verbose_name="Final")
-    carencia_dias = models.IntegerField(verbose_name="Carência")
-    fator_reajuste = models.DecimalField(max_digits=5, decimal_places=2, choices=REAJUSTE_CHOICES, verbose_name="Reajuste")
-    multa_contratual = models.DecimalField(max_digits=5, decimal_places=2, verbose_name="Multa Contratual")
+    carencia_dias = models.IntegerField(verbose_name="Carência", null=True, blank=True, default=0)
+    fator_reajuste = models.CharField(max_length=5, choices=REAJUSTE_CHOICES, verbose_name="Reajuste")
+    multa_contratual = models.CharField(max_length=20, choices=MULTA_CHOICES, verbose_name="Multa Contratual")
 
     # Valores e pagamentos
-    tipo_pagamento = models.CharField(max_length=50, verbose_name="Tipo de Aluguel")
-    valor_aluguel = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor do Aluguel")
-    valor_pacote = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor do Pacote", null=True, blank=True)
-    condominio = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Condomínio", null=True, blank=True)
-    iptu = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="IPTU", null=True, blank=True)
-    outros = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Outros", null=True, blank=True)
+    tipo_pagamento = models.CharField(max_length=50,choices=tipo_pagamento_CHOICES, verbose_name="Tipo de Aluguel")
+    valor_aluguel = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor do Aluguel", null=True, blank=True, default=0.00)
+    valor_pacote = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor do Pacote", null=True, blank=True, default=0.00)
+    valor_condominio = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Condomínio", null=True, blank=True, default=0.00)
+    valor_iptu = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="IPTU", null=True, blank=True, default=0.00)
+    valor_outros = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Outros", null=True, blank=True, default=0.00)
 
     # Taxas
-    tipo_taxa = models.CharField(max_length=50, verbose_name="Tipo de Taxa")
-    valor_taxa_administracao = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor da Taxa de Administração")
+    tipo_taxa = models.CharField(
+        max_length=50,
+        choices=TIPO_TAXA_CHOICES,
+        verbose_name="Tipo de Taxa"
+    )
+    valor_taxa_administracao_percentual = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Adm - %",
+        null=True,
+        blank=True,
+        default=0.00
+    )
+    valor_taxa_administracao_fixo = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Adm - R$",
+        null=True,
+        blank=True,
+        default=0.00
+    )
+
     dia_pagamento = models.IntegerField(verbose_name="Dia de Pagamento")
 
     # Garantias
-    garantia = models.CharField(max_length=50, verbose_name="Garantia")
+    garantia = models.CharField(max_length=50, choices=CAUCAO_CHOICES, verbose_name="Garantia")
     fiador = models.CharField(max_length=100, verbose_name="Fiador", null=True, blank=True)
-    valor_caucao = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor Caução", null=True, blank=True)
+    valor_caucao = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor Caução", null=True, blank=True, default=0.00)
+    valor_segfi = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor Fiança", null=True, blank=True, default=0.00)
+    apolice_segfi = models.CharField(max_length=50, verbose_name="Apólice Fiança", null=True, blank=True)
+    seg_segfi = models.CharField(max_length=100, verbose_name="Seguradora Fiança", null=True, blank=True)
+    valor_cap = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor Capitalização", null=True, blank=True, default=0.00)
+    apolice_cap = models.CharField(max_length=50, verbose_name="Apólice Capitalização", null=True, blank=True)
+    seg_cap = models.CharField(max_length=100, verbose_name="Seguradora Capitalização", null=True, blank=True)
 
     # Cláusulas
     clausula_12meses = models.BooleanField(default=False, verbose_name="Cláusula de 12 Meses?")
@@ -152,7 +187,7 @@ class Contrato(models.Model):
     # Seguro contra incêndio
     seguradora_incendio = models.CharField(max_length=100, verbose_name="Seguradora", null=True, blank=True)
     apolice_incendio = models.CharField(max_length=50, verbose_name="Apólice", null=True, blank=True)
-    valor_seguro = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor do Seguro", null=True, blank=True)
+    valor_seguro = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor do Seguro", null=True, blank=True, default=0.00)
     vencimento_seguro = models.DateField(verbose_name="Vencimento do Seguro", null=True, blank=True)
 
     # Documentos
