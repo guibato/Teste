@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load custom_filters %} <!-- Carrega os filtros personalizados -->
+{% block content %}
+
+<div class="container mx-auto p-4">
+    <!-- Cabeçalho -->
+    <div class="bg-gray text-white p-6 rounded-lg mb-6">
+        <h2 class="text-2xl font-bold mb-2">Contrato de Locação #{{ contrato.id }}</h2>
+    </div>
+
+    <!-- Informações Principais -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <!-- Partes do Contrato -->
+        <div class="bg-gray p-6 rounded-lg focus:outline-none border border-gray-200 shadow-md text-center">
+            <div class="flex items-center mb-4 justify-center">
+                <i class="bi bi-house text-xl mr-2"></i>
+                <h3 class="text-lg font-semibold">Imóvel</h3>
+            </div>
+            <p>{{ contrato.imovel.endereco_completo }}</p>
+        </div>
+
+        <!-- Imóvel -->
+        <div class="bg-gray p-6 rounded-lg focus:outline-none border border-gray-200 shadow-md text-center">
+            <div class="flex items-center mb-4 justify-center">
+                <i class="bi bi-people text-xl mr-2"></i>
+                <h3 class="text-lg font-semibold">Partes do Contrato</h3>
+            </div>
+            <div class="space-y-2">
+                <p><strong>Proprietário:</strong> {{ contrato.proprietario.nome }}</p>
+                <p><strong>Inquilino:</strong> {{ contrato.inquilino.nome }}</p>
+            </div>
+        </div>
+
+        <!-- Vigência -->
+        <div class="bg-gray p-6 rounded-lg focus:outline-none border border-gray-200 shadow-md text-center">
+            <div class="flex items-center mb-4 justify-center">
+                <i class="bi bi-calendar text-xl mr-2"></i>
+                <h3 class="text-lg font-semibold">Vigência</h3>
+            </div>
+            <div class="space-y-2">
+                <p><strong>Início</strong> {{ contrato.data_inicio|date:"d/m/Y" }}</p>
+                <p><strong>Término</strong> {{ contrato.data_fim|date:"d/m/Y" }}</p>
+                <p><strong>Indíce de Reajuste</strong> {{ contrato.fator_reajuste }}</p>
+                <p><strong>Aluguel Projetado:</strong> {{ contrato.aluguel_projetado|format_currency }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Valores e Pagamentos -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <!-- Valores -->
+        <div class="bg-gray p-6 rounded-lg focus:outline-none border border-gray-200 shadow-md text-center">
+            <div class="flex items-center mb-4 justify-center">
+                <i class="bi bi-cash-coin text-xl mr-2"></i>
+                <h3 class="text-lg font-semibold">Valores</h3>
+            </div>
+            <div class="space-y-2">
+                {% if contrato.tipo_pagamento == 'DESPESAS_SEPARADAS' %}
+                <p><strong>Valor do Aluguel:</strong> {{ contrato.valor_aluguel|format_currency }}</p>
+                <p><strong>Condomínio:</strong> {{ contrato.valor_condominio|format_currency }}</p>
+                <p><strong>IPTU:</strong> {{ contrato.valor_iptu|format_currency }}</p>
+                <p><strong>Outros Valores:</strong> {{ contrato.valor_outros|format_currency }}</p>
+                {% else %}
+                    <p><strong>Pacote:</strong> {{ contrato.valor_pacote|format_currency }}</p>
+                {% endif %}
+                <p><strong>Taxa de Administração:</strong>
+                    {% if contrato.tipo_taxa == 'percentual' %}
+                        {{ contrato.valor_taxa_admin }}%
+                    {% else %}
+                        R$ {{ contrato.valor_taxa_admin }}
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <!-- Garantias -->
+        <div class="bg-gray p-6 rounded-lg focus:outline-none border border-gray-200 shadow-md text-center">
+            <div class="flex items-center mb-4 justify-center">
+                <i class="bi bi-shield text-xl mr-2"></i>
+                <h3 class="text-lg font-semibold">Garantias</h3>
+            </div>
+            <div class="space-y-2">
+                <p><strong>Tipo:</strong> {{ contrato.get_garantia_display }}</p>
+                {% if contrato.garantia == 'FIADOR' %}
+                    <p><strong>Fiador:</strong> {{ contrato.fiador.nome }}</p>
+                {% elif contrato.garantia == 'CAUCAO' %}
+                    <p><strong>Valor Caução:</strong>  {{ contrato.valor_caucao|format_currency }}</p>
+                {% elif contrato.garantia == 'SEGURO_FIANCA' or contrato.garantia == 'CAPITALIZACAO' %}
+                    <p><strong>Seguradora:</strong> {{ contrato.seguradora }}</p>
+                    <p><strong>Apólice:</strong> {{ contrato.apolice }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Seguro Incêndio -->
+    <div class="flex flex-col flex-auto gap-6 mb-6">
+        <!-- Partes do Contrato -->
+        <div class="bg-gray p-6 rounded-lg focus:outline-none border border-gray-200 shadow-md text-center">
+            <div class="flex items-center mb-4 justify-center">
+                <i class="bi bi-file-text text-xl mr-2"></i>
+                <h3 class="text-lg font-semibold">Seguro Contra Incêndio</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <p><strong>Seguradora:</strong> {{ contrato.seguradora_incendio }}</p>
+                </div>
+                <div>
+                    <p><strong>Apólice:</strong> {{ contrato.apolice_incendio }}</p>
+                </div>
+                <div>
+                    <p><strong>Valor:</strong>  {{ contrato.valor_seguro_incendio|format_currency }}</p>
+                </div>
+                <div>
+                    <p><strong>Vencimento:</strong> {{ contrato.vencimento_seguro_incendio|date:"d/m/Y" }}</p>
+                </div>
+            </div>
+        </div>
+        
+    
+
+    
+        <div class="bg-gray p-6 rounded-lg focus:outline-none border border-gray-200 shadow-md text-center">
+            <div class="flex items-center mb-4 justify-center">
+                <i class="bi bi-cash-coin text-xl mr-2"></i>
+                <h3 class="text-lg font-semibold">Cobranças de Aluguéis</h3>
+            </div>
+            <table class="min-w-full bg-gray">
+                <thead>
+                    <tr>
+                        <th class="py-2 px-4 border-b">Valor Total</th>
+                        
+                        <th class="py-2 px-4 border-b">Data de Vencimento</th>
+                        <th class="py-2 px-4 border-b">Status do Pagamento</th>
+                        <th class="py-2 px-4 border-b">Status do Repasse</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cobranca in cobrancas %}
+                        <tr>
+                            <td class="py-2 px-4 border-b">{{ cobranca.valor_total|format_currency }}</td>
+                            
+                            <td class="py-2 px-4 border-b">{{ cobranca.data_vencimento|date:"d/m/Y" }}</td>
+                            <td class="py-2 px-4 border-b">
+                                <span class="px-2 py-1 rounded 
+                                    {% if cobranca.status_pagamento == 'PAGO' %}bg-green-100 text-green-800
+                                    {% elif cobranca.status_pagamento == 'PENDENTE' %}bg-yellow-100 text-yellow-800
+                                    {% elif cobranca.status_pagamento == 'ATRASADO' %}bg-red-100 text-red-800
+                                    {% endif %}">
+                                    {{ cobranca.get_status_pagamento_display }}
+                                </span>
+                            </td>
+                            <td class="py-2 px-4 border-b">
+                                <span class="px-2 py-1 rounded 
+                                    {% if cobranca.status_repasse == 'REPASSADO' %}bg-green-100 text-green-800
+                                    {% elif cobranca.status_repasse == 'PENDENTE' %}bg-yellow-100 text-yellow-800
+                                    {% endif %}">
+                                    {{ cobranca.get_status_repasse_display }}
+                                </span>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

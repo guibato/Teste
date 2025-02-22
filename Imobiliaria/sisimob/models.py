@@ -195,3 +195,13 @@ class Contrato(models.Model):
 
     def __str__(self):
         return f"Contrato {self.tipo_contrato} - {self.imovel}"
+    
+class Cobranca(models.Model):
+    contrato = models.ForeignKey(Contrato, on_delete=models.CASCADE)
+    valor = models.DecimalField(max_digits=10, decimal_places=2)
+    numero_referencia = models.CharField(max_length=10)
+    vencimento = models.DateField()
+    status = models.CharField(max_length=20, default='PENDENTE')
+
+    def __str__(self):
+        return f"Cobrança {self.numero_referencia} - {self.contrato.id}"

@@ -81,31 +81,28 @@
     </thead>
     <tbody>
         {% for contrato in page_obj %}
-        <tr class="border-b">
-            <td class="py-2 px-4">{{ contrato.id }}</td>
-            <td class="py-2 px-4">{{ contrato.proprietario.nome }}</td>
-            <td class="py-2 px-4">{{ contrato.inquilino.nome }}</td>
-            <td class="py-2 px-4">{{ contrato.imovel.endereco }}</td>
-            <td class="py-2 px-4">{{ contrato.data_inicio|date:"d/m/Y" }}</td>
-            <td class="py-2 px-4">
+        <tr>
+            <td>{{ contrato.id }}</td>
+            <td>{{ contrato.proprietario.nome }}</td>
+            <td>{{ contrato.inquilino.nome }}</td>
+            <td>{{ contrato.imovel.endereco }}</td>
+            <td>{{ contrato.data_inicio|date:"d/m/Y" }}</td>
+            <td>
                 {% if contrato.ativo %}
-                    <span class="text-green-600">Ativo</span>
+                    Ativo
                 {% else %}
-                    <span class="text-red-600">Inativo</span>
+                    Inativo
                 {% endif %}
             </td>
-            <td class="py-2 px-4">
-                <a href="{% url 'dashboard' contrato.id %}" class="text-green px-2 py-1 rounded hover:text-blue-700">Dashboard</a>
-                |
-                <a href="{% url 'editar_contrato' contrato.id %}" class="text-blue-500 hover:text-blue-700">Editar</a>
-                |
-                <a href="{% url 'excluir_contrato' contrato.id %}" class="text-red-500 hover:text-red-700">Excluir</a>
-                
+            <td>
+                <a href="{% url 'dashboard' contrato.id %}">Dashboard</a>
+                <a href="{% url 'editar_contrato' contrato.id %}">Editar</a>
+                <a href="{% url 'excluir_contrato' contrato.id %}">Excluir</a>
             </td>
         </tr>
         {% empty %}
         <tr>
-            <td colspan="7" class="py-4 text-center">Nenhum contrato encontrado.</td>
+            <td colspan="7">Nenhum contrato encontrado.</td>
         </tr>
         {% endfor %}
     </tbody>
