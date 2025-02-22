@@ -1,9 +1,15 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth import logout
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .forms import ClienteForm, ImovelForm, ContratoForm
-from .models import Cliente, Imovel, Contrato
+from .models import Cliente, Imovel, Contrato, Cobranca
+from django.views.generic import ListView
+from django.db.models import Q
+from django.contrib import messages
+from datetime import date
+from .forms import GerarCobrancasForm
+import pandas as pd
 
 def home(request):
     return render(request, 'imoveis/home.html')
@@ -69,9 +75,6 @@ def listar_imoveis(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request, 'imoveis/listar_imoveis.html', {'page_obj': page_obj})
-
-def listar_contratos(request):
-    return render(request, 'imoveis/listar_contratos.html')
 
 def editar_cliente(request, id):
     cliente = get_object_or_404(Cliente, id=id)  # Recupera o cliente pelo ID
@@ -144,95 +147,7 @@ taxa = limpar_valor("10,5%")  # 10.5
 def sucesso(request):
     return render(request, 'sucesso.html', {'mensagem': 'Contrato cadastrado com sucesso!'})
 
-from django.views.generic import ListView
-from django.db.models import Q
-from .models import Contrato
 
-class ListarContratosView(ListView):
-    model = Contrato
-    template_name = 'imoveis/listar_contratos.html'
-    paginate_by = 10
-    context_object_name = 'page_obj'
-
-    def get_queryset(self):
-        queryset = Contrato.objects.select_related(
-            'proprietario', 'inquilino', 'imovel'
-        ).all()
-
-        # Filtro por status
-        filtro_tipo = self.request.GET.get('filtro_tipo')
-        if filtro_tipo == 'ativo':
-            queryset = queryset.filter(ativo=True)
-        elif filtro_tipo == 'inativo':
-            queryset = queryset.filter(ativo=False)
-
-        # Busca por nome ou endereço
-        buscar = self.request.GET.get('buscar')
-        if buscar:
-            queryset = queryset.filter(
-                Q(proprietario__nome__icontains=buscar) |
-                Q(inquilino__nome__icontains=buscar) |
-                Q(imovel__endereco__icontains=buscar)
-            )
-
-        return queryset
-
-from django.shortcuts import redirect
-from django.contrib import messages
-from .models import Contrato, Cobranca
-from datetime import date
-
-def gerar_cobrancas(request):
-    if request.method == 'POST':
-        # Obter contratos ativos
-        contratos_ativos = Contrato.objects.filter(ativo=True).select_related(
-            'proprietario', 'inquilino', 'imovel'
-        )
-
-        cobrancas_geradas = 0
-        for contrato in contratos_ativos:
-            try:
-                # Gerar número de referência (ex: 0324 para março/2024)
-                mes = date.today().month
-                ano = date.today().year
-                num_referencia = f"{mes:02d}{ano % 100:02d}"
-
-                # Determinar o valor da cobrança
-                if contrato.tipo_pagamento == 'Pacote':
-                    valor_cobranca = contrato.valor_pacote
-                else:  # Despesas_Separadas
-                    valor_cobranca = (
-                        contrato.valor_aluguel +
-                        contrato.valor_condominio +
-                        contrato.valor_iptu +
-                        contrato.valor_outros
-                    )
-
-                # Criar ou atualizar a cobrança
-                Cobranca.objects.update_or_create(
-                    contrato=contrato,
-                    vencimento=date(ano, mes, contrato.dia_pagamento),
-                    defaults={
-                        'valor': valor_cobranca,
-                        'numero_referencia': num_referencia,
-                        'status': 'PENDENTE'
-                    }
-                )
-                cobrancas_geradas += 1
-
-            except Exception as e:
-                messages.error(
-                    request,
-                    f'Erro ao gerar cobrança para contrato {contrato.id}: {str(e)}'
-                )
-                continue
-
-        if cobrancas_geradas > 0:
-            messages.success(request, f'{cobrancas_geradas} cobranças geradas com sucesso!')
-        else:
-            messages.warning(request, 'Nenhuma nova cobrança foi gerada.')
-
-    return redirect('listar_contratos')
 
 def dashboard(request, contrato_id):
     contrato = Contrato.objects.get(id=contrato_id)
@@ -248,3 +163,106 @@ def excluir_contrato(request, contrato_id):
     contrato = Contrato.objects.get(id=contrato_id)
     contrato.delete()
     return redirect('listar_contratos')
+
+def gerar_cobrancas(request):
+
+    if request.method == 'POST':
+        form = GerarCobrancasForm(request.POST)
+        if form.is_valid():
+            mes = form.cleaned_data['mes']
+            ano = form.cleaned_data['ano']
+            
+            # Obter contratos ativos
+            contratos_ativos = Contrato.objects.filter(
+                ativo=True
+            ).select_related(
+                'proprietario',
+                'inquilino',
+                'imovel'
+            )
+            
+            cobrancas_geradas = 0
+            for contrato in contratos_ativos:
+                try:
+                    # Gerar número de referência no formato MMAA (ex: 0324 para março/2024)
+                    num_referencia = f"{mes:02d}{ano % 100:02d}"
+                    
+                    # Determinar o valor correto baseado no tipo de pagamento
+                    if contrato.tipo_pagamento == 'Pacote':
+                        valor_cobranca = contrato.valor_pacote
+                    else:  # Despesas_Separadas
+                        valor_cobranca = (
+                            contrato.valor_aluguel +
+                            contrato.valor_condominio +
+                            contrato.valor_iptu +
+                            contrato.valor_outros
+                        )
+                    
+                    # Criar ou atualizar a cobrança
+                    cobranca, created = Cobranca.objects.update_or_create(
+                        contrato=contrato,
+                        vencimento=date(ano, mes, contrato.dia_pagamento),
+                        defaults={
+                            'valor': valor_cobranca,
+                            'numero_referencia': num_referencia,
+                            'status': 'PENDENTE'
+                        }
+                    )
+                    
+                    if created:
+                        cobrancas_geradas += 1
+                
+                except Exception as e:
+                    messages.error(
+                        request, 
+                        f'Erro ao gerar cobrança para contrato {contrato.id} - {contrato.imovel}: {str(e)}'
+                    )
+                    continue
+            
+            if cobrancas_geradas > 0:
+                messages.success(request, f'{cobrancas_geradas} cobranças geradas com sucesso!')
+            else:
+                messages.warning(request, 'Nenhuma nova cobrança foi gerada.')
+            
+            return redirect('listar_contratos')
+        
+        else:
+            messages.error(request, 'Erro nos dados do formulário. Por favor, verifique os campos.')
+    
+    return redirect('listar_contratos')
+
+
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
+class ListarContratosView(ListView):
+    model = Contrato
+    template_name = 'imoveis/listar_contratos.html'
+    paginate_by = 10
+    context_object_name = 'page_obj'
+
+    def get_queryset(self):
+        queryset = Contrato.objects.prefetch_related('proprietario', 'inquilino', 'imovel').all()
+
+        # Aplicar filtros
+        filtro_tipo = self.request.GET.get('filtro_tipo')
+        buscar = self.request.GET.get('buscar')
+
+        if filtro_tipo == 'ativo':
+            queryset = queryset.filter(ativo=True)
+        elif filtro_tipo == 'inativo':
+            queryset = queryset.filter(ativo=False)
+
+        if buscar:
+            queryset = queryset.filter(
+                Q(proprietario__nome__icontains=buscar) |
+                Q(inquilino__nome__icontains=buscar) |
+                Q(imovel__endereco__icontains=buscar)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = GerarCobrancasForm()
+        print("Contexto:", context)  # Log para depuração
+        return context
