@@ -45,6 +45,7 @@ class ContratoForm(forms.ModelForm):
             'fator_reajuste': forms.Select(attrs={'class': 'form-control'}),
             'multa_contratual': forms.Select(attrs={'class': 'form-control'}),
             'carencia_dias': forms.NumberInput(attrs={'class': 'form-control'}),
+            'valor_iptu': forms.NumberInput(attrs={'step': '0.01'}),
         }
 
     def clean(self):
@@ -57,6 +58,11 @@ class ContratoForm(forms.ModelForm):
         if carencia is None:
             return 0  # Define como zero se estiver vazio
         return carencia
+    def clean_valor_iptu(self):
+        valor_iptu = self.cleaned_data.get('valor_iptu')
+        if valor_iptu is None:
+            return 0.00  # Define como zero se estiver vazio
+        return valor_iptu
 
 class GerarCobrancasForm(forms.Form):
     mes = forms.IntegerField(

@@ -150,8 +150,15 @@ def sucesso(request):
 
 
 def dashboard(request, contrato_id):
-    contrato = Contrato.objects.get(id=contrato_id)
-    return render(request, 'dashboard.html', {'contrato': contrato})
+    contrato = get_object_or_404(Contrato, id=contrato_id)
+    
+    # Logs para depuração
+    print("Valor do Aluguel:", contrato.valor_aluguel)
+    print("Condomínio:", contrato.valor_condominio)
+    print("IPTU:", contrato.valor_iptu)
+    print("Outros Valores:", contrato.valor_outros)
+    
+    return render(request, 'imoveis/dashboard.html', {'contrato': contrato})
 
 # Editar Contrato
 def editar_contrato(request, contrato_id):
