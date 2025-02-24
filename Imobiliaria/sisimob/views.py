@@ -10,6 +10,21 @@ from django.contrib import messages
 from datetime import date
 from .forms import GerarCobrancasForm
 import pandas as pd
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .utils import atualizar_indices_inflacao
+from .utils import atualizar_indices_inflacao
+
+@csrf_exempt
+def atualizar_indices_view(request):
+    if request.method == 'POST':
+        try:
+            atualizar_indices_inflacao()
+            return JsonResponse({"status": "success", "message": "Índices atualizados com sucesso."})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    else:
+        return JsonResponse({"status": "error", "message": "Método não permitido."}, status=405)
 
 def home(request):
     return render(request, 'imoveis/home.html')

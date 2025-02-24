@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 from .views import ListarContratosView
+from .views import atualizar_indices_view  # Importe a função aqui
+
 
 urlpatterns = [
     path('', views.home, name='home'),  # Rota para a página inicial
@@ -22,4 +24,6 @@ urlpatterns = [
     path('dashboard/<int:contrato_id>/', views.dashboard, name='dashboard'),
     path('editar_contrato/<int:contrato_id>/', views.editar_contrato, name='editar_contrato'),
     path('excluir_contrato/<int:contrato_id>/', views.excluir_contrato, name='excluir_contrato'),
+    path('atualizar-indices/', atualizar_indices_view, name='atualizar_indices'),
+
 ]

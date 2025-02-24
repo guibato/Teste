@@ -1,0 +1,1 @@
+from .inflacao import atualizar_indices_inflacao

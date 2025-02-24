@@ -206,3 +206,20 @@ class Cobranca(models.Model):
     
     class Meta:
         unique_together = ['contrato', 'vencimento']
+
+class IndiceInflacao(models.Model):
+    TIPO_INDICE_CHOICES = [
+        ('IPCA', 'IPC-A'),
+        ('IGPM', 'IGP-M'),
+    ]
+
+    tipo = models.CharField(max_length=10, choices=TIPO_INDICE_CHOICES, verbose_name="Tipo de Índice")
+    ano = models.IntegerField(verbose_name="Ano")
+    mes = models.IntegerField(verbose_name="Mês")
+    valor = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor (%)")
+
+    class Meta:
+        unique_together = ['tipo', 'ano', 'mes']  # Garante que não haja duplicatas para o mesmo mês/ano/tipo
+
+    def __str__(self):
+        return f"{self.tipo} - {self.ano}/{self.mes}: {self.valor}%"
