@@ -1,4 +1,14 @@
 from django.db import models
+from decimal import Decimal
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+from .rent_calculations import calcular_aluguel_projetado
+from decimal import Decimal
+from bson.decimal128 import Decimal128
+import logging
+from pymongo import MongoClient
+from django.conf import settings
+from dateutil.relativedelta import relativedelta
 
 class Cliente(models.Model):
     # Tipos de cliente
@@ -196,18 +206,128 @@ class Contrato(models.Model):
     def __str__(self):
         return f"Contrato {self.tipo_contrato} - {self.imovel}"
     
+    @property
+    def aluguel_projetado(self):
+    
+        logger = logging.getLogger(__name__)
+        
+        # Get base value
+        if hasattr(self, 'tipo_pagamento') and self.tipo_pagamento == 'Despesas_Separadas':
+            base_value = self.valor_aluguel
+        else:
+            base_value = getattr(self, 'valor_pacote', Decimal('0.00'))
+        
+        # Convert Decimal128 to Decimal if needed
+        if isinstance(base_value, Decimal128):
+            base_value = Decimal(str(base_value))
+        
+        # Define calculation period
+        data_inicio = self.data_inicio
+        data_fim_projecao = data_inicio + relativedelta(months=12)
+        
+        logger.info(f"Calculating projected rent for contract ID: {self.id}")
+        logger.info(f"Base value: {base_value}")
+        logger.info(f"Period: {data_inicio} to {data_fim_projecao}")
+        
+        try:
+            # Connect to MongoDB
+            mongo_uri = getattr(settings, 'MONGO_URI', 'mongodb://localhost:27017/')
+            mongo_db_name = getattr(settings, 'MONGO_DB_NAME', 'Palestra')
+            
+            mongo_client = MongoClient(mongo_uri)
+            db = mongo_client[mongo_db_name]
+            colecao_indices = db.sisimob_indiceinflacao
+            
+            # Get all IPCA indices
+            indices_periodo = list(colecao_indices.find({'tipo': self.fator_reajuste}))
+            logger.info(f"Found {len(indices_periodo)} IPCA indices")
+            
+            # No indices found
+            if not indices_periodo:
+                logger.warning("No indices found. Using simple 10% projection.")
+                return base_value * Decimal('1.10')
+            
+            # Organize indices by year and month
+            indices_por_mes = {}
+            for indice in indices_periodo:
+                if 'ano' in indice and 'mes' in indice:
+                    ano_mes = (indice['ano'], indice['mes'])
+                    
+                    if 'valor' in indice:
+                        # Handle different formats
+                        if isinstance(indice['valor'], dict) and '$numberDecimal' in indice['valor']:
+                            # MongoDB extended JSON format
+                            raw_value = indice['valor']['$numberDecimal']
+                        elif isinstance(indice['valor'], Decimal128):
+                            # MongoDB Decimal128
+                            raw_value = str(indice['valor'])
+                        else:
+                            # Other formats
+                            raw_value = str(indice['valor'])
+                        
+                        # Convert to Decimal
+                        try:
+                            indices_por_mes[ano_mes] = Decimal(raw_value)
+                            logger.info(f"Index for {ano_mes}: {indices_por_mes[ano_mes]}")
+                        except:
+                            logger.warning(f"Could not convert value: {raw_value}")
+            
+            # Calculate projected value
+            valor_projetado = base_value
+            data_atual = data_inicio
+            
+            while data_atual < data_fim_projecao:
+                ano_mes = (data_atual.year, data_atual.month)
+                if ano_mes in indices_por_mes:
+                    indice = indices_por_mes[ano_mes] / Decimal('100')
+                    logger.info(f"Applying index for {ano_mes}: {indice}")
+                    
+                    # Apply index
+                    valor_anterior = valor_projetado
+                    valor_projetado *= (Decimal('1') + indice)
+
+                    
+                    logger.info(f"Value before: {valor_anterior}, after: {valor_projetado}")
+                
+                # Move to next month
+                data_atual += relativedelta(months=1)
+            
+            # Round to 2 decimal places
+            return valor_projetado.quantize(Decimal('0.01'))
+        
+        except Exception as e:
+            # Log error and use simple calculation
+            logger.error(f"Error calculating projected rent: {e}", exc_info=True)
+            return base_value * Decimal('1.10')
+    
 class Cobranca(models.Model):
+    STATUS_CHOICES = [
+        ('PENDENTE', 'Pendente'),
+        ('PAGO', 'Pago'),
+        ('ATRASADO', 'Atrasado'),
+    ]
+    
+    REPASSE_CHOICES = [
+        ('PENDENTE', 'Pendente'),
+        ('REPASSADO', 'Repassado'),
+    ]
+    
     contrato = models.ForeignKey('Contrato', on_delete=models.CASCADE)
-    valor = models.DecimalField(max_digits=10, decimal_places=2)
-    vencimento = models.DateField()
-    status = models.CharField(max_length=20, default='PENDENTE')
+    valor_total = models.DecimalField(max_digits=10, decimal_places=2)
+    data_vencimento = models.DateField()
+    status_pagamento = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDENTE')
+    status_repasse = models.CharField(max_length=20, choices=REPASSE_CHOICES, default='PENDENTE')
     data_geracao = models.DateTimeField(auto_now_add=True)
     numero_referencia = models.CharField(max_length=20)  # Para armazenar "seu número"
     
     class Meta:
-        unique_together = ['contrato', 'vencimento']
+        unique_together = ['contrato', 'data_vencimento']
+        
+    def __str__(self):
+        return f"{self.contrato} - {self.data_vencimento}"
 
 class IndiceInflacao(models.Model):
+    
     TIPO_INDICE_CHOICES = [
         ('IPCA', 'IPC-A'),
         ('IGPM', 'IGP-M'),

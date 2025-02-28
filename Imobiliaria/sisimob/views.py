@@ -13,7 +13,10 @@ import pandas as pd
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .utils import atualizar_indices_inflacao
-from .utils import atualizar_indices_inflacao
+from decimal import Decimal
+from dateutil.relativedelta import relativedelta
+from bson.decimal128 import Decimal128
+from django.utils import timezone
 
 @csrf_exempt
 def atualizar_indices_view(request):
@@ -162,99 +165,104 @@ taxa = limpar_valor("10,5%")  # 10.5
 def sucesso(request):
     return render(request, 'sucesso.html', {'mensagem': 'Contrato cadastrado com sucesso!'})
 
-
-
 def dashboard(request, contrato_id):
+    # Obter o contrato pelo ID
     contrato = get_object_or_404(Contrato, id=contrato_id)
     
-    # Logs para depuração
-    print("Valor do Aluguel:", contrato.valor_aluguel)
-    print("Condomínio:", contrato.valor_condominio)
-    print("IPTU:", contrato.valor_iptu)
-    print("Outros Valores:", contrato.valor_outros)
+    # Resto do código que utiliza o contrato...
     
-    return render(request, 'imoveis/dashboard.html', {'contrato': contrato})
+    return render(request, 'imoveis/dashboard.html', {
+        'contrato': contrato,
+        # outras variáveis de contexto...
+    })
 
-# Editar Contrato
+def marcar_repasse(request, cobranca_id):
+    if request.method == 'POST':
+        cobranca = get_object_or_404(Cobranca, id=cobranca_id)
+        data_repasse = request.POST.get('data_repasse')
+        
+        if data_repasse:
+            try:
+                # Converter a string em data
+                data_repasse_dt = datetime.strptime(data_repasse, '%Y-%m-%d').date()
+                
+                # Atualizar a cobrança
+                cobranca.data_repasse = data_repasse_dt
+                cobranca.status = 'REPASSADO'  # Atualizar o status
+                cobranca.save()
+                
+                messages.success(request, f'Repasse da cobrança {cobranca.id} marcado para {data_repasse_dt.strftime("%d/%m/%Y")}.')
+            except ValueError:
+                messages.error(request, 'Formato de data inválido.')
+        else:
+            messages.error(request, 'Data de repasse não fornecida.')
+    
+    # Redirecionar de volta para o dashboard com os mesmos filtros
+    return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
+
 def editar_contrato(request, contrato_id):
     contrato = Contrato.objects.get(id=contrato_id)
     return render(request, 'editar_contrato.html', {'contrato': contrato})
 
-# Excluir Contrato
 def excluir_contrato(request, contrato_id):
     contrato = Contrato.objects.get(id=contrato_id)
     contrato.delete()
     return redirect('listar_contratos')
 
 def gerar_cobrancas(request):
-
     if request.method == 'POST':
-        form = GerarCobrancasForm(request.POST)
-        if form.is_valid():
-            mes = form.cleaned_data['mes']
-            ano = form.cleaned_data['ano']
-            
-            # Obter contratos ativos
-            contratos_ativos = Contrato.objects.filter(
-                ativo=True
-            ).select_related(
-                'proprietario',
-                'inquilino',
-                'imovel'
-            )
-            
-            cobrancas_geradas = 0
-            for contrato in contratos_ativos:
-                try:
-                    # Gerar número de referência no formato MMAA (ex: 0324 para março/2024)
-                    num_referencia = f"{mes:02d}{ano % 100:02d}"
-                    
-                    # Determinar o valor correto baseado no tipo de pagamento
-                    if contrato.tipo_pagamento == 'Pacote':
-                        valor_cobranca = contrato.valor_pacote
-                    else:  # Despesas_Separadas
-                        valor_cobranca = (
-                            contrato.valor_aluguel +
-                            contrato.valor_condominio +
-                            contrato.valor_iptu +
-                            contrato.valor_outros
-                        )
-                    
-                    # Criar ou atualizar a cobrança
-                    cobranca, created = Cobranca.objects.update_or_create(
-                        contrato=contrato,
-                        vencimento=date(ano, mes, contrato.dia_pagamento),
-                        defaults={
-                            'valor': valor_cobranca,
-                            'numero_referencia': num_referencia,
-                            'status': 'PENDENTE'
-                        }
-                    )
-                    
-                    if created:
-                        cobrancas_geradas += 1
-                
-                except Exception as e:
-                    messages.error(
-                        request, 
-                        f'Erro ao gerar cobrança para contrato {contrato.id} - {contrato.imovel}: {str(e)}'
-                    )
-                    continue
-            
-            if cobrancas_geradas > 0:
-                messages.success(request, f'{cobrancas_geradas} cobranças geradas com sucesso!')
-            else:
-                messages.warning(request, 'Nenhuma nova cobrança foi gerada.')
-            
+        mes = int(request.POST.get('mes'))
+        ano = int(request.POST.get('ano'))
+
+        # Validar mês e ano
+        if not (1 <= mes <= 12):
+            messages.error(request, 'Mês inválido. Deve estar entre 1 e 12.')
             return redirect('listar_contratos')
-        
-        else:
-            messages.error(request, 'Erro nos dados do formulário. Por favor, verifique os campos.')
-    
-    return redirect('listar_contratos')
+        if ano < 2000 or ano > 3000:
+            messages.error(request, 'Ano inválido.')
+            return redirect('listar_contratos')
 
+        data_inicio_mes = date(ano, mes, 1)
+        data_fim_mes = data_inicio_mes + relativedelta(months=1) - relativedelta(days=1)
 
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+        contratos = Contrato.objects.filter(
+            data_inicio__lte=data_fim_mes,
+            data_fim__gte=data_inicio_mes
+        )
+
+        for contrato in contratos:
+            def convert_decimal(value):
+                return value.to_decimal() if isinstance(value, Decimal128) else Decimal(value)
+
+            if contrato.tipo_pagamento == 'Despesas_Separadas':
+                valor_total = (
+                    convert_decimal(contrato.valor_aluguel) +
+                    convert_decimal(contrato.valor_condominio) +
+                    convert_decimal(contrato.valor_iptu) +
+                    convert_decimal(contrato.valor_outros)
+                )
+            else:
+                valor_total = convert_decimal(contrato.valor_pacote)
+
+            data_vencimento = data_inicio_mes.replace(day=contrato.dia_pagamento)
+
+            cobranca_existente = Cobranca.objects.filter(
+                contrato=contrato,
+                data_vencimento__year=ano,
+                data_vencimento__month=mes
+            ).first()
+
+            if not cobranca_existente:
+                CobrancaAluguel.objects.create(
+                    contrato=contrato,
+                    valor_total=valor_total,
+                    data_vencimento=data_vencimento,
+                    status_pagamento='PENDENTE',
+                    status_repasse='PENDENTE'
+                )
+
+        messages.success(request, 'Cobranças geradas com sucesso.')
+        return redirect('listar_contratos')
 
 class ListarContratosView(ListView):
     model = Contrato
@@ -285,6 +293,30 @@ class ListarContratosView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['form'] = GerarCobrancasForm()
+        
+        # Obter data atual para pré-selecionar o mês e ano no formulário
+        hoje = timezone.now().date()
+        mes_atual = hoje.month
+        ano_atual = hoje.year
+        
+        # Adicionar informações para o formulário de geração de cobranças
+        context['form'] = GerarCobrancasForm(initial={
+            'mes': mes_atual,
+            'ano': ano_atual
+        })
+        
+        # Adicionar opções de meses e anos para o formulário
+        context['meses'] = [
+            (1, 'Janeiro'), (2, 'Fevereiro'), (3, 'Março'), 
+            (4, 'Abril'), (5, 'Maio'), (6, 'Junho'),
+            (7, 'Julho'), (8, 'Agosto'), (9, 'Setembro'),
+            (10, 'Outubro'), (11, 'Novembro'), (12, 'Dezembro')
+        ]
+        
+        context['range_anos'] = range(ano_atual - 2, ano_atual + 3)  # 2 anos atrás e 3 anos à frente
+        context['mes_selecionado'] = mes_atual
+        context['ano_selecionado'] = ano_atual
+        
         print("Contexto:", context)  # Log para depuração
         return context
+    

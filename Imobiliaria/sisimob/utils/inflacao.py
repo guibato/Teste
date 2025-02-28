@@ -1,6 +1,7 @@
 import requests
 from datetime import datetime
 from sisimob.models import IndiceInflacao
+from django.apps import apps
 
 def obter_indices_api(tipo):
     """
@@ -78,6 +79,8 @@ def obter_indices_api(tipo):
         raise Exception(f"Erro ao obter os dados do {tipo}: Status Code {response.status_code}")
 
 def atualizar_indices_inflacao():
+
+    IndiceInflacao = apps.get_model('sisimob', 'IndiceInflacao')
     """
     Atualiza o banco de dados com os valores mensais do IPCA e IGP-M.
     """
@@ -110,3 +113,10 @@ def atualizar_indices_inflacao():
             print(f"Dados do {tipo} atualizados com sucesso.")
         except Exception as e:
             print(f"Erro ao atualizar os dados do {tipo}: {e}")
+
+import requests
+from datetime import datetime
+
+def obter_indices_api(tipo):
+    # Implementação da função (já fornecida anteriormente)
+    pass

@@ -19,11 +19,8 @@ urlpatterns = [
     path('editar-imovel/<int:id>/', views.editar_imovel, name='editar_imovel'),
     path('listar-imoveis/', views.listar_imoveis, name='listar_imoveis'),
     path('sucesso/', views.sucesso, name='sucesso'),
-    path('listar_contratos/', views.ListarContratosView.as_view(), name='listar_contratos'),  # Use a classe ListarContratosView
-    path('contratos/gerar-cobrancas/', views.gerar_cobrancas, name='gerar_cobrancas'),
-    path('dashboard/<int:contrato_id>/', views.dashboard, name='dashboard'),
-    path('editar_contrato/<int:contrato_id>/', views.editar_contrato, name='editar_contrato'),
-    path('excluir_contrato/<int:contrato_id>/', views.excluir_contrato, name='excluir_contrato'),
+    path('listar_contratos/', views.ListarContratosView.as_view(), name='listar_contratos'),
     path('atualizar-indices/', atualizar_indices_view, name='atualizar_indices'),
+    path('dashboard/<int:contrato_id>/', views.dashboard, name='dashboard'),    
 
 ]

@@ -64,23 +64,10 @@ class ContratoForm(forms.ModelForm):
             return 0.00  # Define como zero se estiver vazio
         return valor_iptu
 
+# forms.py
+from django import forms
+from django.utils import timezone
+
 class GerarCobrancasForm(forms.Form):
-    mes = forms.IntegerField(
-        min_value=1,
-        max_value=12,
-        required=True,
-        widget=forms.NumberInput(attrs={
-            'class': 'px-2 py-1 bg-gray-800 text-white border border-gray-700 rounded-md focus:outline-none focus:border-blue-500',
-            'placeholder': 'Mês (1-12)'
-        })
-    )
-    ano = forms.IntegerField(
-        min_value=2024,
-        max_value=2050,
-        required=True,
-        widget=forms.NumberInput(attrs={
-            'class': 'px-2 py-1 bg-gray-800 text-white border border-gray-700 rounded-md focus:outline-none focus:border-blue-500',
-            'placeholder': 'Ano'
-        })
-    )
-    
+    mes = forms.IntegerField(min_value=1, max_value=12, label="Mês")
+    ano = forms.IntegerField(min_value=2020, max_value=2050, label="Ano")

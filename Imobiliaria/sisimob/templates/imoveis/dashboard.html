@@ -42,7 +42,7 @@
                 <p><strong>Início</strong> {{ contrato.data_inicio|date:"d/m/Y" }}</p>
                 <p><strong>Término</strong> {{ contrato.data_fim|date:"d/m/Y" }}</p>
                 <p><strong>Indíce de Reajuste</strong> {{ contrato.fator_reajuste }}</p>
-                <p><strong>Aluguel Projetado:</strong> {{ contrato.aluguel_projetado }}</p>
+                <p><strong>Aluguel Projetado:</strong> <span class="currency-projected" data-value="{{ contrato.aluguel_projetado }}"></span></p>
             </div>
         </div>
     </div>
@@ -148,23 +148,21 @@
         <div class="bg-gray p-6 rounded-lg focus:outline-none border border-gray-200 shadow-md text-center">
             <div class="flex items-center mb-4 justify-center">
                 <i class="bi bi-cash-coin text-xl mr-2"></i>
-                <h3 class="text-lg font-semibold">Cobranças de Aluguéis</h3>
-            </div>
-            <table class="min-w-full bg-gray">
-                <thead>
-                    <tr>
-                        <th class="py-2 px-4 border-b">Valor Total</th>
-                        
-                        <th class="py-2 px-4 border-b">Data de Vencimento</th>
-                        <th class="py-2 px-4 border-b">Status do Pagamento</th>
-                        <th class="py-2 px-4 border-b">Status do Repasse</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for cobranca in cobrancas %}
+                <table class="w-full border-collapse">
+                    <thead>
                         <tr>
-                            <td class="py-2 px-4 border-b">{{ cobranca.valor_total }}</td>
-                            
+                            <th class="py-2 px-4 border-b">Valor Total</th>
+                            <th class="py-2 px-4 border-b">Data de Vencimento</th>
+                            <th class="py-2 px-4 border-b">Status Pagamento</th>
+                            <th class="py-2 px-4 border-b">Status Repasse</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td class="py-2 px-4 border-b">
+                                <span class="currency" data-value="{{ cobranca.valor_total }}"></span>
+                            </td>
                             <td class="py-2 px-4 border-b">{{ cobranca.data_vencimento|date:"d/m/Y" }}</td>
                             <td class="py-2 px-4 border-b">
                                 <span class="px-2 py-1 rounded 
@@ -184,12 +182,25 @@
                                 </span>
                             </td>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="py-2 px-4 border-b text-center">Nenhuma cobrança encontrada.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
         </div>
     </div>
 </div>
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -228,6 +239,18 @@
         if (totalElement) {
             totalElement.textContent = formatCurrency(total.toFixed(2)); // Formata o total
         }
+
+        const projectedElements = document.querySelectorAll('.currency-projected');
+        projectedElements.forEach(element => {
+        const rawValue = element.getAttribute('data-value');
+        if (rawValue) {
+            element.textContent = formatCurrency(rawValue);
+        } else {
+            element.textContent = 'R$ 0,00';
+        }
+        });
+
+
     });
 </script>
 {% endblock %}

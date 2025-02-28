@@ -87,7 +87,8 @@ DATABASES = {
         }
     }
 }
-
+MONGO_URI = 'mongodb://localhost:27017/'  # Ajuste conforme seu ambiente
+MONGO_DB_NAME = 'Palestra'
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators

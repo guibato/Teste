@@ -1,146 +1,112 @@
-
-
 {% extends 'imoveis/base.html' %}
 {% block content %}
-
-<!-- Título da Página -->
-<h1 class="text-2xl font-bold mb-4">Lista de Contratos</h1>
-
-<!-- Filtros -->
-<div class="flex flex-wrap items-center gap-4 mb-4">
-    <!-- Filtro de Tipo -->
-    <form method="GET" class="flex gap-2 items-center">
-        <select name="filtro_tipo" class="px-2 py-1 bg-gray-800 text-white border border-gray-700 rounded-md focus:outline-none focus:border-blue-500">
-            <option value="">Todos os tipos</option>
-            <option value="ativo" {% if request.GET.filtro_tipo == 'ativo' %}selected{% endif %}>Ativo</option>
-            <option value="inativo" {% if request.GET.filtro_tipo == 'inativo' %}selected{% endif %}>Inativo</option>
-        </select>
-        <!-- Campo de Busca -->
-        <input
-            type="text"
-            name="buscar"
-            placeholder="Buscar"
-            value="{{ request.GET.buscar }}"
-            class="px-2 py-1 bg-gray-800 text-white border border-gray-700 rounded-md focus:outline-none focus:border-blue-500"
-        />
-        <!-- Botão de Busca -->
-        <button type="submit" class="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-700 transition-colors">Buscar</button>
-    </form>
-
-    <!-- Formulário para Gerar Cobranças -->
-    <section class="flex items-center gap-4 bg-gray-900 text-white p-4 rounded-lg">
-        <form method="post" action="{% url 'gerar_cobrancas' %}" class="flex gap-4 items-center">
-            {% csrf_token %}
-            <!-- Campo Mês -->
-            <div class="flex flex-col">
-                <label for="{{ form.mes.id_for_label }}" class="text-sm font-medium mb-1"></label>
-                <input
-                    type="number"
-                    name="{{ form.mes.name }}"
-                    id="{{ form.mes.id_for_label }}"
-                    class="px-2 py-1 bg-gray-800 text-white border border-gray-700 rounded-md focus:outline-none focus:border-blue-500"
-                    placeholder="Ex: 2"
-                    required
-                />
-            </div>
-            <!-- Campo Ano -->
-            <div class="flex flex-col">
-                <label for="{{ form.ano.id_for_label }}" class="text-sm font-medium mb-1"></label>
-                <input
-                    type="number"
-                    name="{{ form.ano.name }}"
-                    id="{{ form.ano.id_for_label }}"
-                    class="px-2 py-1 bg-gray-800 text-white border border-gray-700 rounded-md focus:outline-none focus:border-blue-500"
-                    placeholder="Ex: 2025"
-                    required
-                />
-            </div>
-            <!-- Botão de Envio -->
-            <button
-                type="submit"
-                class="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-700 transition-colors"
-            >
-                Gerar Cobranças
+<div class="container mx-auto p-4">
+    <h1 class="text-3xl font-bold text-gray-100 mb-6">Lista de Contratos</h1>
+    
+    <!-- Filtros de busca -->
+    <div class="mb-6">
+        <form method="GET" class="flex gap-4">
+            <select name="filtro_tipo" class="bg-gray text-gray-900 p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Todos os tipos</option>
+                <option value="ativo" {% if request.GET.filtro_tipo == 'ativo' %}selected{% endif %}>Ativo</option>
+                <option value="inativo" {% if request.GET.filtro_tipo == 'inativo' %}selected{% endif %}>Inativo</option>
+            </select>
+            <input
+                type="text"
+                name="buscar"
+                placeholder="Buscar"
+                value="{{ request.GET.buscar }}"
+                class="bg-gray text-gray-900 p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button type="submit" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors">
+                Buscar
             </button>
         </form>
-    </section>
-</div>
-
-<!-- Lista de Contratos -->
-<table class="w-full bg-gray text-center rounded-lg">
-    <thead class="bg-gray">
-        <tr class="bg-gray">
-            <th class="py-2 px-4">ID</th>
-            <th class="py-2 px-4">Proprietário</th>
-            <th class="py-2 px-4">Inquilino</th>
-            <th class="py-2 px-4">Imóvel</th>
-            <th class="py-2 px-4">Data de Início</th>
-            <th class="py-2 px-4">Status</th>
-            <th class="py-2 px-4">Ações</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for contrato in page_obj %}
-        <tr>
-            <td>{{ contrato.id }}</td>
-            <td>{{ contrato.proprietario.nome }}</td>
-            <td>{{ contrato.inquilino.nome }}</td>
-            <td>{{ contrato.imovel.endereco }}</td>
-            <td>{{ contrato.data_inicio|date:"d/m/Y" }}</td>
-            <td>
-                {% if contrato.ativo %}
-                    Ativo
-                {% else %}
-                    Inativo
-                {% endif %}
-            </td>
-            <td>
-                <a href="{% url 'dashboard' contrato.id %}">Dashboard</a>
-                <a href="{% url 'editar_contrato' contrato.id %}">Editar</a>
-                <a href="{% url 'excluir_contrato' contrato.id %}">Excluir</a>
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="7">Nenhum contrato encontrado.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-<!-- Paginação -->
-<div class="mt-4 flex justify-center">
-    {% if page_obj.has_other_pages %}
-        <nav>
-            <ul class="flex gap-2">
-                {% if page_obj.has_previous %}
-                    <li>
-                        <a href="?page=1&filtro_tipo={{ request.GET.filtro_tipo }}&buscar={{ request.GET.buscar }}" class="bg-gray px-3 py-1 rounded">Primeira</a>
-                    </li>
-                    <li>
-                        <a href="?page={{ page_obj.previous_page_number }}&filtro_tipo={{ request.GET.filtro_tipo }}&buscar={{ request.GET.buscar }}" class="bg-gray px-3 py-1 rounded">Anterior</a>
-                    </li>
-                {% endif %}
-
-                {% for num in page_obj.paginator.page_range %}
-                    <li>
-                        <a href="?page={{ num }}&filtro_tipo={{ request.GET.filtro_tipo }}&buscar={{ request.GET.buscar }}" class="px-3 py-1 {% if page_obj.number == num %}bg-gray text-white{% else %}bg-gray{% endif %} rounded">{{ num }}</a>
-                    </li>
+    </div>
+    
+    <!-- Lista de Contratos -->
+    <div class="overflow-x-auto">
+        <table class="w-full bg-gray text-center rounded-lg">
+            <thead class="bg-gray">
+                <tr>
+                    <th class="px-4 py-2">ID</th>
+                    <th class="px-4 py-2">Proprietário</th>
+                    <th class="px-4 py-2">Inquilino</th>
+                    <th class="px-4 py-2">Imóvel</th>
+                    <th class="px-4 py-2">Data de Início</th>
+                    <th class="px-4 py-2">Status</th>
+                    <th class="px-4 py-2">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for contrato in page_obj %}
+                <tr class="border-b hover:bg-gray-700 text-center">
+                    <td class="px-4 py-2">{{ contrato.id }}</td>
+                    <td class="px-4 py-2">{{ contrato.proprietario.nome }}</td>
+                    <td class="px-4 py-2">{{ contrato.inquilino.nome }}</td>
+                    <td class="px-4 py-2">{{ contrato.imovel.endereco }}</td>
+                    <td class="px-4 py-2">{{ contrato.data_inicio|date:"d/m/Y" }}</td>
+                    <td class="px-4 py-2">
+                        {% if contrato.ativo %}
+                            Ativo
+                        {% else %}
+                            Inativo
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-2">
+                        <a href="{% url 'dashboard' contrato.id %}" class="text-blue-600 hover:text-blue-800 mr-2">Dashboard</a>
+                        <a href="{% url 'editar_contrato' contrato.id %}" class="text-blue-600 hover:text-blue-800 mr-2">Editar</a>
+                        <a href="{% url 'excluir_contrato' contrato.id %}" class="text-red-600 hover:text-red-800"
+                           onclick="return confirm('Tem certeza que deseja excluir este contrato?')">Excluir</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="px-4 py-2">Nenhum contrato encontrado.</td>
+                </tr>
                 {% endfor %}
-
-                {% if page_obj.has_next %}
-                    <li>
-                        <a href="?page={{ page_obj.next_page_number }}&filtro_tipo={{ request.GET.filtro_tipo }}&buscar={{ request.GET.buscar }}" class="bg-gray px-3 py-1 rounded">Próxima</a>
-                    </li>
-                    <li>
-                        <a href="?page={{ page_obj.paginator.num_pages }}&filtro_tipo={{ request.GET.filtro_tipo }}&buscar={{ request.GET.buscar }}" class="bg-gray px-3 py-1 rounded">Última</a>
-                    </li>
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Paginação -->
+    {% if page_obj.has_other_pages %}
+    <div class="mt-6 flex justify-center">
+        <div class="flex space-x-2">
+            {% if page_obj.has_previous %}
+            <a href="?page=1&filtro_tipo={{ request.GET.filtro_tipo }}&buscar={{ request.GET.buscar }}" 
+               class="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700">
+                Primeira
+            </a>
+            <a href="?page={{ page_obj.previous_page_number }}&filtro_tipo={{ request.GET.filtro_tipo }}&buscar={{ request.GET.buscar }}" 
+               class="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700">
+                Anterior
+            </a>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <span class="px-3 py-1 bg-blue-600 text-white rounded">{{ num }}</span>
+                {% else %}
+                    <a href="?page={{ num }}&filtro_tipo={{ request.GET.filtro_tipo }}&buscar={{ request.GET.buscar }}" 
+                       class="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700">
+                        {{ num }}
+                    </a>
                 {% endif %}
-            </ul>
-        </nav>
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&filtro_tipo={{ request.GET.filtro_tipo }}&buscar={{ request.GET.buscar }}" 
+               class="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700">
+                Próxima
+            </a>
+            <a href="?page={{ page_obj.paginator.num_pages }}&filtro_tipo={{ request.GET.filtro_tipo }}&buscar={{ request.GET.buscar }}" 
+               class="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700">
+                Última
+            </a>
+            {% endif %}
+        </div>
+    </div>
     {% endif %}
-
-
 </div>
-
 {% endblock %}
