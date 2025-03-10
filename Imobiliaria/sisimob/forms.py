@@ -1,7 +1,5 @@
 from django import forms
 from .models import Cliente, Imovel, Contrato
-from django.core.exceptions import ValidationError
-
 
 class ImovelForm(forms.ModelForm):
     class Meta:
@@ -31,7 +29,8 @@ class ClienteForm(forms.ModelForm):
             'anuente': forms.Select(),
             'estado_civil': forms.Select(attrs={'onchange': 'toggleRegimeCasamento()'}),
             'pix_modalidade': forms.Select(),
-            'pix_valor': forms.TextInput(),
+            'nacionalidade': forms.TextInput(attrs={'class': 'form-control'}),
+            'profissao': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
 class ContratoForm(forms.ModelForm):
@@ -46,6 +45,8 @@ class ContratoForm(forms.ModelForm):
             'multa_contratual': forms.Select(attrs={'class': 'form-control'}),
             'carencia_dias': forms.NumberInput(attrs={'class': 'form-control'}),
             'valor_iptu': forms.NumberInput(attrs={'step': '0.01'}),
+            'tipo_pagamento': forms.Select(attrs={'onchange': 'toggleAluguelFields()'}),
+            'documentos': forms.ClearableFileInput(),
         }
 
     def clean(self):
@@ -53,21 +54,85 @@ class ContratoForm(forms.ModelForm):
         # Validação adicional se necessário
         return cleaned_data
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Define os campos para os grupos "Pacote" e "Despesas"
+        self.fields['valor_aluguel'].widget.attrs['class'] = 'despesas-field'
+        self.fields['valor_condominio'].widget.attrs['class'] = 'despesas-field'
+        self.fields['valor_iptu'].widget.attrs['class'] = 'despesas-field'
+        self.fields['valor_outros'].widget.attrs['class'] = 'despesas-field'
+        self.fields['valor_pacote'].widget.attrs['class'] = 'pacote-field'
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo_pagamento = cleaned_data.get('tipo_pagamento')
+        
+        if tipo_pagamento == 'pacote':
+            valor_pacote = cleaned_data.get('valor_pacote')
+            if valor_pacote is None or valor_pacote <= 0:
+                self.add_error('valor_pacote', 'Este campo é obrigatório.')
+            # Define os campos de despesas como zero
+            cleaned_data['valor_aluguel'] = 0.00
+            cleaned_data['valor_condominio'] = 0.00
+            cleaned_data['valor_iptu'] = 0.00
+            cleaned_data['valor_outros'] = 0.00
+        elif tipo_pagamento == 'despesas_separadas':
+            valor_aluguel = cleaned_data.get('valor_aluguel')
+            if valor_aluguel is None or valor_aluguel <= 0:
+                self.add_error('valor_aluguel', 'Este campo é obrigatório.')
+            # Define o valor_pacote como zero
+            cleaned_data['valor_pacote'] = 0.00
+        
+        return cleaned_data
+
     def clean_carencia_dias(self):
         carencia = self.cleaned_data.get('carencia_dias')
         if carencia is None:
             return 0  # Define como zero se estiver vazio
         return carencia
+    
     def clean_valor_iptu(self):
         valor_iptu = self.cleaned_data.get('valor_iptu')
         if valor_iptu is None:
             return 0.00  # Define como zero se estiver vazio
         return valor_iptu
 
-# forms.py
-from django import forms
-from django.utils import timezone
+    def __init__(self, *args, **kwargs):
+        super(ContratoForm, self).__init__(*args, **kwargs)
+        
+        # Filtra os proprietários apenas para clientes do tipo "Proprietário(a)"
+        self.fields['proprietario'].queryset = Cliente.objects.filter(
+            tipo='Proprietario'  # Use o valor exato do campo 'tipo' no modelo Cliente
+        )
+        
+        # Filtra os inquilinos apenas para clientes do tipo "Inquilino(a)"
+        self.fields['inquilino'].queryset = Cliente.objects.filter(
+            tipo='Inquilino'  # Use o valor exato do campo 'tipo' no modelo Cliente
+        )
 
-class GerarCobrancasForm(forms.Form):
-    mes = forms.IntegerField(min_value=1, max_value=12, label="Mês")
-    ano = forms.IntegerField(min_value=2020, max_value=2050, label="Ano")
+class GerarCobrancasForm(forms.ModelForm):
+    class Meta:
+        model = Contrato
+        fields = '__all__'
+        widgets = {
+        }
+
+class BaseAutocompleteForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Campos que devem ter autocomplete
+        autocomplete_fields = {
+            'Cliente': ['nacionalidade', 'profissao', 'fiador'],
+            'Imovel': ['endereco', 'bairro', 'cidade'],
+            'Contrato': ['tipo', 'garantia', 'seguradora_incendio'],
+        }
+        
+        model_name = self._meta.model.__name__
+        if model_name in autocomplete_fields:
+            for field_name in autocomplete_fields[model_name]:
+                if field_name in self.fields:
+                    self.fields[field_name].widget.attrs.update({
+                        'class': 'autocomplete',
+                        'data-model': model_name.lower(),
+                        'data-field': field_name,
+                    })

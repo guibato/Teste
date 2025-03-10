@@ -1,12 +1,8 @@
 from django.contrib import admin
 from django.urls import path, include
-from django.conf import settings
-from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('sisimob.urls')),
-    ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # If you want to include urls from the sisimob app
+    path('', include('sisimob.urls')),  # Only include this if sisimob has its own urls.py
+]

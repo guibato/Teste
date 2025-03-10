@@ -21,6 +21,11 @@ urlpatterns = [
     path('sucesso/', views.sucesso, name='sucesso'),
     path('listar_contratos/', views.ListarContratosView.as_view(), name='listar_contratos'),
     path('atualizar-indices/', atualizar_indices_view, name='atualizar_indices'),
-    path('dashboard/<int:contrato_id>/', views.dashboard, name='dashboard'),    
-
+    path('dashboard/<int:contrato_id>/', views.dashboard, name='dashboard'),
+    path('contratos/editar/<int:contrato_id>/', views.editar_contrato, name='editar_contrato'),
+    path('listar-clientes/', views.listar_clientes, name='listar_clientes'),
+    path('listar-imoveis/', views.listar_imoveis, name='listar_imoveis'),
+    path('listar-contratos/', ListarContratosView.as_view(), name='listar_contratos'),
+    path('nacionalidade-autocomplete/', views.nacionalidade_autocomplete, name='nacionalidade-autocomplete'),
+    path('autocomplete/<str:model_name>/<str:field_name>/', views.autocomplete_field, name='autocomplete_field'),
 ]

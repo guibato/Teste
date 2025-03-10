@@ -103,5 +103,23 @@
             toggleFields();
         });
         </script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+        
+        <script>
+        $(document).ready(function() {
+            $('.autocomplete').each(function() {
+                const model = $(this).data('model');
+                const field = $(this).data('field');
+                const url = `/autocomplete/${model}/${field}/`;
+                
+                $(this).autocomplete({
+                    source: url,
+                    minLength: 2,
+                });
+            });
+        });
+        </script>
     
 {% endblock %}

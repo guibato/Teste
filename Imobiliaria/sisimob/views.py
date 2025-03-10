@@ -17,6 +17,26 @@ from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 from bson.decimal128 import Decimal128
 from django.utils import timezone
+from datetime import datetime
+from django.apps import apps
+from . import rent_calculations
+from .rent_calculations import calcular_aluguel_projetado
+
+def autocomplete_field(request, model_name, field_name):
+    query = request.GET.get('q', '')
+    Model = apps.get_model('sisimob', model_name)
+    suggestions = Model.objects.filter(
+        **{f"{field_name}__icontains": query}  # Ex.: "profissao__icontains": query
+    ).values_list(field_name, flat=True).distinct()
+    return JsonResponse(list(suggestions), safe=False)
+
+def nacionalidade_autocomplete(request):
+    query = request.GET.get('q', '')
+    suggestions = Cliente.objects.filter(
+        nacionalidade__icontains=query
+    ).values_list('nacionalidade', flat=True).distinct()
+    return JsonResponse(list(suggestions), safe=False)
+
 
 @csrf_exempt
 def atualizar_indices_view(request):
@@ -81,10 +101,15 @@ def cadastrar_contrato(request):
     return render(request, 'imoveis/cadastro_contrato.html', {'form': form})
 
 def listar_clientes(request):
-    clientes = Cliente.objects.all()
-    paginator = Paginator(clientes, 10)  # Exibe 10 clientes por página
+    # Consulta MongoEngine
+    clientes = Cliente.objects.all()  # Retorna todos os clientes
+    
+    # Paginação
+    paginator = Paginator(list(clientes), 10)  # Converta para lista
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    
+    # Renderiza o template
     return render(request, 'imoveis/listar_clientes.html', {'page_obj': page_obj})
 
 def listar_imoveis(request):
@@ -112,32 +137,24 @@ def editar_cliente(request, id):
     })
 
 def confirmar_exclusao(request, model_name, id):
-    # Mapeia o nome do modelo para a classe correspondente
     models = {
         'cliente': Cliente,
         'imovel': Imovel,
         'contrato': Contrato,
     }
-
-    # Verifica se o modelo existe no mapeamento
     if model_name not in models:
         messages.error(request, "Modelo inválido.")
         return redirect('home')
-
-    # Obtém o modelo e o objeto correspondente ao ID
     model_class = models[model_name]
     obj = get_object_or_404(model_class, id=id)
-
     if request.method == 'POST':
-        # Exclui o objeto e redireciona para a lista correspondente
         obj.delete()
-        messages.success(request, f"{model_name.capitalize()} excluído com sucesso.")
-        return redirect(f'listar_{model_name}s')  # Redireciona para a lista de clientes, imóveis ou contratos
-
-    # Renderiza a página de confirmação de exclusão
+        messages.success(request, f"{model_name.capitalize()} excluído(a) com sucesso.")
+        return redirect(f'listar_{model_name}s')
     return render(request, 'imoveis/confirmar_exclusao.html', {
-        'obj': obj,
         'model_name': model_name,
+        'obj': obj,
+        'plural_name': f"{model_name}s",  # Ex.: 'clientes', 'imoveis'
     })
 
 def editar_imovel(request, id):
@@ -165,15 +182,14 @@ taxa = limpar_valor("10,5%")  # 10.5
 def sucesso(request):
     return render(request, 'sucesso.html', {'mensagem': 'Contrato cadastrado com sucesso!'})
 
+# views.py
 def dashboard(request, contrato_id):
-    # Obter o contrato pelo ID
     contrato = get_object_or_404(Contrato, id=contrato_id)
-    
-    # Resto do código que utiliza o contrato...
+    aluguel_projetado = calcular_aluguel_projetado(contrato)
     
     return render(request, 'imoveis/dashboard.html', {
         'contrato': contrato,
-        # outras variáveis de contexto...
+        'aluguel_projetado': aluguel_projetado,
     })
 
 def marcar_repasse(request, cobranca_id):
@@ -201,13 +217,8 @@ def marcar_repasse(request, cobranca_id):
     return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
 
 def editar_contrato(request, contrato_id):
-    contrato = Contrato.objects.get(id=contrato_id)
-    return render(request, 'editar_contrato.html', {'contrato': contrato})
-
-def excluir_contrato(request, contrato_id):
-    contrato = Contrato.objects.get(id=contrato_id)
-    contrato.delete()
-    return redirect('listar_contratos')
+    contrato = get_object_or_404(Contrato, id=contrato_id)
+    return render(request, 'editar_contrato.html', {'contrato': contrato})  
 
 def gerar_cobrancas(request):
     if request.method == 'POST':
@@ -253,7 +264,7 @@ def gerar_cobrancas(request):
             ).first()
 
             if not cobranca_existente:
-                CobrancaAluguel.objects.create(
+                Cobranca.objects.create(
                     contrato=contrato,
                     valor_total=valor_total,
                     data_vencimento=data_vencimento,
