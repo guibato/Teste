@@ -72,6 +72,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Imobiliaria.wsgi.application'
 
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = '/static/'
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# Configurações de arquivos estáticos
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    "C:/Users/guilh/OneDrive/Pessoal/Documentos/GitHub/Teste/imobiliaria/sisimob/static",
+    
+]

@@ -21,6 +21,17 @@ from datetime import datetime
 from django.apps import apps
 from . import rent_calculations
 from .rent_calculations import calcular_aluguel_projetado
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from django.http import HttpResponse
+import io
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib.units import cm
+from django.conf import settings
+import os
+from PIL import Image
 
 def autocomplete_field(request, model_name, field_name):
     query = request.GET.get('q', '')
@@ -276,6 +287,7 @@ def gerar_cobrancas(request):
         return redirect('listar_contratos')
 
 class ListarContratosView(ListView):
+
     model = Contrato
     template_name = 'imoveis/listar_contratos.html'
     paginate_by = 10
@@ -330,4 +342,174 @@ class ListarContratosView(ListView):
         
         print("Contexto:", context)  # Log para depuração
         return context
+
+def registrar_pagamento(request, cobranca_id):
+    cobranca = get_object_or_404(Cobranca, id=cobranca_id)
+    if request.method == 'POST':
+        cobranca.status = 'paga'
+        cobranca.data_pagamento = timezone.now().date()
+        cobranca.save()
+        # Lógica para repasse (ex.: após pagamento, marcar como "pendente" para repasse)
+        cobranca.status_repasse = 'pendente'
+        cobranca.save()
+        messages.success(request, 'Pagamento registrado!')
+        return redirect('contrato_detail', contrato_id=cobranca.contrato.id)
     
+def registrar_repasse(request, cobranca_id):
+    cobranca = get_object_or_404(Cobranca, id=cobranca_id)
+    if request.method == 'POST':
+        cobranca.status_repasse = 'repassado'
+        cobranca.data_repasse = timezone.now().date()
+        cobranca.save()
+        messages.success(request, 'Repasse ao proprietário concluído!')
+        return redirect('contrato_detail', contrato_id=cobranca.contrato.id)
+    
+def cobranca_update(request, pk):
+    cobranca = get_object_or_404(Cobranca, pk=pk)
+    if request.method == 'POST':
+        form = CobrancaForm(request.POST, instance=cobranca)
+        if form.is_valid():
+            form.save()
+            return redirect('dashboard')  # Redirecione para a página desejada
+    else:
+        form = CobrancaForm(instance=cobranca)
+    return render(request, 'contratos/cobranca_form.html', {'form': form})
+
+def calcular_repasse(cobranca):
+    contrato = cobranca.contrato
+    valor_bruto = cobranca.valor
+
+    # Calcula a taxa de administração
+    if contrato.tipo_taxa == 'percentual':
+        taxa = valor_bruto * (contrato.valor_taxa_administracao_percentual / 100)
+    else:
+        taxa = contrato.valor_taxa_administracao_fixo or 0
+
+    # Valor líquido para o proprietário
+    valor_liquido = valor_bruto - taxa
+    return valor_liquido
+
+def pagar_cobranca(request, pk):
+    cobranca = get_object_or_404(Cobranca, pk=pk)
+    
+    if cobranca.status == 'paga':
+        messages.warning(request, "Esta cobrança já foi paga.")
+    else:
+        cobranca.status = 'paga'
+        cobranca.data_pagamento = timezone.now().date()  # Define a data de pagamento
+        cobranca.save()
+        messages.success(request, "Cobrança marcada como paga com sucesso!")
+    
+    return redirect('detalhes_contrato', contrato_id=cobranca.contrato.id)
+
+def repassar_valor(request, pk):
+    cobranca = get_object_or_404(Cobranca, pk=pk)
+    
+    if cobranca.status_repasse == 'repassado':
+        messages.warning(request, "Este valor já foi repassado.")
+    else:
+        cobranca.status_repasse = 'repassado'
+        cobranca.save()
+        messages.success(request, "Valor repassado com sucesso!")
+    
+    return redirect('detalhes_contrato', contrato_id=cobranca.contrato.id)
+
+def detalhes_contrato(request, contrato_id):
+    contrato = get_object_or_404(Contrato, id=contrato_id)
+    cobrancas = Cobranca.objects.filter(contrato=contrato)
+    return render(request, 'imoveis/detalhes_contrato.html', {
+        'contrato': contrato,
+        'cobrancas': cobrancas,
+    })
+
+
+def gerar_recibo_pagamento(request, pk):
+    cobranca = get_object_or_404(Cobranca, pk=pk)
+    
+    # Configuração do PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="recibo_pagamento_{cobranca.id}.pdf"'
+    
+    # Cria o PDF usando ReportLab
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    
+    # Função auxiliar para adicionar texto formatado
+    def draw_text(text, x, y, font_size=12, align='left'):
+        p.setFont("Helvetica", font_size)
+        if align == 'center':
+            p.drawCentredString(x, y, text)
+        else:
+            p.drawString(x, y, text)
+    
+    # Cabeçalho do Recibo - Logo
+    try:
+        from PIL import Image
+        logo_path = r"C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\sisimob\static\images\logo2.png"
+        if os.path.exists(logo_path):
+            # Obter dimensões originais da imagem
+            img = Image.open(logo_path)
+            img_width, img_height = img.size
+            
+            # Definir a largura máxima desejada
+            max_logo_width = 100  # Largura máxima em pontos
+            
+            # Calcular altura proporcional
+            aspect_ratio = img_height / img_width
+            logo_width = max_logo_width
+            logo_height = logo_width * aspect_ratio
+            
+            # Calcular posição para centralizar horizontalmente
+            x_position = (width - logo_width) / 2
+            y_position = height - logo_height - 1 * cm  # 1cm de margem superior
+            
+            # Desenhar a imagem com proporção mantida
+            p.drawImage(
+                logo_path,
+                x_position,
+                y_position,
+                width=logo_width,
+                height=logo_height,
+                preserveAspectRatio=True,  # Garantir que a proporção seja preservada
+                mask='auto'  # Configurar máscara para transparência
+            )
+            
+            # Ajustar a posição do título para começar logo abaixo do logo
+            title_position = y_position - 1 * cm
+    except Exception as e:
+        print(f"Erro ao carregar logo: {e}")
+        # Se falhar ao carregar logo, posicionar título no topo
+        title_position = height - 3 * cm
+    
+    # Título do Recibo
+    draw_text("Recibo de Pagamento", width / 2, title_position, font_size=16, align='center')
+    draw_text(f"Cobrança #{cobranca.id}", width / 2, title_position - 1 * cm, font_size=12, align='center')
+    
+    # Detalhes do Contrato
+    content_start = title_position - 2.5 * cm
+    
+    draw_text("Contrato:", 50, content_start, font_size=12)
+    draw_text(f"{cobranca.contrato.imovel.endereco}", 200, content_start, font_size=12)
+    
+    draw_text("Valor Pago:", 50, content_start - 1 * cm, font_size=12)
+    draw_text(f"R$ {cobranca.valor:.2f}", 200, content_start - 1 * cm, font_size=12)
+    
+    draw_text("Data de Pagamento:", 50, content_start - 2 * cm, font_size=12)
+    draw_text(f"{cobranca.data_pagamento.strftime('%d/%m/%Y') if cobranca.data_pagamento else 'N/A'}", 200, content_start - 2 * cm, font_size=12)
+    
+    draw_text("Status:", 50, content_start - 3 * cm, font_size=12)
+    draw_text("Pago", 200, content_start - 3 * cm, font_size=12)
+    
+    # Rodapé
+    draw_text("Este recibo foi gerado automaticamente pelo sistema.", 50, 50, font_size=10)
+    
+    # Finaliza o PDF
+    p.showPage()
+    p.save()
+    
+    # Retorna o PDF como resposta
+    pdf = buffer.getvalue()
+    buffer.close()
+    response.write(pdf)
+    return response

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Cliente, Imovel, Contrato
+from .models import Cliente, Imovel, Contrato, Cobranca
 
 class ImovelForm(forms.ModelForm):
     class Meta:
@@ -136,3 +136,8 @@ class BaseAutocompleteForm(forms.ModelForm):
                         'data-model': model_name.lower(),
                         'data-field': field_name,
                     })
+                    
+class CobrancaForm(forms.ModelForm):
+    class Meta:
+        model = Cobranca
+        fields = ['status', 'data_pagamento', 'valor']  # Campos que podem ser editados

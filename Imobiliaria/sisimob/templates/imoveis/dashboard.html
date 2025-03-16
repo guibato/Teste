@@ -1,9 +1,12 @@
+
+
 {% extends 'imoveis/base.html' %}
 {% load l10n %}
 {% load static %}
-<script src="{% static 'js/bundle.js' %}" defer></script>
-{% block content %}
 
+<script src="{% static 'js/bundle.js' %}" defer></script>
+
+{% block content %}
 <div class="container mx-auto p-4">
     <!-- Cabeçalho -->
     <div class="bg-gray text-white p-6 rounded-lg mb-6">
@@ -12,22 +15,11 @@
 
     <!-- Informações Principais -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <!-- Partes do Contrato -->
-        <div class="bg-gray p-6 rounded-lg focus:outline-none border border-gray-200 shadow-md text-center">
-            <div class="flex items-center mb-4 justify-center">
-                <i class="bi bi-house text-xl mr-2"></i>
-                <h3 class="text-lg font-semibold">Imóvel</h3>
-            </div>
-            <p>{{ contrato.imovel }}</p>
-        </div>
-
         <!-- Imóvel -->
-        <div class="bg-gray p-6 rounded-lg focus:outline-none border border-gray-200 shadow-md text-center">
-            <div class="flex items-center mb-4 justify-center">
-                <i class="bi bi-people text-xl mr-2"></i>
-                <h3 class="text-lg font-semibold">Partes do Contrato</h3>
-            </div>
+        <div class="bg-gray p-6 rounded-lg focus:outline-none border border-gray-200 shadow-md text-center justify-center">
+
             <div class="space-y-2">
+                <p><strong>Imóvel:</strong>{{ contrato.imovel }}</p>
                 <p><strong>Proprietário:</strong> {{ contrato.proprietario.nome }}</p>
                 <p><strong>Inquilino:</strong> {{ contrato.inquilino.nome }}</p>
             </div>
@@ -40,12 +32,12 @@
                 <h3 class="text-lg font-semibold">Vigência</h3>
             </div>
             <div class="space-y-2">
-                <p><strong>Início</strong> {{ contrato.data_inicio|date:"d/m/Y" }}</p>
-                <p><strong>Término</strong> {{ contrato.data_fim|date:"d/m/Y" }}</p>
-                <p><strong>Indíce de Reajuste</strong> {{ contrato.fator_reajuste }}</p>
+                <p><strong>Início:</strong> {{ contrato.data_inicio|date:"d/m/Y" }}</p>
+                <p><strong>Término:</strong> {{ contrato.data_fim|date:"d/m/Y" }}</p>
+                <p><strong>Índice de Reajuste:</strong> {{ contrato.fator_reajuste }}</p>
                 <p>
                     <strong>Aluguel Projetado:</strong>
-                    R$ {{ aluguel_projetado }}
+                    <span class="currency" data-value="{{ aluguel_projetado }}">{{ aluguel_projetado|floatformat:2 }}</span>
                 </p>
             </div>
         </div>
@@ -64,38 +56,35 @@
                     {% if contrato.valor_aluguel > 0 %}
                         <p>
                             <strong>Valor do Aluguel:</strong>
-                            <span class="currency" data-value="{{ contrato.valor_aluguel }}">{{ contrato.valor_aluguel|floatformat:2 }}</span>
+                            <span class="currency-relevant" data-value="{{ contrato.valor_aluguel }}">{{ contrato.valor_aluguel|floatformat:2 }}</span>
                         </p>
                     {% endif %}
-                    
                     {% if contrato.valor_condominio > 0 %}
                         <p>
                             <strong>Condomínio:</strong>
-                            <span class="currency" data-value="{{ contrato.valor_condominio }}">{{ contrato.valor_condominio|floatformat:2 }}</span>
+                            <span class="currency-relevant" data-value="{{ contrato.valor_condominio }}">{{ contrato.valor_condominio|floatformat:2 }}</span>
                         </p>
                     {% endif %}
-                    
                     {% if contrato.valor_iptu > 0 %}
                         <p>
                             <strong>IPTU:</strong>
-                            <span class="currency" data-value="{{ contrato.valor_iptu }}">{{ contrato.valor_iptu|floatformat:2 }}</span>
+                            <span class="currency-relevant" data-value="{{ contrato.valor_iptu }}">{{ contrato.valor_iptu|floatformat:2 }}</span>
                         </p>
                     {% endif %}
-                    
                     {% if contrato.valor_outros > 0 %}
                         <p>
                             <strong>Outros Valores:</strong>
-                            <span class="currency" data-value="{{ contrato.valor_outros }}">{{ contrato.valor_outros|floatformat:2 }}</span>
+                            <span class="currency-relevant" data-value="{{ contrato.valor_outros }}">{{ contrato.valor_outros|floatformat:2 }}</span>
                         </p>
                     {% endif %}
-                    {% else %}
-                        {% if contrato.valor_pacote > 0 %}
-                            <p>
-                                <strong>Pacote:</strong>
-                                <span class="currency" data-value="{{ contrato.valor_pacote }}">{{ contrato.valor_pacote|floatformat:2 }}</span>
-                            </p>
-                        {% endif %}
+                {% else %}
+                    {% if contrato.valor_pacote > 0 %}
+                        <p>
+                            <strong>Pacote:</strong>
+                            <span class="currency-relevant" data-value="{{ contrato.valor_pacote }}">{{ contrato.valor_pacote|floatformat:2 }}</span>
+                        </p>
                     {% endif %}
+                {% endif %}
             </div>
             
             <!-- Total dos Valores -->
@@ -126,8 +115,11 @@
                 {% if contrato.garantia == 'FIADOR' %}
                     <p><strong>Fiador:</strong> {{ contrato.fiador.nome }}</p>
                 {% elif contrato.garantia == 'CAUCAO' %}
-                    <p><strong>Valor Caução:</strong>  {{ contrato.valor_caucao }}</p>
-                {% elif contrato.garantia == 'SEGURO_FIANCA' or contrato.garantia == 'CAPITALIZACAO' %}
+                    <p><strong>Valor Caução:</strong> {{ contrato.valor_caucao }}</p>
+                {% elif contrato.garantia == 'SEGURO_FIANCA' %}
+                    <p><strong>Seguradora:</strong> {{ contrato.seguradora }}</p>
+                    <p><strong>Apólice:</strong> {{ contrato.apolice }}</p>
+                {% elif contrato.garantia == 'CAPITALIZACAO' %}
                     <p><strong>Seguradora:</strong> {{ contrato.seguradora }}</p>
                     <p><strong>Apólice:</strong> {{ contrato.apolice }}</p>
                 {% endif %}
@@ -135,9 +127,8 @@
         </div>
     </div>
 
-    <!-- Seguro Incêndio -->
+    <!-- Seguro Contra Incêndio -->
     <div class="flex flex-col flex-auto gap-6 mb-6">
-        <!-- Partes do Contrato -->
         <div class="bg-gray p-6 rounded-lg focus:outline-none border border-gray-200 shadow-md text-center">
             <div class="flex items-center mb-4 justify-center">
                 <i class="bi bi-file-text text-xl mr-2"></i>
@@ -151,64 +142,70 @@
                     <p><strong>Apólice:</strong> {{ contrato.apolice_incendio }}</p>
                 </div>
                 <div>
-                    <p><strong>Valor:</strong>  {{ contrato.valor_seguro_incendio }}</p>
+                    <p><strong>Valor:</strong> {{ contrato.valor_seguro_incendio }}</p>
                 </div>
                 <div>
                     <p><strong>Vencimento:</strong> {{ contrato.vencimento_seguro_incendio|date:"d/m/Y" }}</p>
                 </div>
             </div>
         </div>
-        
-    
 
-    
+        <!-- Cobranças -->
         <div class="bg-gray p-6 rounded-lg focus:outline-none border border-gray-200 shadow-md text-center">
             <div class="flex items-center mb-4 justify-center">
                 <i class="bi bi-cash-coin text-xl mr-2"></i>
-                <table class="w-full border-collapse">
+                <table class="w-full border-collapse text-center">
                     <thead>
                         <tr>
-                            <th class="py-2 px-4 border-b">Valor Total</th>
-                            <th class="py-2 px-4 border-b">Data de Vencimento</th>
-                            <th class="py-2 px-4 border-b">Status Pagamento</th>
-                            <th class="py-2 px-4 border-b">Status Repasse</th>
+                            <th>Valor Total</th>
+                            <th>Data de Vencimento</th>
+                            <th>Status Pagamento</th>
+                            <th>Data de Pagamento</th>
+                            <th>Status Repasse</th>
+                            <th>Data de Repasse</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for item in items %}
+                        {% for cobranca in contrato.cobranca_set.all %}
                         <tr>
-                            <td class="py-2 px-4 border-b">
-                                <span class="currency" data-value="{{ cobranca.valor_total }}"></span>
+                            <td><span class="currency-relevant" data-value="{{ cobranca.valor }}">{{ cobranca.valor|floatformat:2 }}</span></td>
+                            <td>{{ cobranca.data_vencimento|date:"d/m/Y" }}</td>
+                            <td>{{ cobranca.get_status_display }}</td>
+                            <td>
+                                {% if cobranca.data_pagamento %}
+                                    {{ cobranca.data_pagamento|date:"d/m/Y" }}
+                                {% else %}
+                                    -
+                                {% endif %}
                             </td>
-                            <td class="py-2 px-4 border-b">{{ cobranca.data_vencimento|date:"d/m/Y" }}</td>
-                            <td class="py-2 px-4 border-b">
-                                <span class="px-2 py-1 rounded 
-                                    {% if cobranca.status_pagamento == 'PAGO' %}bg-green-100 text-green-800
-                                    {% elif cobranca.status_pagamento == 'PENDENTE' %}bg-yellow-100 text-yellow-800
-                                    {% elif cobranca.status_pagamento == 'ATRASADO' %}bg-red-100 text-red-800
-                                    {% endif %}">
-                                    {{ cobranca.get_status_pagamento_display }}
-                                </span>
+                            <td>{{ cobranca.get_status_repasse_display }}</td>
+                            <td>
+                                {% if cobranca.data_repasse %}
+                                    {{ cobranca.data_repasse|date:"d/m/Y" }}
+                                {% else %}
+                                    -
+                                {% endif %}
                             </td>
-                            <td class="py-2 px-4 border-b">
-                                <span class="px-2 py-1 rounded 
-                                    {% if cobranca.status_repasse == 'REPASSADO' %}bg-green-100 text-green-800
-                                    {% elif cobranca.status_repasse == 'PENDENTE' %}bg-yellow-100 text-yellow-800
-                                    {% endif %}">
-                                    {{ cobranca.get_status_repasse_display }}
-                                </span>
+                            <td>
+                                {% if cobranca.status == 'pendente' %}
+                                    <a href="{% url 'pagar_cobranca' pk=cobranca.id %}" class="bg-green-500 text-white px-2 py-1 rounded">Pagar</a>
+                                {% endif %}
+                                <a href="{% url 'gerar_recibo_pagamento' pk=cobranca.id %}" class="bg-blue-500 text-white px-2 py-1 rounded">Gerar Recibo</a>
+                                {% if cobranca.status_repasse == 'pendente' %}
+                                    <a href="{% url 'repasse_valor' pk=cobranca.id %}" class="bg-purple-500 text-white px-2 py-1 rounded">Repasse</a>
+                                {% endif %}
                             </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="4" class="py-2 px-4 border-b text-center">Nenhuma cobrança encontrada.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- Mensagens de Feedback -->
 {% if messages %}
 <div class="messages">
     {% for message in messages %}
@@ -219,55 +216,87 @@
 </div>
 {% endif %}
 
+<!-- Script para Formatação de Moeda -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Função para formatar valor em moeda brasileira
-        function formatCurrency(value) {
-            if (!value || value === '') return 'R$ 0,00'; // Trata valores nulos ou vazios
-            value = value.replace(/\D/g, ''); // Remove todos os caracteres não numéricos
-            value = (parseInt(value) / 100).toFixed(2); // Converte para número e divide por 100
-            return new Intl.NumberFormat('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-            }).format(value);
-        }
-
-        // Encontra todos os elementos com a classe "currency"
-        const currencyElements = document.querySelectorAll('.currency');
-        let total = 0;
-
-        currencyElements.forEach(element => {
-            const rawValue = element.getAttribute('data-value'); // Obtém o valor bruto
-            console.log("Valor Bruto:", rawValue); // Log para depuração
-
-            if (rawValue) {
-                const numericValue = parseFloat(rawValue); // Converte para número
-                console.log("Valor Numérico:", numericValue); // Log para depuração
-
-                total += numericValue; // Soma ao total
-                element.textContent = formatCurrency(rawValue); // Formata e exibe o valor
-            } else {
-                element.textContent = 'R$ 0,00'; // Valor padrão para campos vazios
+    // Função para formatar valor em moeda brasileira
+    function formatCurrency(value) {
+        // Converte para número, garantindo que seja um número válido
+        let numericValue = 0;
+        if (value !== null && value !== undefined && value !== '') {
+            // Remove qualquer formatação existente (R$, pontos, vírgulas)
+            if (typeof value === 'string') {
+                value = value.replace(/[^\d,.]/g, '').replace('.', '').replace(',', '.');
             }
-        });
-
-        // Exibe o total formatado
-        const totalElement = document.getElementById('total-valor');
-        if (totalElement) {
-            totalElement.textContent = formatCurrency(total.toFixed(2)); // Formata o total
+            numericValue = parseFloat(value);
+            if (isNaN(numericValue)) {
+                numericValue = 0;
+            }
         }
+        
+        // Formata com duas casas decimais fixas
+        // Primeiro converte para string com 2 casas decimais
+        let formattedValue = numericValue.toFixed(2);
+        
+        // Depois substitui ponto por vírgula para o formato brasileiro
+        formattedValue = formattedValue.replace('.', ',');
+        
+        // Adiciona separadores de milhar
+        if (formattedValue.indexOf(',') > 3) {
+            let parts = formattedValue.split(',');
+            let integerPart = parts[0];
+            let decimalPart = parts[1];
+            
+            // Adiciona pontos como separadores de milhar
+            integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            
+            formattedValue = integerPart + ',' + decimalPart;
+        }
+        
+        // Adiciona o prefixo R$
+        return 'R$ ' + formattedValue;
+    }
 
-        const projectedElements = document.querySelectorAll('.currency-projected');
-        projectedElements.forEach(element => {
+    // Processa todos os elementos com classe currency ou currency-relevant
+    const allCurrencyElements = document.querySelectorAll('.currency, .currency-relevant');
+    allCurrencyElements.forEach(element => {
+        const rawValue = element.getAttribute('data-value');
+        element.textContent = formatCurrency(rawValue);
+    });
+    
+    // Calcula o total apenas dos elementos relevantes
+    let total = 0;
+    const relevantElements = document.querySelectorAll('.currency-relevant');
+    relevantElements.forEach(element => {
         const rawValue = element.getAttribute('data-value');
         if (rawValue) {
-            element.textContent = formatCurrency(rawValue);
-        } else {
-            element.textContent = 'R$ 0,00';
+            const numericValue = parseFloat(rawValue.replace(',', '.'));
+            if (!isNaN(numericValue)) {
+                total += numericValue;
+            }
         }
-        });
-
-
     });
+    
+    // Atualiza o elemento de total
+    const totalElement = document.getElementById('total-valor');
+    if (totalElement) {
+        totalElement.textContent = formatCurrency(total);
+    }
+    
+    // Verifica se há algum elemento não formatado e adiciona log para debug
+    console.log('Total calculado:', total);
+    console.log('Total formatado:', formatCurrency(total));
+    
+    // Verifica novamente todos os elementos para garantir que todos estão formatados
+    document.querySelectorAll('.currency, .currency-relevant').forEach(el => {
+        if (!el.textContent.includes('R$') || !el.textContent.includes(',')) {
+            console.warn('Elemento não formatado corretamente:', el);
+            console.log('Valor original:', el.getAttribute('data-value'));
+            console.log('Texto atual:', el.textContent);
+            // Tenta formatar novamente
+            el.textContent = formatCurrency(el.getAttribute('data-value'));
+        }
+    });
+});
 </script>
 {% endblock %}

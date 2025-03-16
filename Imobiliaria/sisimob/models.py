@@ -170,6 +170,21 @@ class Contrato(models.Model):
     def __str__(self):
         return f"Contrato {self.id} - {self.imovel.endereco}"
     
+    def valor_taxa_administracao(self):
+        if self.tipo_taxa == 'percentual':
+            return (self.valor_aluguel * (self.valor_taxa_administracao_percentual / 100))
+        else:
+            return self.valor_taxa_administracao_fixo or 0
+
+    def valor_aluguel_com_reajuste(self, mes_ano):
+        # Lógica de reajuste com base no índice de inflação (ex.: IPCA)
+        # Exemplo simplificado:
+        indice = IndiceInflacao.objects.filter(
+            tipo=self.fator_reajuste,
+            data_referencia__lte=mes_ano
+        ).latest('data_referencia')
+        return self.valor_aluguel * (1 + (indice.valor / 100))
+    
 class Cobranca(models.Model):
     STATUS_CHOICES = [
         ('pendente', 'Pendente'),
@@ -177,20 +192,35 @@ class Cobranca(models.Model):
         ('atrasada', 'Atrasada'),
         ('cancelada', 'Cancelada'),
     ]
-
+    STATUS_REPASSE_CHOICES = [  # Novo campo para status de repasse
+        ('pendente', 'Pendente'),
+        ('repassado', 'Repassado'),
+        ('cancelado', 'Cancelado'),
+    ]
+    
     contrato = models.ForeignKey(Contrato, on_delete=models.CASCADE)
     mes_referencia = models.IntegerField()
     ano_referencia = models.IntegerField()
     data_vencimento = models.DateField()
     valor = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pendente')
+    status_repasse = models.CharField(  # Status do repasse ao proprietário
+        max_length=10, 
+        choices=STATUS_REPASSE_CHOICES, 
+        default='pendente'
+    )
     data_pagamento = models.DateField(null=True, blank=True)
-
+    data_repasse = models.DateField(null=True, blank=True)  # Data do repasse
+    STATUS_REPASSE_CHOICES = [
+        ('pendente', 'Pendente'),
+        ('repassado', 'Repassado'),
+    ]
+    status_repasse = models.CharField(max_length=10, choices=STATUS_REPASSE_CHOICES, default='pendente')
+    data_pagamento = models.DateField(null=True, blank=True, verbose_name="Data de Pagamento")
+    data_repasse = models.DateField(null=True, blank=True, verbose_name="Data de Repasse")
+    
     class Meta:
-        ordering = ['-ano_referencia', '-mes_referencia']
-
-    def __str__(self):
-        return f"Cobrança {self.mes_referencia}/{self.ano_referencia} - {self.contrato.imovel.endereco}"
+        unique_together = [['contrato', 'mes_referencia', 'ano_referencia']]  # Evita duplicação
 
 class IndiceInflacao(models.Model):
     tipo = models.CharField(max_length=50, verbose_name="Nome do Índice")

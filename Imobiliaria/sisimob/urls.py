@@ -2,7 +2,8 @@ from django.urls import path
 from . import views
 from .views import ListarContratosView
 from .views import atualizar_indices_view  # Importe a função aqui
-
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('', views.home, name='home'),  # Rota para a página inicial
@@ -28,4 +29,18 @@ urlpatterns = [
     path('listar-contratos/', ListarContratosView.as_view(), name='listar_contratos'),
     path('nacionalidade-autocomplete/', views.nacionalidade_autocomplete, name='nacionalidade-autocomplete'),
     path('autocomplete/<str:model_name>/<str:field_name>/', views.autocomplete_field, name='autocomplete_field'),
+    path(
+        'cobrancas/<int:pk>/update/',
+        views.cobranca_update,
+        name='cobranca_update'  # Nome da URL deve ser EXATAMENTE 'cobranca_update'
+    ),
+    path('cobranca/<int:pk>/pagar/', views.pagar_cobranca, name='pagar_cobranca'),
+    path('cobranca/<int:pk>/recibo/', views.gerar_recibo_pagamento, name='gerar_recibo_pagamento'),
+    path('cobranca/<int:pk>/repasse/', views.repassar_valor, name='repasse_valor'),
+    path('contrato/<int:contrato_id>/', views.detalhes_contrato, name='detalhes_contrato'),
+
+
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
