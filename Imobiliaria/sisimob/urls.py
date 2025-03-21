@@ -4,6 +4,8 @@ from .views import ListarContratosView
 from .views import atualizar_indices_view  # Importe a função aqui
 from django.conf import settings
 from django.conf.urls.static import static
+from .views import listar_indices_inflacao
+from .views import gerar_extrato_rendimento
 
 urlpatterns = [
     path('', views.home, name='home'),  # Rota para a página inicial
@@ -37,10 +39,10 @@ urlpatterns = [
     path('cobranca/<int:pk>/pagar/', views.pagar_cobranca, name='pagar_cobranca'),
     path('cobranca/<int:pk>/recibo/', views.gerar_recibo_pagamento, name='gerar_recibo_pagamento'),
     path('cobranca/<int:pk>/repasse/', views.repassar_valor, name='repasse_valor'),
-    path('contrato/<int:contrato_id>/', views.detalhes_contrato, name='detalhes_contrato'),
-
+    path('contrato/<int:contrato_id>/', views.dashboard, name='detalhes_contrato'),
+    path('cadastro_cobrancas/', views.cadastro_cobrancas, name='cadastro_cobrancas'),
+    path('cobrancas/<int:pk>/atualizar-datas/', views.atualizar_datas_cobranca, name='atualizar_datas_cobranca'),
+    path('indices-inflacao/', listar_indices_inflacao, name='listar_indices_inflacao'),
+    path('extrato-rendimento/<int:contrato_id>/', gerar_extrato_rendimento, name='gerar_extrato_rendimento'),
 
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

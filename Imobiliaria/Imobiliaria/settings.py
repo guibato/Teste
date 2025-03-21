@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'sisimob',
     'imobiliaria',
+    'django.contrib.humanize',
 ]
 
 MIDDLEWARE = [

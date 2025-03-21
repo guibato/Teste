@@ -32,6 +32,7 @@ from reportlab.lib.units import cm
 from django.conf import settings
 import os
 from PIL import Image
+from django.urls import reverse
 
 def autocomplete_field(request, model_name, field_name):
     query = request.GET.get('q', '')
@@ -193,15 +194,55 @@ taxa = limpar_valor("10,5%")  # 10.5
 def sucesso(request):
     return render(request, 'sucesso.html', {'mensagem': 'Contrato cadastrado com sucesso!'})
 
-# views.py
+from django.shortcuts import render, get_object_or_404
+from .models import Contrato, Cobranca
+from decimal import Decimal
+
 def dashboard(request, contrato_id):
     contrato = get_object_or_404(Contrato, id=contrato_id)
-    aluguel_projetado = calcular_aluguel_projetado(contrato)
+    # Calcula o Aluguel Projetado
+    aluguel_projetado = contrato.calcular_aluguel_projetado()
+    print(f"Aluguel Projetado: {aluguel_projetado}")  # Log para depuração
     
-    return render(request, 'imoveis/dashboard.html', {
+    # Verifica os valores dos campos do contrato
+    print(f"Valor Aluguel: {contrato.valor_aluguel}")
+    print(f"Valor Condomínio: {contrato.valor_condominio}")
+    print(f"Valor IPTU: {contrato.valor_iptu}")
+    print(f"Valor Outros: {contrato.valor_outros}")
+    print(f"Taxa de Administração: {contrato.valor_taxa_administracao()}")
+    
+    # Filtra as cobranças com base nos parâmetros da URL (ano e status)
+    ano_filtro = request.GET.get('ano')
+    status_filtro = request.GET.get('status')
+    cobrancas = contrato.cobrancas.all().order_by('ano_referencia', 'mes_referencia')
+    if ano_filtro:
+        cobrancas = cobrancas.filter(ano_referencia=ano_filtro)
+    if status_filtro:
+        cobrancas = cobrancas.filter(status=status_filtro)
+    
+    # Calcula o total
+    total = contrato.valor_aluguel + contrato.valor_condominio + contrato.valor_iptu + contrato.valor_outros
+    print(f"Total Calculado: {total}")  # Log para depuração
+    
+    context = {
         'contrato': contrato,
         'aluguel_projetado': aluguel_projetado,
-    })
+        'cobrancas': cobrancas,
+        'total': total,  # Adiciona o total ao contexto
+    }
+    return render(request, 'imoveis/dashboard.html', context)
+
+def listar_indices_inflacao(request):
+    indices = IndiceInflacao.objects.all().order_by('data_referencia')
+    data = [
+        {
+            'tipo': indice.tipo,
+            'valor': float(indice.valor),
+            'data_referencia': indice.data_referencia.strftime('%Y-%m-%d')
+        }
+        for indice in indices
+    ]
+    return JsonResponse(data, safe=False)
 
 def marcar_repasse(request, cobranca_id):
     if request.method == 'POST':
@@ -231,60 +272,70 @@ def editar_contrato(request, contrato_id):
     contrato = get_object_or_404(Contrato, id=contrato_id)
     return render(request, 'editar_contrato.html', {'contrato': contrato})  
 
-def gerar_cobrancas(request):
+def cadastro_cobrancas(request):
+    # Obtém os contratos ativos
+    contratos = Contrato.objects.filter(ativo=True)
+
+    # Dados para o formulário
+    meses = [
+        {'numero': i, 'nome': datetime(2023, i, 1).strftime('%B')} for i in range(1, 13)
+    ]
+    ano_atual = datetime.now().year
+
     if request.method == 'POST':
-        mes = int(request.POST.get('mes'))
-        ano = int(request.POST.get('ano'))
+        mes_referencia = int(request.POST.get('mes_referencia'))
+        ano_referencia = int(request.POST.get('ano_referencia'))
 
-        # Validar mês e ano
-        if not (1 <= mes <= 12):
-            messages.error(request, 'Mês inválido. Deve estar entre 1 e 12.')
-            return redirect('listar_contratos')
-        if ano < 2000 or ano > 3000:
-            messages.error(request, 'Ano inválido.')
-            return redirect('listar_contratos')
-
-        data_inicio_mes = date(ano, mes, 1)
-        data_fim_mes = data_inicio_mes + relativedelta(months=1) - relativedelta(days=1)
-
-        contratos = Contrato.objects.filter(
-            data_inicio__lte=data_fim_mes,
-            data_fim__gte=data_inicio_mes
+        # Verifica se as cobranças já existem
+        cobrancas_existentes = Cobranca.objects.filter(
+            mes_referencia=mes_referencia,
+            ano_referencia=ano_referencia
         )
 
+        if cobrancas_existentes.exists():
+            messages.warning(request, "As cobranças para este período já foram geradas. Elas serão atualizadas.")
+        else:
+            messages.success(request, "Cobranças geradas com sucesso!")
+
+        # Gera ou atualiza as cobranças
         for contrato in contratos:
-            def convert_decimal(value):
-                return value.to_decimal() if isinstance(value, Decimal128) else Decimal(value)
+            dia_pagamento = contrato.dia_pagamento
+            data_vencimento = f"{ano_referencia}-{mes_referencia:02d}-{dia_pagamento:02d}"
+            valor = contrato.calcular_valor_total()
 
-            if contrato.tipo_pagamento == 'Despesas_Separadas':
-                valor_total = (
-                    convert_decimal(contrato.valor_aluguel) +
-                    convert_decimal(contrato.valor_condominio) +
-                    convert_decimal(contrato.valor_iptu) +
-                    convert_decimal(contrato.valor_outros)
-                )
-            else:
-                valor_total = convert_decimal(contrato.valor_pacote)
-
-            data_vencimento = data_inicio_mes.replace(day=contrato.dia_pagamento)
-
-            cobranca_existente = Cobranca.objects.filter(
+            Cobranca.objects.update_or_create(
                 contrato=contrato,
-                data_vencimento__year=ano,
-                data_vencimento__month=mes
-            ).first()
+                mes_referencia=mes_referencia,
+                ano_referencia=ano_referencia,
+                defaults={
+                    'data_vencimento': data_vencimento,
+                    'valor': valor,
+                    'status': 'pendente'
+                }
+            )
 
-            if not cobranca_existente:
-                Cobranca.objects.create(
-                    contrato=contrato,
-                    valor_total=valor_total,
-                    data_vencimento=data_vencimento,
-                    status_pagamento='PENDENTE',
-                    status_repasse='PENDENTE'
-                )
+        # Redireciona para listar as cobranças geradas
+        return redirect(reverse('cadastro_cobrancas') + f'?mes={mes_referencia}&ano={ano_referencia}')
 
-        messages.success(request, 'Cobranças geradas com sucesso.')
-        return redirect('listar_contratos')
+    # Filtra as cobranças pelo mês e ano selecionados
+    mes_selecionado = request.GET.get('mes')
+    ano_selecionado = request.GET.get('ano')
+
+    if mes_selecionado and ano_selecionado:
+        cobrancas = Cobranca.objects.filter(
+            mes_referencia=int(mes_selecionado),
+            ano_referencia=int(ano_selecionado)
+        )
+    else:
+        cobrancas = []
+
+    context = {
+        'meses': meses,
+        'ano_atual': ano_atual,
+        'cobrancas': cobrancas,
+    }
+
+    return render(request, 'imoveis/cadastro_cobrancas.html', context)
 
 class ListarContratosView(ListView):
 
@@ -424,6 +475,7 @@ def detalhes_contrato(request, contrato_id):
 
 
 def gerar_recibo_pagamento(request, pk):
+
     cobranca = get_object_or_404(Cobranca, pk=pk)
     
     # Configuração do PDF
@@ -507,6 +559,278 @@ def gerar_recibo_pagamento(request, pk):
     # Finaliza o PDF
     p.showPage()
     p.save()
+    
+    # Retorna o PDF como resposta
+    pdf = buffer.getvalue()
+    buffer.close()
+    response.write(pdf)
+    return response
+
+def atualizar_datas_cobranca(request, pk):
+    cobranca = get_object_or_404(Cobranca, id=pk)
+
+    if request.method == 'POST':
+        data_pagamento = request.POST.get('data_pagamento')
+        data_repasse = request.POST.get('data_repasse')
+
+        # Atualiza a data de pagamento
+        if data_pagamento:
+            cobranca.data_pagamento = data_pagamento
+            cobranca.status = 'paga'  # Define o status como "Paga"
+
+        # Atualiza a data de repasse
+        if data_repasse:
+            cobranca.data_repasse = data_repasse
+            cobranca.status_repasse = 'repassado'  # Define o status como "Repasse Realizado"
+
+        cobranca.save()
+        messages.success(request, "As datas foram atualizadas com sucesso!")
+
+    return redirect(reverse('dashboard', args=[cobranca.contrato.id]))
+
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from reportlab.lib.pagesizes import letter, portrait
+from reportlab.lib.units import cm, mm
+from reportlab.lib.colors import black, gray, lightgrey, HexColor
+from reportlab.platypus import Table, TableStyle, SimpleDocTemplate, Paragraph, Spacer, Image
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT, TA_JUSTIFY
+from reportlab.pdfgen import canvas
+from .models import Contrato, Cobranca
+from datetime import date
+from decimal import Decimal
+import io
+import os
+
+def gerar_extrato_rendimento(request, contrato_id):
+    contrato = get_object_or_404(Contrato, id=contrato_id)
+    cobrancas = contrato.cobrancas.filter(status='paga').order_by('ano_referencia', 'mes_referencia')
+    
+    # Configuração do PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="extrato_rendimento_contrato_{contrato.id}.pdf"'
+    
+    # Cria o PDF usando ReportLab
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=portrait(letter), 
+                         leftMargin=1.5*cm, rightMargin=1.5*cm,
+                         topMargin=1.5*cm, bottomMargin=1.5*cm)
+    elements = []
+    
+    # Função auxiliar para formatar valores monetários
+    def format_currency(value):
+        if value == 0:
+            return "R$ 0,00"
+        return f'R$ {value:,.2f}'.replace('.', 'X').replace(',', '.').replace('X', ',')
+    
+    # Estilos de texto
+    styles = getSampleStyleSheet()
+    
+    # Estilo para título principal
+    title_style = ParagraphStyle(
+        'Title',
+        parent=styles['Heading1'],
+        fontSize=14,
+        alignment=TA_CENTER,
+        spaceAfter=0.2*cm
+    )
+    
+    # Estilo para subtítulo
+    subtitle_style = ParagraphStyle(
+        'Subtitle',
+        parent=styles['Heading2'],
+        fontSize=12,
+        alignment=TA_CENTER,
+        spaceAfter=0.5*cm,
+        textColor=HexColor('#000000')
+    )
+    
+    # Estilo para texto normal
+    normal_style = ParagraphStyle(
+    'Normal',
+    parent=styles['Normal'],
+    fontSize=10,
+    alignment=TA_LEFT,
+    spaceAfter=0.2*cm,
+    leftIndent=0  # Remove left indent
+    )
+    
+    # Estilo para cabeçalho de seção
+    section_style = ParagraphStyle(
+        'Section',
+        parent=styles['Heading3'],
+        fontSize=11,
+        alignment=TA_LEFT,
+        spaceAfter=0.2*cm,
+        textColor=HexColor('#000000')
+    )
+    
+    
+    logo_path = r"C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\sisimob\static\images\logo2.png"
+    logo = Image(logo_path, width=5*cm, height=2*cm, kind='proportional')
+    elements.append(logo)
+
+    
+    elements.append(Spacer(1, 0.3 * cm))
+    
+    # Adicionar cabeçalho
+    elements.append(Paragraph("<b>COMPROVANTE ANUAL DE RENDIMENTOS DE ALUGUÉIS</b>", title_style))
+    ano_atual = date.today().year
+    elements.append(Paragraph(f"<b>Ano-calendário: {ano_atual-1}</b>", subtitle_style))
+    elements.append(Spacer(1, 0.3 * cm))
+
+    # Dados do imóvel
+    
+    endereco = f"{contrato.imovel.endereco}"
+    if hasattr(contrato.imovel, 'numero') and contrato.imovel.numero:
+        endereco += f", {contrato.imovel.numero}"
+    if hasattr(contrato.imovel, 'complemento') and contrato.imovel.complemento:
+        endereco += f" - {contrato.imovel.complemento}"
+    if hasattr(contrato.imovel, 'bairro') and contrato.imovel.bairro:
+        endereco += f" - {contrato.imovel.bairro}"
+
+    imovel_data = [
+        [f"<b>Número do contrato:</b> {contrato.id}", f"<b>Início do contrato:</b> {contrato.data_inicio.strftime('%d/%m/%Y')}", f"<b>Tipo do imóvel:</b> Urbano"],
+    ]
+
+    # Add address row with colspan
+    endereco_row = [[f"<b>Endereço do imóvel:</b> {endereco}"]]
+    imovel_data.extend(endereco_row)
+
+    # Add location data row
+    imovel_data.append([f"<b>UF:</b> {contrato.imovel.estado}", f"<b>Município:</b> {contrato.imovel.cidade}", f"<b>CEP:</b> {contrato.imovel.cep}"])
+
+    # Create table with appropriate widths
+    imovel_table = Table(
+        [[Paragraph(cell, normal_style) for cell in row] for row in imovel_data], 
+        colWidths=[6*cm, 6*cm, 6*cm]
+    )
+
+    # Set table style with proper spans
+    imovel_table.setStyle(TableStyle([
+    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+    ('LEFTPADDING', (0, 0), (-1, -1), 0),  # Remove left padding
+    ('TOPPADDING', (0, 0), (-1, -1), 1),
+    ('BOTTOMPADDING', (0, 0), (-1, -1), 1),
+    ('SPAN', (0, 1), (2, 1)),  # This spans all columns for the address row
+    ]))
+    
+    elements.append(imovel_table)
+    elements.append(Spacer(1, 0.5 * cm))
+
+
+    
+    # Informações da imobiliária
+    elements.append(Paragraph("<b>CNPJ da Administradora do imóvel (Imobiliária):</b> 55.507.744/0001-99", normal_style))
+    elements.append(Paragraph("<b>Nome:</b> Palestra Imóveis", normal_style))
+    elements.append(Paragraph("<b>Endereço:</b> Rua Serra de Bragança, 1814, Vila Gomes Cardim, São Paulo-SP, CEP 03318-000", normal_style))
+    elements.append(Spacer(1, 0.5 * cm))
+    
+    
+    
+    
+    
+    # Informações do locador e locatário
+    elements.append(Paragraph("<b>Locador:</b> " + contrato.proprietario.nome + " - CPF: ", normal_style))
+    elements.append(Paragraph("<b>Locatário:</b> " + contrato.inquilino.nome + " - CPF: ", normal_style))
+    elements.append(Spacer(1, 0.5 * cm))
+    
+    # Tabela de valores mensais com coluna de meses
+    meses = {
+        1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril', 
+        5: 'Maio', 6: 'Junho', 7: 'Julho', 8: 'Agosto', 
+        9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'
+    }
+    
+    # Inicializar cabeçalho da tabela
+    header = ["Mês", "Rendimento Bruto", "Valor Comissão", "Imposto Retido"]
+    data = [header]
+    
+    # Inicializar valores
+    valores_por_mes = {mes: [0, 0, 0] for mes in range(1, 13)}
+    
+    # Preencher com os valores das cobranças
+    for cobranca in cobrancas:
+        mes = cobranca.mes_referencia
+        valores_por_mes[mes][0] = cobranca.valor  # Valor do aluguel
+        valores_por_mes[mes][1] = contrato.valor_taxa_administracao()  # Taxa de administração
+        valores_por_mes[mes][2] = 0  # Imposto retido (não usado no exemplo, mas mantido para o layout)
+    
+    # Adicionar linha por mês
+    total_aluguel = 0
+    total_taxa = 0
+    total_imposto = 0
+    
+    # Modify the mês/ano row generation to remove the year
+    for mes_num in range(1, 13):
+        mes_nome = f"{meses[mes_num]}"  # Removed /{ano_atual-1}
+        aluguel = valores_por_mes[mes_num][0]
+        taxa = valores_por_mes[mes_num][1]
+        imposto = valores_por_mes[mes_num][2]
+        
+        total_aluguel += aluguel
+        total_taxa += taxa
+        total_imposto += imposto
+        
+        row = [
+            mes_nome,
+            format_currency(aluguel),
+            format_currency(taxa),
+            format_currency(imposto)
+        ]
+        data.append(row)
+    
+    # Adicionar linha de totais
+    data.append([
+        "TOTAL", 
+        format_currency(total_aluguel), 
+        format_currency(total_taxa), 
+        format_currency(total_imposto)
+    ])
+    
+    # Criar tabela de valores
+    valores_table = Table(data, colWidths=[4*cm, 5*cm, 5*cm, 4*cm])
+    
+    # Estilo da tabela
+    valores_style = TableStyle([
+    # Cabeçalho
+    ('BACKGROUND', (0, 0), (-1, 0), HexColor('#f2f2f2')),
+    ('TEXTCOLOR', (0, 0), (-1, 0), black),
+    ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+    ('FONTSIZE', (0, 0), (-1, 0), 10),
+    
+    # Bordas
+    ('GRID', (0, 0), (-1, -1), 0.5, black),
+    ('BOX', (0, 0), (-1, -1), 1, black),
+    
+    # Center all cells
+    ('ALIGN', (0, 1), (-1, -1), 'CENTER'),
+    
+    # Destacar a linha de totais
+    ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+    ('BACKGROUND', (0, -1), (-1, -1), HexColor('#f2f2f2')),
+    ])
+    
+    valores_table.setStyle(valores_style)
+    elements.append(valores_table)
+    elements.append(Spacer(1, 0.5 * cm))
+    
+    # Nota de atenção (como no modelo)
+    atencao_style = ParagraphStyle(
+        'Atencao',
+        parent=styles['Normal'],
+        fontSize=9,
+        alignment=TA_JUSTIFY,
+        spaceAfter=0.2*cm
+    )
+    
+    elements.append(Paragraph("<b>Atenção:</b>", atencao_style))
+    elements.append(Paragraph("Para a inclusão na Declaração do Imposto de Renda da Pessoa Física - DIRPF dos rendimentos informados neste documento, certifique-se de que os mesmos não constam de outro comprovante emitido pela fonte pagadora.", atencao_style))
+    
+    # Gera o PDF
+    doc.build(elements)
     
     # Retorna o PDF como resposta
     pdf = buffer.getvalue()
