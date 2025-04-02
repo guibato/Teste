@@ -9,94 +9,40 @@
     </div>
 
     <!-- Formulário para Gerar Cobranças -->
-    <div class="bg-gray p-6 rounded-lg focus:outline-none border border-gray-200 shadow-md text-center mb-6">
+    <div class="bg-gray p-6 rounded-lg border border-gray-200 shadow-md text-center mb-6">
         <form method="post" action="{% url 'cadastro_cobrancas' %}">
             {% csrf_token %}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <!-- Mês de Referência -->
                 <div>
                     <label for="mes_referencia" class="block font-medium">Mês de Referência</label>
                     <select name="mes_referencia" id="mes_referencia" class="w-full p-2 border rounded text-gray-700" required>
                         {% for mes in meses %}
-                        <option value="{{ mes.numero }}">{{ mes.nome }}</option>
+                        <option value="{{ mes.numero }}" {% if mes.numero == mes_atual %}selected{% endif %}>{{ mes.nome }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <!-- Ano de Referência -->
                 <div>
                     <label for="ano_referencia" class="block font-medium">Ano de Referência</label>
-                    <input type="number" name="ano_referencia" id="ano_referencia" value="{{ ano_atual }}" class="w-full p-2 border rounded text-gray-700" required>
+                    <input type="number" name="ano_referencia" id="ano_referencia" min="2000" max="2100" value="{{ ano_atual }}" class="w-full p-2 border rounded text-gray-700" required>
                 </div>
             </div>
             <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Gerar Cobranças</button>
         </form>
     </div>
 
-    <!-- Lista de Cobranças Geradas -->
-    {% if cobrancas %}
-    <div class="bg-gray p-6 rounded-lg focus:outline-none border border-gray-200 shadow-md text-center">
-        <h3 class="text-lg font-semibold mb-4">Cobranças Geradas</h3>
-        <table class="w-full border-collapse">
-            <thead>
-                <tr>
-                    <th class="py-2 px-4 border-b">Contrato</th>
-                    <th class="py-2 px-4 border-b">Valor</th>
-                    <th class="py-2 px-4 border-b">Data de Vencimento</th>
-                    <th class="py-2 px-4 border-b">Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for cobranca in cobrancas %}
-                <tr>
-                    <td class="py-2 px-4 border-b">{{ cobranca.contrato.imovel }}</td>
-                    <td class="py-2 px-4 border-b currency-relevant" data-value="{{ cobranca.valor }}">{{ cobranca.valor|floatformat:2 }}</td>
-                    <td class="py-2 px-4 border-b">{{ cobranca.data_vencimento|date:"d/m/Y" }}</td>
-                    <td class="py-2 px-4 border-b">{{ cobranca.get_status_display }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% else %}
-    <p class="text-center text-gray-500">Nenhuma cobrança encontrada para este período.</p>
-    {% endif %}
+
 </div>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Função para formatar valor em moeda brasileira
         function formatCurrency(value) {
-            if (!value || value === '') return 'R$ 0,00'; // Trata valores nulos ou vazios
-            const numericValue = parseFloat(value.replace(',', '.')); // Converte para número decimal
-            if (isNaN(numericValue)) return 'R$ 0,00'; // Retorna zero se o valor não for numérico
-            return new Intl.NumberFormat('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-            }).format(numericValue); // Formata o valor como moeda
+            const numericValue = Number(value);
+            return isNaN(numericValue) ? 'R$ 0,00' : numericValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         }
 
-        // Processa todos os elementos com classe "currency-relevant"
-        const currencyElements = document.querySelectorAll('.currency-relevant');
-        let total = 0;
-        currencyElements.forEach(element => {
-            const rawValue = element.getAttribute('data-value'); // Obtém o valor bruto
-            if (rawValue) {
-                const numericValue = parseFloat(rawValue.replace(',', '.')); // Converte para número decimal
-                if (!isNaN(numericValue)) {
-                    total += numericValue; // Soma ao total
-                    element.textContent = formatCurrency(rawValue); // Formata e exibe o valor
-                } else {
-                    element.textContent = 'R$ 0,00'; // Valor padrão para campos inválidos
-                }
-            } else {
-                element.textContent = 'R$ 0,00'; // Valor padrão para campos vazios
-            }
+        document.querySelectorAll('.currency').forEach(element => {
+            const rawValue = element.getAttribute('data-value');
+            element.textContent = formatCurrency(rawValue);
         });
-
-        // Exibe o total formatado
-        const totalElement = document.getElementById('total-valor');
-        if (totalElement) {
-            totalElement.textContent = formatCurrency(total.toFixed(2)); // Formata o total
-        }
     });
 </script>
 {% endblock %}

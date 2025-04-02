@@ -36,6 +36,10 @@ def obter_indices_api(tipo):
     """
     if tipo == 'IPCA':
         periodos_str = gerar_periodos_iniciais()
+        
+        # Adicionando o print para ver os períodos gerados
+        print(f"Períodos gerados para {tipo}: {periodos_str}")  # 👈 Aqui!
+        
         url = f"https://servicodados.ibge.gov.br/api/v3/agregados/1737/periodos/{periodos_str}/variaveis/63?localidades=N1[all]"
     elif tipo == 'IGPM':
         url = "http://ipeadata.gov.br/api/odata4/ValoresSerie(SERCODIGO='IGP12_IGPMG12')?$format=json"
@@ -47,6 +51,7 @@ def obter_indices_api(tipo):
         raise Exception(f"Erro ao buscar {tipo}: Status {response.status_code}")
 
     return processar_dados(tipo, response.json())
+
 
 def processar_dados(tipo, dados):
     indices = []
@@ -146,7 +151,7 @@ def atualizar_indices_inflacao():
                     valor = item['valor']
                     
                     # Criar uma data correta baseada no ano e mês
-                    data_referencia = datetime.date(ano, mes, 1)
+                    data_referencia = datetime(ano, mes, 1).date()
                     
                     try:
                         # Use os nomes de campo corretos do seu modelo

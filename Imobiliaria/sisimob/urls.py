@@ -1,11 +1,10 @@
 from django.urls import path
 from . import views
 from .views import ListarContratosView
-from .views import atualizar_indices_view  # Importe a função aqui
+from .views import atualizar_indices_view
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import listar_indices_inflacao
-from .views import gerar_extrato_rendimento
+from .views import listar_indices_inflacao, gerar_extrato_rendimento
 
 urlpatterns = [
     path('', views.home, name='home'),  # Rota para a página inicial
@@ -18,31 +17,40 @@ urlpatterns = [
     path('listar-imoveis/', views.listar_imoveis, name='listar_imoveis'),
     path('editar-cliente/<int:id>/', views.editar_cliente, name='editar_cliente'),
     path('confirmar-exclusao/<str:model_name>/<int:id>/', views.confirmar_exclusao, name='confirmar_exclusao'),
-    path('cadastrar-imovel/', views.cadastrar_imovel, name='cadastro_imovel'),
     path('editar-imovel/<int:id>/', views.editar_imovel, name='editar_imovel'),
-    path('listar-imoveis/', views.listar_imoveis, name='listar_imoveis'),
     path('sucesso/', views.sucesso, name='sucesso'),
     path('listar_contratos/', views.ListarContratosView.as_view(), name='listar_contratos'),
     path('atualizar-indices/', atualizar_indices_view, name='atualizar_indices'),
-    path('dashboard/<int:contrato_id>/', views.dashboard, name='dashboard'),
     path('contratos/editar/<int:contrato_id>/', views.editar_contrato, name='editar_contrato'),
-    path('listar-clientes/', views.listar_clientes, name='listar_clientes'),
-    path('listar-imoveis/', views.listar_imoveis, name='listar_imoveis'),
-    path('listar-contratos/', ListarContratosView.as_view(), name='listar_contratos'),
     path('nacionalidade-autocomplete/', views.nacionalidade_autocomplete, name='nacionalidade-autocomplete'),
     path('autocomplete/<str:model_name>/<str:field_name>/', views.autocomplete_field, name='autocomplete_field'),
-    path(
-        'cobrancas/<int:pk>/update/',
-        views.cobranca_update,
-        name='cobranca_update'  # Nome da URL deve ser EXATAMENTE 'cobranca_update'
-    ),
+    path('cobrancas/<int:pk>/update/', views.cobranca_update, name='cobranca_update'),
     path('cobranca/<int:pk>/pagar/', views.pagar_cobranca, name='pagar_cobranca'),
     path('cobranca/<int:pk>/recibo/', views.gerar_recibo_pagamento, name='gerar_recibo_pagamento'),
     path('cobranca/<int:pk>/repasse/', views.repassar_valor, name='repasse_valor'),
-    path('contrato/<int:contrato_id>/', views.dashboard, name='detalhes_contrato'),
     path('cadastro_cobrancas/', views.cadastro_cobrancas, name='cadastro_cobrancas'),
     path('cobrancas/<int:pk>/atualizar-datas/', views.atualizar_datas_cobranca, name='atualizar_datas_cobranca'),
     path('indices-inflacao/', listar_indices_inflacao, name='listar_indices_inflacao'),
     path('extrato-rendimento/<int:contrato_id>/', gerar_extrato_rendimento, name='gerar_extrato_rendimento'),
-
+    path('despesa/editar/<int:pk>/', views.editar_despesa, name='editar_despesa'),
+    path('dashboard/<int:id>/', views.dashboard, name='dashboard'),
+    path('dashboard/<int:contrato_id>/', views.dashboard, name='dashboard'),
+    path("atualizar-indices/", atualizar_indices_view, name="atualizar_indices"),
+    path('cobranca/editar/<int:pk>/', views.editar_cobranca, name='editar_cobranca'),
+    path('excluir-cobranca/<int:pk>/', views.excluir_cobranca, name='excluir_cobranca'),
+    path('editar-cobranca/<int:pk>/', views.editar_cobranca, name='editar_cobranca'),
+    path('confirmar-exclusao/<str:model_name>/<int:id>/', views.confirmar_exclusao, name='confirmar_exclusao'),
+    path('marcar-como-recebida/<int:pk>/', views.marcar_como_recebida, name='marcar_como_recebida'),
+    path('marcar-como-repassada/<int:pk>/', views.marcar_como_repassada, name='marcar_como_repassada'),
+    path('atualizar-datas/<int:pk>/', views.atualizar_datas_cobranca, name='atualizar_datas_cobranca'),
+    path("gerar-cobrancas/", views.gerar_cobrancas_view, name="cadastro_cobrancas"),
+    path("cobrancas/", views.lista_cobrancas, name="lista_cobrancas"),
+    path('lancar-despesa/<int:id>/', views.lancar_despesa, name='lancar_despesa'),
+    path('editar-despesa/<int:id>/', views.editar_despesa, name='editar_despesa'),
+    path('excluir-despesa/<int:id>/', views.excluir_despesa, name='excluir_despesa'),
+    
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

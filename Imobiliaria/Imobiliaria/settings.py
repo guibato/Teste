@@ -1,6 +1,11 @@
 import os
 from pathlib import Path
 
+# Configurações Asaas
+ASAAS_API_KEY = '$aact_hmlg_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjlmMjIzMzYzLTQyY2EtNGYwZS1hYmY4LWVhMGYyODU0YzQ0ZDo6JGFhY2hfMTJkOTc0YTAtZGExNC00MmExLTg1OWUtYTk3YzA3ZTYwMjgx'  # Sua chave de API do Asaas
+ASAAS_API_URL = 'https://www.asaas.com/api/v3'  # URL base da API
+ASAAS_SANDBOX = True  # Defina como True para ambiente de teste
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 MEDIA_URL = '/media/'  # URL base para arquivos
