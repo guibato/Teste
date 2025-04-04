@@ -365,124 +365,6 @@ def editar_contrato(request, contrato_id):
         'botao_acao': 'Salvar'
     })
 
-def cadastro_cobrancas(request):
-    # Lista de meses para o dropdown
-    meses = [
-        {'numero': 1, 'nome': 'Janeiro'},
-        {'numero': 2, 'nome': 'Fevereiro'},
-        {'numero': 3, 'nome': 'Março'},
-        {'numero': 4, 'nome': 'Abril'},
-        {'numero': 5, 'nome': 'Maio'},
-        {'numero': 6, 'nome': 'Junho'},
-        {'numero': 7, 'nome': 'Julho'},
-        {'numero': 8, 'nome': 'Agosto'},
-        {'numero': 9, 'nome': 'Setembro'},
-        {'numero': 10, 'nome': 'Outubro'},
-        {'numero': 11, 'nome': 'Novembro'},
-        {'numero': 12, 'nome': 'Dezembro'}
-    ]
-    ano_atual = datetime.now().year
-    mes_atual = datetime.now().month
-
-    if request.method == 'POST':
-        try:
-            mes_referencia = int(request.POST.get('mes_referencia'))
-            ano_referencia = int(request.POST.get('ano_referencia'))
-
-            # Validações básicas
-            if not (1 <= mes_referencia <= 12):
-                raise ValueError("Mês inválido")
-            if not (2000 <= ano_referencia <= 2100):
-                raise ValueError("Ano inválido")
-
-            # Obtendo contratos ativos
-            contratos_ativos = Contrato.objects.filter(ativo=True)
-            if not contratos_ativos.exists():
-                messages.warning(request, "Nenhum contrato ativo encontrado.")
-                return redirect('cadastro_cobrancas')
-
-            # Definindo período de referência
-            import calendar
-            primeiro_dia_mes = date(ano_referencia, mes_referencia, 1)
-            ultimo_dia_mes = calendar.monthrange(ano_referencia, mes_referencia)[1]
-            ultimo_dia_mes_date = date(ano_referencia, mes_referencia, ultimo_dia_mes)
-
-            # Processando cada contrato
-            for contrato in contratos_ativos:
-                # Calculando dia de vencimento válido para o mês
-                try:
-                    _, dias_no_mes = calendar.monthrange(ano_referencia, mes_referencia)
-                except:
-                    dias_no_mes = 28
-                
-                dia_vencimento = min(contrato.dia_pagamento, dias_no_mes)
-                
-                try:
-                    data_vencimento = date(ano_referencia, mes_referencia, dia_vencimento)
-                except ValueError:
-                    data_vencimento = date(ano_referencia, mes_referencia, ultimo_dia_mes)
-
-                # Valor base é o aluguel
-                valor_total = contrato.valor_aluguel
-
-                # SOLUÇÃO SIMPLIFICADA: Obter TODAS as despesas do contrato até o último dia do mês
-                # sem nenhuma outra condição que possa estar filtrando indevidamente
-                despesas_mes = Despesa.objects.filter(
-                    contrato=contrato,
-                    data_inicio__lte=ultimo_dia_mes_date
-                )
-
-                # Processar cada despesa
-                for despesa in despesas_mes:
-                    if despesa.paga == 'inquilino':
-                        # Usar diretamente o valor da despesa se o método calcular_valor_parcela falhar
-                        try:
-                            valor_parcela = despesa.calcular_valor_parcela()
-                        except:
-                            valor_parcela = despesa.valor
-                        
-                        percentual_repassado = despesa.percentual_repassado / Decimal('100.00')
-                        valor_total += valor_parcela * percentual_repassado
-
-                # Criar ou atualizar a cobrança
-                Cobranca.objects.update_or_create(
-                    contrato=contrato,
-                    mes_referencia=mes_referencia,
-                    ano_referencia=ano_referencia,
-                    defaults={
-                        'data_vencimento': data_vencimento,
-                        'valor': valor_total,
-                        'status': 'pendente'
-                    }
-                )
-
-            messages.success(request, f"Cobranças geradas/atualizadas para {meses[mes_referencia-1]['nome']}/{ano_referencia}!")
-            return redirect('cadastro_cobrancas')
-
-        except Exception as e:
-            messages.error(request, f"Erro ao gerar cobranças: {str(e)}")
-            return redirect('cadastro_cobrancas')
-
-    # Obter cobranças para exibição
-    mes_selecionado = request.GET.get('mes', mes_atual)
-    ano_selecionado = request.GET.get('ano', ano_atual)
-    try:
-        cobrancas = Cobranca.objects.filter(
-            mes_referencia=int(mes_selecionado),
-            ano_referencia=int(ano_selecionado)
-        ).select_related('contrato')
-    except (ValueError, TypeError):
-        cobrancas = []
-
-    context = {
-        'meses': meses,
-        'ano_atual': ano_atual,
-        'mes_atual': mes_atual,
-        'cobrancas': cobrancas,
-        'mes_selecionado': int(mes_selecionado) if str(mes_selecionado).isdigit() else mes_atual,
-        'ano_selecionado': int(ano_selecionado) if str(ano_selecionado).isdigit() else ano_atual,
-    }
-    return render(request, 'imoveis/cadastro_cobrancas.html', context)
 
 class ListarContratosView(ListView):
     model = Contrato
@@ -885,6 +767,19 @@ def editar_cobranca(request, pk):
         'cobranca': cobranca
     })
 
+import os
+import sys
+import traceback
+from datetime import date
+from dateutil.relativedelta import relativedelta
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from sisimob.models import Contrato, Despesa, Cobranca
+from sisimob.utils.cobrancas_asaas import gerar_cobranca  # Certifique-se de que esta importação está correta
+
+# Configuração para forçar saída imediata para logs
+sys.stdout.flush()
+
 def gerar_cobrancas_view(request):
     if request.method == "POST":
         mes_referencia = int(request.POST.get("mes_referencia"))
@@ -963,6 +858,41 @@ def gerar_cobrancas_view(request):
                 cobranca.despesas_repassadas = despesas_repassadas
                 cobranca.despesas_deduzidas = despesas_deduzidas
                 
+                print(f"🔧 Tentando gerar cobrança no Asaas para {contrato.inquilino.nome} (ID: {contrato.inquilino.asaas_id})")
+                
+                if contrato.inquilino and contrato.inquilino.asaas_id:
+                    try:
+                        # Chamada para o Asaas
+                        resposta = gerar_cobranca(
+                            asaas_id=contrato.inquilino.asaas_id,
+                            valor=float(valor_total_cobranca),
+                            vencimento=data_vencimento.strftime('%Y-%m-%d'),
+                            nome=contrato.inquilino.nome
+                        )
+                        print(f"🔧 Resposta do Asaas: {resposta}")
+                        
+                        if resposta and "id" in resposta:
+                            print(f"✅ SUCESSO: Cobrança enviada ao Asaas! ID: {resposta['id']}")
+                            
+                            # Atualiza os dados da cobrança
+                            cobranca.asaas_payment_id = resposta["id"]
+                            cobranca.asaas_boleto_url = resposta.get("bankSlipUrl")
+                            cobranca.asaas_pix_copia_cola = resposta.get("pix", {}).get("payload")
+                            cobranca.asaas_pix_url = resposta.get("pix", {}).get("qrCodeUrl")
+                            cobranca.asaas_codigo_barras = resposta.get("identificationField")
+                            cobranca.save()
+                            print(f"💾 Dados da cobrança atualizados no banco de dados")
+                        else:
+                            print(f"❌ ERRO: Falha ao enviar para Asaas: {resposta}")
+                            messages.error(request, f"Falha ao enviar cobrança para Asaas: {resposta}")
+                    except Exception as e:
+                        print(f"❌ ERRO na integração com Asaas: {str(e)}")
+                        traceback.print_exc()
+                        messages.error(request, f"Erro ao integrar com o Asaas: {str(e)}")
+                else:
+                    print(f"⚠️ Inquilino sem Asaas ID: {contrato.inquilino}")
+                    messages.warning(request, f"Inquilino {contrato.inquilino.nome} sem ID do Asaas.")
+                
                 cobrancas_geradas += 1
 
         # Mensagem de sucesso
@@ -1000,7 +930,7 @@ def gerar_cobrancas_view(request):
         "cobrancas": cobrancas.order_by("-data_vencimento"),
     }
     return render(request, "imoveis/cadastro_cobrancas.html", context)
-    
+
 def editar_cobranca(request, pk):
     cobranca = get_object_or_404(Cobranca, id=pk)
     if request.method == 'POST':
@@ -1100,9 +1030,12 @@ def editar_despesa(request, id):
     return render(request, 'imoveis/editar_despesa.html', {'form': form, 'despesa': despesa})
 
 def excluir_despesa(request, id):
+
     despesa = get_object_or_404(Despesa, id=id)
     contrato_id = despesa.contrato.id  # Pegando o ID do contrato antes de excluir
 
     despesa.delete()  # Exclui a despesa
 
     return redirect('dashboard', contrato_id=contrato_id)  # Redireciona corretamente
+
+

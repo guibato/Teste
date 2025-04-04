@@ -4,7 +4,7 @@ from .views import ListarContratosView
 from .views import atualizar_indices_view
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import listar_indices_inflacao, gerar_extrato_rendimento
+from .views import listar_indices_inflacao, gerar_extrato_rendimento, gerar_cobrancas_view
 
 urlpatterns = [
     path('', views.home, name='home'),  # Rota para a página inicial
@@ -28,7 +28,6 @@ urlpatterns = [
     path('cobranca/<int:pk>/pagar/', views.pagar_cobranca, name='pagar_cobranca'),
     path('cobranca/<int:pk>/recibo/', views.gerar_recibo_pagamento, name='gerar_recibo_pagamento'),
     path('cobranca/<int:pk>/repasse/', views.repassar_valor, name='repasse_valor'),
-    path('cadastro_cobrancas/', views.cadastro_cobrancas, name='cadastro_cobrancas'),
     path('cobrancas/<int:pk>/atualizar-datas/', views.atualizar_datas_cobranca, name='atualizar_datas_cobranca'),
     path('indices-inflacao/', listar_indices_inflacao, name='listar_indices_inflacao'),
     path('extrato-rendimento/<int:contrato_id>/', gerar_extrato_rendimento, name='gerar_extrato_rendimento'),
@@ -48,7 +47,7 @@ urlpatterns = [
     path('lancar-despesa/<int:id>/', views.lancar_despesa, name='lancar_despesa'),
     path('editar-despesa/<int:id>/', views.editar_despesa, name='editar_despesa'),
     path('excluir-despesa/<int:id>/', views.excluir_despesa, name='excluir_despesa'),
-    
+    path('executar-cobrancas/', gerar_cobrancas_view, name='executar_cobrancas'),
 ]
 
 if settings.DEBUG:

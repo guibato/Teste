@@ -45,4 +45,20 @@
         });
     });
 </script>
+<script>
+    document.getElementById('btnGerar').addEventListener('click', function () {
+        fetch("{% url 'executar_cobrancas' %}")
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "ok") {
+                    alert("Cobranças geradas com sucesso!");
+                    console.log("Saída:", data.output);
+                } else {
+                    alert("Erro ao gerar cobranças!");
+                    console.error("Erro:", data.error);
+                }
+            })
+            .catch(error => console.error("Erro na requisição:", error));
+    });
+</script>
 {% endblock %}

@@ -2,6 +2,11 @@ from django.db import models
 from django.utils import timezone
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
+from sisimob.utils.integracao_asaas import cadastrar_cliente_no_asaas  # Certifique-se que esse caminho está correto
+from django.conf import settings
+from sisimob.utils.cobrancas_asaas import gerar_cobranca
+
+
 
 class Cliente(models.Model):
     TIPO_CLIENTE_CHOICES = [
@@ -27,6 +32,7 @@ class Cliente(models.Model):
         ('comunhao_parcial', 'Comunhão Parcial de Bens'),
         ('separacao_total', 'Separação Total de Bens'),
     ]
+    asaas_id = models.CharField(max_length=50, null=True, blank=True, verbose_name="ID Asaas")
     tipo = models.CharField(max_length=20, choices=TIPO_CLIENTE_CHOICES, verbose_name="Tipo")
     nome = models.CharField(max_length=100, verbose_name="Nome")
     nacionalidade = models.CharField(max_length=100, null=True, blank=True, verbose_name="Nacionalidade")
@@ -62,6 +68,18 @@ class Cliente(models.Model):
         super().clean()
         if self.rg_rne and Cliente.objects.filter(rg_rne=self.rg_rne).exclude(pk=self.pk).exists():
             raise ValidationError({'rg_rne': 'Este RG/RNE já está cadastrado.'})
+        
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)  # Salva o cliente no banco
+
+        # Chama a API do Asaas para cadastrar o cliente
+        resposta = cadastrar_cliente_no_asaas(self)
+
+        if resposta:  # Garante que resposta não seja None
+            self.asaas_id = resposta  # Agora estamos atribuindo corretamente o ID
+        else:
+            print(f"Erro ao cadastrar cliente {self.nome} no Asaas")
+
 
 class Imovel(models.Model):
     cep = models.CharField(max_length=10, verbose_name="CEP")
@@ -282,6 +300,13 @@ class Cobranca(models.Model):
     
     data_pagamento = models.DateField(null=True, blank=True, verbose_name="Data de Pagamento")
     data_repasse = models.DateField(null=True, blank=True, verbose_name="Data de Repasse")
+    asaas_payment_id = models.CharField(max_length=100, null=True, blank=True)
+    asaas_boleto_url = models.URLField(null=True, blank=True)
+    asaas_pix_copia_cola = models.TextField(null=True, blank=True)
+    asaas_pix_url = models.URLField(null=True, blank=True)
+    asaas_codigo_barras = models.CharField(max_length=150, null=True, blank=True)
+    inquilino = models.ForeignKey("Cliente", on_delete=models.SET_NULL, null=True, blank=True)
+
 
     @property
     def valor_administracao(self):
@@ -356,6 +381,20 @@ class Cobranca(models.Model):
         """
         valor_boleto = self.valor_boleto
         return valor_boleto - self.valor_administracao - self.total_despesas_repassadas
+    
+    def save(self, *args, **kwargs):
+        # Se a cobrança ainda não foi gerada no Asaas, cria ela
+        if not self.asaas_payment_id and self.inquilino and self.inquilino.asaas_id:
+            resposta = gerar_cobranca(self.inquilino.asaas_id, self.valor, self.data_vencimento, self.inquilino.nome)
+            
+            if "erro" not in resposta:
+                self.asaas_payment_id = resposta["id"]
+                self.asaas_boleto_url = resposta.get("bankSlipUrl")
+                self.asaas_pix_copia_cola = resposta.get("pix", {}).get("payload")
+                self.asaas_pix_url = resposta.get("pix", {}).get("qrCodeUrl")
+                self.asaas_codigo_barras = resposta.get("identificationField")
+
+        super().save(*args, **kwargs)  # Salva a cobrança no banco de dados
 
 class IndiceInflacao(models.Model):
     tipo = models.CharField(max_length=50, verbose_name="Nome do Índice")

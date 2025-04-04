@@ -1,8 +1,9 @@
 import requests
 import datetime
-from sisimob.models import IndiceInflacao
 from django.apps import apps
 from datetime import datetime, timedelta
+from django.apps import apps  # ✅ Correção
+
 
 def gerar_periodos_iniciais(fim_data=datetime.now()):
     """
@@ -135,8 +136,7 @@ def atualizar_indices_inflacao():
     Atualiza os índices de inflação no banco de dados.
     """
     try:
-        # Use the correct model from your schema
-        IndiceInflacao = apps.get_model('sisimob', 'IndiceInflacao')
+        IndiceInflacao = apps.get_model('sisimob', 'IndiceInflacao')  # ✅ Obtendo o modelo dinamicamente
         
         for tipo_indice in ['IPCA', 'IGPM']:
             try:
@@ -154,10 +154,9 @@ def atualizar_indices_inflacao():
                     data_referencia = datetime(ano, mes, 1).date()
                     
                     try:
-                        # Use os nomes de campo corretos do seu modelo
                         indice, created = IndiceInflacao.objects.get_or_create(
-                            tipo=tipo_indice,  # Mudado de 'tipo' para 'nome'
-                            data_referencia=data_referencia,  # Usando um objeto date em vez de ano/mes
+                            tipo=tipo_indice,  
+                            data_referencia=data_referencia,  
                             defaults={'valor': valor}
                         )
                         

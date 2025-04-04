@@ -1,47 +1,36 @@
-# manage.py
 from django.core.management.base import BaseCommand
-from sisimob.models import Contrato, Cobranca
-from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
+from sisimob.models import Cobranca
+from sisimob.utils.cobrancas_asaas import gerar_cobranca
 
 class Command(BaseCommand):
-    help = 'Gera cobranças para contratos ativos'
+    help = "Gera cobranças pendentes no Asaas a partir das Cobrancas do sistema"
 
     def handle(self, *args, **kwargs):
-        hoje = datetime.now().date()
-        contratos_ativos = Contrato.objects.filter(
-            ativo=True,
-            data_inicio__lte=hoje,
-            data_fim__gte=hoje
+        cobrancas = Cobranca.objects.filter(
+            status='pendente',
+            contrato__inquilino__asaas_id__isnull=False,
+            asaas_payment_id__isnull=True
         )
 
-        for contrato in contratos_ativos:
-            # Define o mês e ano da próxima cobrança (ex.: mês vigente)
-            mes_referencia = hoje.month
-            ano_referencia = hoje.year
-            data_vencimento = datetime(ano_referencia, mes_referencia, contrato.dia_pagamento).date()
+        for cobranca in cobrancas:
+            inquilino = cobranca.contrato.inquilino
+            self.stdout.write(f"🔹 Gerando cobrança para {inquilino.nome} ({cobranca.mes_referencia}/{cobranca.ano_referencia})")
 
-            # Verifica se a cobrança já existe
-            if not Cobranca.objects.filter(
-                contrato=contrato,
-                mes_referencia=mes_referencia,
-                ano_referencia=ano_referencia
-            ).exists():
-                valor_total = (
-                    float(contrato.valor_aluguel or 0) +
-                    float(contrato.valor_condominio or 0) +
-                    float(contrato.valor_iptu or 0) +
-                    float(contrato.valor_outros or 0)
-                )
+            valor = float(cobranca.valor_boleto)  # já inclui despesas
+            vencimento = cobranca.data_vencimento.strftime('%Y-%m-%d')
 
-                valor_total = round(valor_total, 2)  # Arredonda para duas casas decimais
+            resposta = gerar_cobranca(inquilino.asaas_id, valor, vencimento, inquilino.nome)
 
-                # Cria a cobrança com o valor total
-                Cobranca.objects.create(
-                    contrato=contrato,
-                    mes_referencia=mes_referencia,
-                    ano_referencia=ano_referencia,
-                    data_vencimento=data_vencimento,
-                    valor=valor_total  # Valor já calculado
-                )
-                self.stdout.write(f'Cobrança gerada para {contrato.imovel} - {mes_referencia}/{ano_referencia}')
+            if "erro" in resposta:
+                self.stderr.write(f"❌ Erro: {resposta['erro']}")
+                continue
+
+            # Salva os dados do Asaas na cobrança
+            cobranca.asaas_payment_id = resposta["id"]
+            cobranca.asaas_boleto_url = resposta.get("bankSlipUrl")
+            cobranca.asaas_pix_copia_cola = resposta.get("pix", {}).get("payload")
+            cobranca.asaas_pix_url = resposta.get("pix", {}).get("qrCodeUrl")
+            cobranca.asaas_codigo_barras = resposta.get("identificationField")
+            cobranca.save()
+
+            self.stdout.write(f"✅ Cobrança criada! ID: {resposta['id']}")
