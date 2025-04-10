@@ -98,6 +98,22 @@ class Imovel(models.Model):
         if self.complemento:
             return f"{self.endereco}, {self.numero} - {self.complemento}"
         return f"{self.endereco}, {self.numero}"
+    
+    @property
+    def endereco_resumido(self):
+        partes = [self.endereco, self.numero]
+        if self.bairro:
+            partes.append(self.bairro)
+        return ", ".join(partes)
+    
+    def endereco_completo(self):
+        partes = [self.endereco, self.numero]
+        if self.complemento:
+            partes.append(self.complemento)
+    
+        return ', '.join(partes)
+
+
 
 class Contrato(models.Model):
     class Meta:
@@ -306,6 +322,7 @@ class Cobranca(models.Model):
     asaas_pix_url = models.URLField(null=True, blank=True)
     asaas_codigo_barras = models.CharField(max_length=150, null=True, blank=True)
     inquilino = models.ForeignKey("Cliente", on_delete=models.SET_NULL, null=True, blank=True)
+    descricao = models.TextField(null=True, blank=True)
 
 
     @property
@@ -405,6 +422,7 @@ class IndiceInflacao(models.Model):
         return f"{self.tipo} - {self.data_referencia.strftime('%Y-%m')}"
 
 class Despesa(models.Model):
+
     TIPO_DESPESA_CHOICES = [
         ('repasse', 'Repasse'),
         ('iptu', 'IPTU'),
@@ -495,3 +513,36 @@ class Despesa(models.Model):
             data_referencia = date.today()
         
         return self.parcelas_pagas(data_referencia) < self.numero_parcelas
+    
+class MovimentoConta(models.Model):
+    TIPO_MOVIMENTO = (
+        ('credito', 'Crédito'),
+        ('debito', 'Débito'),
+        ('repasse', 'Repasse Efetuado'),
+    )
+
+    proprietario = models.ForeignKey(Cliente, on_delete=models.CASCADE)
+    contrato = models.ForeignKey(Contrato, on_delete=models.SET_NULL, null=True, blank=True)
+    tipo = models.CharField(max_length=10, choices=TIPO_MOVIMENTO)
+    descricao = models.CharField(max_length=255)
+    valor = models.DecimalField(max_digits=10, decimal_places=2)
+    data = models.DateField(auto_now_add=True)
+    data_referencia = models.DateField(null=True, blank=True)  # mês/ano do aluguel
+
+    class Meta:
+        ordering = ['data']
+
+    def __str__(self):
+        return f"{self.data} - {self.get_tipo_display()} - {self.valor} - {self.descricao}"
+    
+class LancamentoContaCorrente(models.Model):
+    TIPOS = [
+        ('credito', 'Crédito'),
+        ('debito', 'Débito'),
+        ('repasse', 'Repasse'),
+    ]
+    proprietario = models.ForeignKey(Cliente, on_delete=models.CASCADE)
+    data = models.DateField()
+    tipo = models.CharField(max_length=10, choices=TIPOS)
+    descricao = models.CharField(max_length=255)
+    valor = models.DecimalField(max_digits=10, decimal_places=2)

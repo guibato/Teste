@@ -1,10 +1,27 @@
 import requests
+import json
+import traceback
 
 ASAAS_API_KEY = "$aact_hmlg_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjlmMjIzMzYzLTQyY2EtNGYwZS1hYmY4LWVhMGYyODU0YzQ0ZDo6JGFhY2hfMTJkOTc0YTAtZGExNC00MmExLTg1OWUtYTk3YzA3ZTYwMjgx"
 ASAAS_URL = "https://sandbox.asaas.com/api/v3/customers"
 
 def cadastrar_cliente_no_asaas(cliente):
     """ Envia os dados do Cliente para o Asaas e retorna o ID do Asaas. """
+    
+    print("\n=========== INÍCIO DA INTEGRAÇÃO COM ASAAS - CADASTRAR CLIENTE ===========")
+    print(f"Parâmetros recebidos:")
+    print(f"- Nome: {cliente.nome}")
+    print(f"- CPF: {cliente.CPF}")
+    print(f"- Email: {cliente.email}")
+    print(f"- Celular: {cliente.celular}")
+    print(f"- Telefone: {cliente.telefone}")
+    print(f"- CEP: {cliente.cep}")
+    print(f"- Endereço: {cliente.endereco}")
+    print(f"- Número: {cliente.numero}")
+    print(f"- Complemento: {cliente.complemento}")
+    print(f"- Bairro: {cliente.bairro}")
+    print(f"- Cidade: {cliente.cidade}")
+    print(f"- Estado: {cliente.estado}")
     
     dados_cliente = {
         "name": cliente.nome,
@@ -19,22 +36,50 @@ def cadastrar_cliente_no_asaas(cliente):
         "city": cliente.cidade,
         "state": cliente.estado,
     }
+    
+    print(f"📌 Dados do cliente montados:")
+    print(json.dumps(dados_cliente, indent=2))
 
     headers = {
         "Content-Type": "application/json",
         "access_token": ASAAS_API_KEY
     }
-
-    response = requests.post(ASAAS_URL, json=dados_cliente, headers=headers)
-
+    
+    print(f"🔑 Token API sendo usado: {ASAAS_API_KEY[:10]}...{ASAAS_API_KEY[-5:]}")
+    print(f"🌐 URL: {ASAAS_URL}")
+    
     try:
-        resposta = response.json()  # Tenta converter a resposta para JSON
-    except ValueError:
-        print("Erro ao converter resposta para JSON:", response.text)
-        return None  # Retorna None se a resposta não for JSON válido
-
-    if response.status_code in [200, 201]:  # Cadastro bem-sucedido
-        return resposta.get("id")  # Retorna o ID do cliente cadastrado no Asaas
-    else:
-        print("Erro ao cadastrar cliente:", resposta)
-        return None  # Retorna None se houver erro
+        print("⏳ Enviando requisição para o Asaas...")
+        response = requests.post(ASAAS_URL, json=dados_cliente, headers=headers, timeout=30)
+        print(f"📊 Status code: {response.status_code}")
+        
+        try:
+            resposta_json = response.json()
+            print(f"🔍 Resposta do Asaas:")
+            print(json.dumps(resposta_json, indent=2))
+            
+            # Verifica se a resposta contém um id de cliente
+            if "id" in resposta_json:
+                print("✅ Cliente criado com sucesso!")
+                return resposta_json["id"]
+            else:
+                print("❌ Resposta não contém ID do cliente")
+                return None
+            
+        except json.JSONDecodeError:
+            print("❌ Erro ao decodificar JSON da resposta")
+            print(f"Conteúdo da resposta: {response.text}")
+            return None
+        
+    except requests.exceptions.Timeout:
+        print("❌ Timeout na requisição")
+        return None
+    except requests.exceptions.ConnectionError:
+        print("❌ Erro de conexão")
+        return None
+    except Exception as e:
+        print(f"❌ Erro na requisição: {str(e)}")
+        traceback.print_exc()
+        return None
+    finally:
+        print("=========== FIM DA INTEGRAÇÃO COM ASAAS - CADASTRAR CLIENTE ===========\n")

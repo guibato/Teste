@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import logout
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .forms import ClienteForm, ImovelForm, ContratoForm, GerarCobrancasForm, CobrancaForm, DespesaForm  # Importe DespesaForm aqui
-from .models import Cliente, Imovel, Contrato, Cobranca, Despesa, IndiceInflacao
+from .models import Cliente, Imovel, Contrato, Cobranca, Despesa, IndiceInflacao, MovimentoConta, LancamentoContaCorrente
 from django.views.generic import ListView
 from django.db.models import Q
 from datetime import date, datetime
@@ -41,6 +41,10 @@ from datetime import date, timedelta
 from datetime import date
 from datetime import datetime
 import threading
+from sisimob.utils.integracao_asaas import cadastrar_cliente_no_asaas
+from .gerar_extrato_repasses_pdf import gerar_extrato_repasses_pdf
+from django.http import HttpResponse
+
 
 
 class ContratoListView(ListView):
@@ -91,8 +95,33 @@ def cadastrar_cliente(request):
     if request.method == 'POST':
         form = ClienteForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Cliente cadastrado com sucesso!")
+            cliente = form.save(commit=False)  # Salva o cliente sem commitar para poder atualizar o asaas_id
+            cliente.save()  # Salva o cliente no banco de dados
+            
+            print(f"🔧 Tentando cadastrar cliente {cliente.nome} no Asaas")
+            
+            try:
+                # Chamada para o Asaas
+                resposta = cadastrar_cliente_no_asaas(cliente)
+                print(f"🔧 Resposta do Asaas: {resposta}")
+                
+                if resposta:  # Verifica se o ID do Asaas foi retornado
+                    print(f"✅ SUCESSO: Cliente {cliente.nome} cadastrado no Asaas! ID: {resposta}")
+                    
+                    # Atualiza o cliente com o asaas_id
+                    cliente.asaas_id = resposta
+                    cliente.save()
+                    print(f"💾 Dados do cliente atualizados no banco de dados")
+                    
+                    messages.success(request, "Cliente cadastrado com sucesso!")
+                else:
+                    print(f"❌ ERRO: Falha ao cadastrar cliente {cliente.nome} no Asaas")
+                    messages.error(request, "Falha ao cadastrar cliente no Asaas. Verifique os dados e tente novamente.")
+            except Exception as e:
+                print(f"❌ ERRO na integração com Asaas: {str(e)}")
+                traceback.print_exc()
+                messages.error(request, f"Erro ao integrar com o Asaas: {str(e)}")
+            
             return redirect('listar_clientes')
         else:
             messages.error(request, "Por favor, corrija os erros no formulário.")
@@ -264,6 +293,7 @@ def dashboard(request, id):  # Mantenha o parâmetro como 'id'
         contrato.valor_taxa_administracao_fixo = Decimal('0.00')
         contrato.save()
 
+    
     
     
 
@@ -770,7 +800,7 @@ def editar_cobranca(request, pk):
 import os
 import sys
 import traceback
-from datetime import date
+from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -844,6 +874,32 @@ def gerar_cobrancas_view(request):
                 mes_referencia=mes_referencia,
                 ano_referencia=ano_referencia
             ).exists():
+                # Montar a descrição detalhada da cobrança
+                descricao_itens = [f"Aluguel ({mes_referencia}/{ano_referencia}) - R$ {valor_base_administracao:.2f}"]
+                
+                for despesa in despesas_ativas:
+                    valor_parcela = despesa.calcular_valor_parcela()
+                    if hasattr(despesa, 'tipo') and despesa.tipo == 'deduzida':
+                        descricao_itens.append(f"{despesa.descricao} (deduzida) - R$ {valor_parcela:.2f}")
+                    else:
+                        # Verificar se a despesa é o IPTU e calcular o número da parcela
+                        if despesa.descricao.lower() == "iptu":
+                            # Calcular o número da parcela
+                            mes_inicial_iptu = despesa.data_inicio.month
+                            ano_inicial_iptu = despesa.data_inicio.year
+                            mes_atual = mes_referencia
+                            ano_atual = ano_referencia
+                            
+                            # Calcular o número da parcela
+                            meses_passados = (ano_atual - ano_inicial_iptu) * 12 + (mes_atual - mes_inicial_iptu) + 1
+                            numero_parcela = meses_passados
+                            
+                            descricao_itens.append(f"IPTU ({numero_parcela}/{despesa.numero_parcelas}) - R$ {valor_parcela:.2f}")
+                        else:
+                            descricao_itens.append(f"{despesa.descricao} - R$ {valor_parcela:.2f}")
+                
+                descricao = ", ".join(descricao_itens)
+                
                 # Cria a cobrança com os campos que existem no modelo
                 cobranca = Cobranca.objects.create(
                     contrato=contrato,
@@ -851,6 +907,7 @@ def gerar_cobrancas_view(request):
                     data_vencimento=data_vencimento,
                     mes_referencia=mes_referencia,
                     ano_referencia=ano_referencia,
+                    descricao=descricao  # Adiciona a descrição detalhada
                 )
                 
                 # Adiciona os valores como atributos temporários (não salvos no banco)
@@ -867,7 +924,8 @@ def gerar_cobrancas_view(request):
                             asaas_id=contrato.inquilino.asaas_id,
                             valor=float(valor_total_cobranca),
                             vencimento=data_vencimento.strftime('%Y-%m-%d'),
-                            nome=contrato.inquilino.nome
+                            nome=contrato.inquilino.nome,
+                            descricao=descricao  # Passa a descrição detalhada
                         )
                         print(f"🔧 Resposta do Asaas: {resposta}")
                         
@@ -1038,4 +1096,320 @@ def excluir_despesa(request, id):
 
     return redirect('dashboard', contrato_id=contrato_id)  # Redireciona corretamente
 
+def extrato(request):
+    proprietarios = Cliente.objects.all().order_by('nome')
+    proprietario_id = request.GET.get('proprietario_id')
 
+    hoje = timezone.now()
+    primeiro_dia_mes = hoje.replace(day=1)
+    ultimo_dia_mes = (primeiro_dia_mes + timezone.timedelta(days=32)).replace(day=1) - timezone.timedelta(days=1)
+
+    data_inicial_str = request.GET.get('data_inicial', primeiro_dia_mes.date().isoformat())
+    data_final_str = request.GET.get('data_final', ultimo_dia_mes.date().isoformat())
+
+    try:
+        data_inicial = datetime.strptime(data_inicial_str, '%Y-%m-%d').date()
+        data_final = datetime.strptime(data_final_str, '%Y-%m-%d').date()
+    except ValueError:
+        data_inicial = primeiro_dia_mes.date()
+        data_final = ultimo_dia_mes.date()
+
+    context = {
+        'proprietarios': proprietarios,
+        'proprietario_selecionado': int(proprietario_id) if proprietario_id else None,
+        'data_inicial': data_inicial,
+        'data_final': data_final,
+    }
+
+    if proprietario_id:
+        proprietario = Cliente.objects.get(id=proprietario_id)
+        contratos = Contrato.objects.filter(proprietario=proprietario)
+        
+        # Lista para imóveis do proprietário
+        imoveis_dict = {}
+        
+        for contrato in contratos:
+            imovel = contrato.imovel
+            if imovel.id not in imoveis_dict:
+                # Use getattr para acessar atributos com segurança
+                situacao = getattr(imovel, 'situacao', None) or getattr(imovel, 'status', 'desconhecido')
+                status_display = getattr(imovel, 'get_situacao_display', 
+                                 lambda: getattr(imovel, 'get_status_display', 
+                                 lambda: 'Desconhecido'))()
+                
+                imoveis_dict[imovel.id] = {
+                    'id': imovel.id,
+                    'endereco': getattr(imovel, 'endereco', ''),
+                    'status': situacao,
+                    'get_status_display': status_display,
+                    'receitas': 0,
+                    'despesas': 0,
+                    'repasses': 0,  # Adicionado campo para repasses
+                    'saldo': 0
+                }
+
+        lancamentos = []
+
+        # RECEITAS (Aluguel)
+        cobrancas = Cobranca.objects.filter(
+            contrato__proprietario=proprietario,
+            data_pagamento__range=(data_inicial, data_final),
+            status='paga'
+        ).select_related('contrato__imovel', 'contrato')
+
+        total_cobrancas_pagas = cobrancas.count()
+
+        for cobranca in cobrancas:
+            imovel = cobranca.contrato.imovel
+            data = cobranca.data_pagamento
+            mes_ano = f"{cobranca.mes_referencia}/{cobranca.ano_referencia}"
+            
+            # Usar o valor do aluguel do contrato, não da cobrança
+            contrato = cobranca.contrato
+            valor_aluguel_contrato = getattr(contrato, 'valor_aluguel', None) or getattr(contrato, 'valor_pacote', 0)
+            
+            # O valor da taxa de administração ainda vem da cobrança
+            valor_admin = cobranca.valor_administracao
+            
+            # Calcular IPTU e outros encargos presentes na cobrança mas não no valor do aluguel
+            valor_cobranca_total = cobranca.valor
+            valor_encargos = valor_cobranca_total - valor_aluguel_contrato
+            
+            # Atualizar receitas do imóvel
+            if imovel.id in imoveis_dict:
+                imoveis_dict[imovel.id]['receitas'] += valor_aluguel_contrato
+                imoveis_dict[imovel.id]['despesas'] += valor_admin
+            
+            # Adicionar lançamento para o valor do aluguel puro
+            lancamentos.append({
+                'data': data,
+                'descricao': f'Aluguel {mes_ano}',
+                'tipo': 'RECEITA',
+                'get_tipo_display': 'Receita',
+                'valor': valor_aluguel_contrato,
+                'imovel': imovel,
+            })
+            
+            # Se houver encargos adicionais na cobrança, adicionar como um lançamento separado
+            
+            
+            # Adicionar lançamento para a taxa de administração
+            lancamentos.append({
+                'data': data,
+                'descricao': f'Taxa de Administração {mes_ano}',
+                'tipo': 'DESPESA',
+                'get_tipo_display': 'Despesa',
+                'valor': valor_admin,
+                'imovel': imovel,
+            })
+
+                # DESPESAS
+        despesas = Despesa.objects.filter(
+            contrato__proprietario=proprietario,
+            data_inicio__lte=data_final,
+        ).select_related('contrato__imovel')
+
+        total_despesas_pagas = despesas.count()
+
+        for despesa in despesas:
+            imovel = despesa.contrato.imovel
+            qtd_parcelas = despesa.numero_parcelas or 1
+            valor_parcela = despesa.valor_total / qtd_parcelas
+
+            for parcela in range(qtd_parcelas):  # ✅ Agora está dentro do loop da despesa
+                data_parcela = despesa.data_inicio + timezone.timedelta(days=parcela * 30)
+                if data_inicial <= data_parcela <= data_final:
+                    responsavel = getattr(despesa, 'paga', 'proprietario')
+                    tipo_lancamento = 'RECEITA' if responsavel == 'inquilino' else 'DESPESA'
+                    tipo_display = 'Receita' if tipo_lancamento == 'RECEITA' else 'Despesa'
+
+                    if imovel.id in imoveis_dict:
+                        if tipo_lancamento == 'RECEITA':
+                            imoveis_dict[imovel.id]['receitas'] += valor_parcela
+                        else:
+                            imoveis_dict[imovel.id]['despesas'] += valor_parcela
+
+                    lancamentos.append({
+                        'data': data_parcela,
+                        'descricao': f'{despesa.get_tipo_display()} - {despesa.descricao} (Parcela {parcela + 1}/{qtd_parcelas})',
+                        'tipo': tipo_lancamento,
+                        'get_tipo_display': tipo_display,
+                        'valor': valor_parcela,
+                        'imovel': imovel,
+                    })
+
+
+
+        # ✅ REPASSES (fora do loop de despesas)
+        repasses = Cobranca.objects.filter(
+            contrato__proprietario=proprietario,
+            data_repasse__range=(data_inicial, data_final)
+        ).select_related('contrato__imovel')
+
+        total_repasses = repasses.count()
+
+        for repasse in repasses:
+            imovel = repasse.contrato.imovel
+            valor_liquido = repasse.valor_liquido
+
+            if imovel and imovel.id in imoveis_dict:
+                imoveis_dict[imovel.id]['repasses'] += valor_liquido
+
+            lancamentos.append({
+                'data': repasse.data_repasse,
+                'descricao': f'Repasse para Proprietário',
+                'tipo': 'REPASSE',
+                'get_tipo_display': 'Repasse',
+                'valor': valor_liquido,
+                'imovel': imovel,
+            })
+
+        # 🔄 Atualizar saldo por imóvel
+        for imovel_id, imovel_info in imoveis_dict.items():
+            imovel_info['saldo'] = imovel_info['receitas'] - imovel_info['despesas'] - imovel_info['repasses']
+
+        # 📅 Ordenar lançamentos por data
+        lancamentos.sort(key=lambda x: x['data'])
+
+        # 📊 Calcular saldo acumulado
+        saldo = 0
+        lancamentos_com_saldo = []
+
+        for lancamento in lancamentos:
+            if lancamento['tipo'] == 'RECEITA':
+                saldo += lancamento['valor']
+            elif lancamento['tipo'] == 'DESPESA':
+                saldo -= lancamento['valor']
+            elif lancamento['tipo'] == 'REPASSE':
+                saldo -= lancamento['valor']
+
+            lancamento_com_saldo = lancamento.copy()
+            lancamento_com_saldo['saldo'] = saldo
+            lancamentos_com_saldo.append(lancamento_com_saldo)
+
+        # 📦 Totais finais
+        total_receitas = sum(l['valor'] for l in lancamentos if l['tipo'] == 'RECEITA')
+        total_despesas = sum(l['valor'] for l in lancamentos if l['tipo'] == 'DESPESA')
+        total_repasses_valor = sum(l['valor'] for l in lancamentos if l['tipo'] == 'REPASSE')
+
+        imoveis = list(imoveis_dict.values())
+
+        context.update({
+            'lancamentos': lancamentos_com_saldo,
+            'saldo': total_receitas - total_despesas - total_repasses_valor,
+            'total_receitas': total_receitas,
+            'total_despesas': total_despesas,
+            'total_repasses': total_repasses_valor,
+            'total_cobrancas_pagas': total_cobrancas_pagas,
+            'total_despesas_pagas': total_despesas_pagas,
+            'total_repasses_feitos': total_repasses,
+            'imoveis': imoveis,
+        })
+    return render(request, 'imoveis/extrato.html', context)
+
+
+def montar_extrato_do_proprietario(proprietario, data_inicial=None, data_final=None):
+    extrato = []
+
+    contratos = Contrato.objects.filter(proprietario=proprietario)
+
+    if data_inicial:
+        data_inicial = datetime.strptime(data_inicial, "%Y-%m-%d").date()
+    if data_final:
+        data_final = datetime.strptime(data_final, "%Y-%m-%d").date()
+
+    for contrato in contratos:
+        cobrancas = Cobranca.objects.filter(contrato=contrato)
+
+        if data_inicial:
+            cobrancas = cobrancas.filter(data__gte=data_inicial)
+        if data_final:
+            cobrancas = cobrancas.filter(data__lte=data_final)
+
+        
+    
+    for cobranca in cobrancas:
+        data_ref = date(cobranca.ano_referencia, cobranca.mes_referencia, 1)
+
+        # Lógica de despesas associadas ao contrato
+        despesas = Despesa.objects.filter(contrato=cobranca.contrato)
+
+        for despesa in despesas:
+            if despesa.parcela_atual_ativa(data_ref):
+                valor_parcela = despesa.calcular_valor_parcela()
+
+                if despesa.paga == 'inquilino':
+                    # Receita para o proprietário
+                    extrato.append({
+                        'data': data_ref,
+                        'descricao': f"Repasse despesa: {despesa.descricao or despesa.get_tipo_display()}",
+                        'tipo': 'Crédito',
+                        'valor': valor_parcela,
+                    })
+                elif despesa.paga == 'proprietario':
+                    # Despesa do proprietário
+                    extrato.append({
+                        'data': data_ref,
+                        'descricao': f"Despesa: {despesa.descricao or despesa.get_tipo_display()}",
+                        'tipo': 'Débito',
+                        'valor': valor_parcela,
+                    })
+                elif despesa.paga == 'inquilino':
+                    extrato.append({
+                        "data": cobranca.data,
+                        "descricao": f"Despesa: {despesa.descricao or despesa.get_tipo_display()}",
+                        "tipo": "Crédito",
+                        "valor": valor_parcela,
+                    })
+
+    # Ordenar por data
+    extrato.sort(key=lambda x: x["data"])
+    return extrato
+
+
+def gerar_extrato_pdf(request, pk):
+    data_inicio = request.GET.get('data_inicio')
+    data_fim = request.GET.get('data_fim')
+    
+
+    proprietario = get_object_or_404(Cliente, id=proprietario_id, tipo='Proprietario')
+
+    extrato = montar_extrato_do_proprietario(proprietario, data_inicial, data_final)
+  # Essa função você já usa no extrato
+    pdf = gerar_extrato_repasses_pdf(request, proprietario.nome, extrato)
+    
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="extrato_{proprietario.nome}.pdf"'
+    return response
+
+
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from datetime import datetime
+from decimal import Decimal
+from .models import Cliente, Cobranca
+from .utils.pdf import gerar_pdf_extrato_repasses  # você ainda vai criar ou adaptar essa função
+
+def extrato_repasses_pdf(request, proprietario_id):
+    # Pega as datas do GET
+    data_inicial_str = request.GET.get("data_inicial")
+    data_final_str = request.GET.get("data_final")
+
+    # Converte para date
+    data_inicial = datetime.strptime(data_inicial_str, "%Y-%m-%d").date()
+    data_final = datetime.strptime(data_final_str, "%Y-%m-%d").date()
+
+    # Busca o proprietário
+    proprietario = get_object_or_404(Cliente, id=proprietario_id, tipo="Proprietario")
+
+    # Filtra cobranças do proprietário no período
+    cobrancas = Cobranca.objects.select_related("contrato__imovel").filter(
+        contrato__proprietario=proprietario,
+        data_repasse__range=(data_inicial, data_final),
+        status="paga",
+        status_repasse="repassado"
+    ).order_by("data_repasse")
+
+    # Gera o PDF
+    pdf = gerar_pdf_extrato_repasses(proprietario, data_inicial, data_final, cobrancas)
+    return HttpResponse(pdf, content_type="application/pdf")

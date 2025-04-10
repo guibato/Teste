@@ -1,0 +1,481 @@
+{% extends "imoveis/base.html" %}
+{% load humanize %}
+{% load static %}
+
+{% block extra_head %}
+<style>
+    .dark-theme {
+        --bg-primary: #1a202c;
+        --bg-secondary: #2d3748;
+        --bg-card: #2d3748;
+        --text-primary: #f7fafc;
+        --text-secondary: #e2e8f0;
+        --accent-blue: #63b3ed;
+        --accent-green: #68d391;
+        --accent-red: #fc8181;
+        --accent-yellow: #ffc107;  /* Adicionado para repasses */
+        --border-color: #4a5568;
+    }
+    
+    /* Estilos existentes mantidos... */
+    .card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    }
+    
+    .table-dark {
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+    }
+    
+    .table-dark thead th {
+        background-color: #2d3748;
+        border-color: #4a5568;
+    }
+    
+    .table-dark tbody tr {
+        border-color: #4a5568;
+    }
+    
+    .table-dark tbody tr:hover {
+        background-color: #4a5568;
+    }
+    
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .badge-blue {
+        background-color: rgba(99, 179, 237, 0.2);
+        color: var(--accent-blue);
+    }
+    
+    .badge-green {
+        background-color: rgba(104, 211, 145, 0.2);
+        color: var(--accent-green);
+    }
+    
+    .badge-red {
+        background-color: rgba(252, 129, 129, 0.2);
+        color: var(--accent-red);
+    }
+    
+    .badge-yellow {
+        background-color: rgba(255, 193, 7, 0.2);
+        color: var(--accent-yellow);
+    }
+    
+    .receita {
+        color: var(--accent-green);
+    }
+    
+    .despesa {
+        color: var(--accent-red);
+    }
+    
+    .repasse {
+        color: var(--accent-yellow);
+    }
+    
+    .print-button {
+        background-color: #4299e1;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        font-weight: 500;
+        cursor: pointer;
+    }
+    
+    .print-button:hover {
+        background-color: #3182ce;
+    }
+    
+    @media print {
+        .no-print {
+            display: none;
+        }
+        
+        body {
+            background-color: white;
+            color: black;
+        }
+        
+        .card {
+            box-shadow: none;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .table-dark {
+            background-color: white;
+            color: black;
+        }
+        
+        .table-dark thead th {
+            background-color: #f7fafc;
+            border-color: #e2e8f0;
+        }
+        
+        .table-dark tbody tr {
+            border-color: #e2e8f0;
+        }
+        
+        .receita {
+            color: #38a169;
+        }
+        
+        .despesa {
+            color: #e53e3e;
+        }
+        
+        .repasse {
+            color: #d69e2e;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dark-theme container mx-auto p-4">
+    <!-- Cabeçalho -->
+    <div class="card bg-gradient-to-r from-blue-900 to-gray-800 p-6 mb-6">
+        <div class="flex justify-between items-center">
+            <h2 class="text-2xl font-bold">Extrato do Proprietário</h2>
+            <button onclick="window.print();" class="print-button no-print">
+                <i class="bi bi-printer mr-2"></i> Imprimir
+            </button>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card p-6 mb-6 no-print">
+        <form method="get" action="{% url 'extrato' %}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- Seleção de Proprietário -->
+            <div>
+                <label for="proprietario_id" class="block mb-1 text-sm text-gray-400">Proprietário:</label>
+                <select name="proprietario_id" id="proprietario_id" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white">
+                    <option value="">-- Escolha --</option>
+                    {% for p in proprietarios %}
+                        <option value="{{ p.id }}" {% if p.id == proprietario_selecionado %}selected{% endif %}>
+                            {{ p.nome }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Período - Data Inicial -->
+            <div>
+                <label for="data_inicial" class="block mb-1 text-sm text-gray-400">Data Inicial:</label>
+                <input type="date" name="data_inicial" id="data_inicial" value="{{ data_inicial|date:'Y-m-d' }}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white">
+            </div>
+            
+            <!-- Período - Data Final -->
+            <div>
+                <label for="data_final" class="block mb-1 text-sm text-gray-400">Data Final:</label>
+                <input type="date" name="data_final" id="data_final" value="{{ data_final|date:'Y-m-d' }}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white">
+            </div>
+            
+            <!-- Botão de Filtrar -->
+            <div class="flex items-end">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">
+                    <i class="bi bi-filter mr-2"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if proprietario_selecionado %}
+        <!-- Resumo Financeiro - Modificado para 4 colunas incluindo Repasses -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <!-- Receitas -->
+            <div class="card p-6 border-t-4 border-green-500">
+                <h3 class="text-lg font-semibold mb-2 flex items-center">
+                    <i class="bi bi-arrow-down-circle text-green-400 mr-2"></i>
+                    Total de Receitas
+                </h3>
+                <p class="text-3xl font-bold text-green-400" id="total-receitas">
+                    R$ {{ total_receitas|floatformat:2 }}
+                </p>
+                <p class="text-sm text-gray-400 mt-1">
+                    {{ total_cobrancas_pagas }} pagamentos recebidos
+                </p>
+            </div>
+            
+            <!-- Despesas -->
+            <div class="card p-6 border-t-4 border-red-500">
+                <h3 class="text-lg font-semibold mb-2 flex items-center">
+                    <i class="bi bi-arrow-up-circle text-red-400 mr-2"></i>
+                    Total de Despesas
+                </h3>
+                <p class="text-3xl font-bold text-red-400" id="total-despesas">
+                    R$ {{ total_despesas|floatformat:2 }}
+                </p>
+                <p class="text-sm text-gray-400 mt-1">
+                    {{ total_despesas_pagas }} despesas no período
+                </p>
+            </div>
+            
+            <!-- Repasses - Nova seção -->
+            <div class="card p-6 border-t-4 border-yellow-500">
+                <h3 class="text-lg font-semibold mb-2 flex items-center">
+                    <i class="bi bi-cash-stack text-yellow-400 mr-2"></i>
+                    Total de Repasses
+                </h3>
+                <p class="text-3xl font-bold text-yellow-400" id="total-repasses">
+                    R$ {{ total_repasses|floatformat:2 }}
+                </p>
+                <p class="text-sm text-gray-400 mt-1">
+                    {{ total_repasses_feitos }} repasses realizados
+                </p>
+            </div>
+            
+            <!-- Saldo -->
+            <div class="card p-6 border-t-4 border-blue-500">
+                <h3 class="text-lg font-semibold mb-2 flex items-center">
+                    <i class="bi bi-wallet2 text-blue-400 mr-2"></i>
+                    Saldo do Período
+                </h3>
+                <p class="text-3xl font-bold {% if saldo >= 0 %}text-green-400{% else %}text-red-400{% endif %}" id="saldo">
+                    R$ {{ saldo|floatformat:2 }}
+                </p>
+                <p class="text-sm text-gray-400 mt-1">
+                    Período: {{ data_inicial|date:"d/m/Y" }} a {{ data_final|date:"d/m/Y" }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Imóveis do Proprietário - Atualizado para incluir coluna de repasses -->
+        <div class="card p-6 mb-6">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="bi bi-house-door mr-2"></i>
+                Imóveis do Proprietário
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full table-dark">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-3 text-left">Imóvel</th>
+                            <th class="px-4 py-3 text-center">Status</th>
+                            <th class="px-4 py-3 text-right">Receitas</th>
+                            <th class="px-4 py-3 text-right">Despesas</th>
+                            <th class="px-4 py-3 text-right">Repasses</th>
+                            <th class="px-4 py-3 text-right">Saldo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for imovel in imoveis %}
+                        <tr>
+                            <td class="px-4 py-3">
+                                <div class="font-medium">{{ imovel.endereco }}</div>
+                                <div class="text-sm text-gray-400">Cód: #{{ imovel.id }}</div>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="badge {% if imovel.status == 'alugado' %}badge-green{% elif imovel.status == 'disponivel' %}badge-blue{% else %}badge-red{% endif %}">
+                                    {{ imovel.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-right receita">
+                                R$ {{ imovel.receitas|floatformat:2 }}
+                            </td>
+                            <td class="px-4 py-3 text-right despesa">
+                                R$ {{ imovel.despesas|floatformat:2 }}
+                            </td>
+                            <td class="px-4 py-3 text-right repasse">
+                                R$ {{ imovel.repasses|floatformat:2 }}
+                            </td>
+                            <td class="px-4 py-3 text-right {% if imovel.saldo >= 0 %}receita{% else %}despesa{% endif %}">
+                                R$ {{ imovel.saldo|floatformat:2 }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-4 py-4 text-center text-gray-500">
+                                Nenhum imóvel encontrado para este proprietário.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Extrato Detalhado - Atualizado para incluir filtro de repasses -->
+        <div class="card p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold flex items-center">
+                    <i class="bi bi-receipt mr-2"></i>
+                    Extrato Detalhado
+                </h3>
+                <div class="flex space-x-2 no-print">
+                    <button id="btn-receitas" class="bg-green-700 hover:bg-green-800 text-white px-3 py-1 rounded text-sm">
+                        Receitas
+                    </button>
+                    <button id="btn-despesas" class="bg-red-700 hover:bg-red-800 text-white px-3 py-1 rounded text-sm">
+                        Despesas
+                    </button>
+                    <button id="btn-repasses" class="bg-yellow-700 hover:bg-yellow-800 text-white px-3 py-1 rounded text-sm">
+                        Repasses
+                    </button>
+                    <button id="btn-todos" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+                        Todos
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full table-dark" id="tabela-extrato">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-3 text-left">Data</th>
+                            <th class="px-4 py-3 text-left">Imóvel</th>
+                            <th class="px-4 py-3 text-left">Descrição</th>
+                            <th class="px-4 py-3 text-center">Tipo</th>
+                            <th class="px-4 py-3 text-right">Valor</th>
+                            <th class="px-4 py-3 text-right">Saldo (R$)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lancamento in lancamentos %}
+                        <tr class="tipo-{{ lancamento.tipo|lower }}">
+                            <td class="px-4 py-3">{{ lancamento.data|date:"d/m/Y" }}</td>
+                            <td class="px-4 py-3">
+                                {% if lancamento.imovel %}
+                                    {{ lancamento.imovel.endereco|truncatechars:25 }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3">{{ lancamento.descricao }}</td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="badge 
+                                    {% if lancamento.tipo == 'RECEITA' %}badge-green
+                                    {% elif lancamento.tipo == 'DESPESA' %}badge-red
+                                    {% elif lancamento.tipo == 'REPASSE' %}badge-yellow
+                                    {% endif %}">
+                                    {{ lancamento.get_tipo_display }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-right 
+                                {% if lancamento.tipo == 'RECEITA' %}receita
+                                {% elif lancamento.tipo == 'DESPESA' %}despesa
+                                {% elif lancamento.tipo == 'REPASSE' %}repasse
+                                {% endif %}">
+                                R$ {{ lancamento.valor|floatformat:2 }}
+                            </td>
+                            <td class="px-4 py-3 text-right {% if lancamento.saldo >= 0 %}receita{% else %}despesa{% endif %}">
+                                R$ {{ lancamento.saldo|floatformat:2 }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-4 py-4 text-center text-gray-500">
+                                Nenhum lançamento encontrado para o período selecionado.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% if proprietario_selecionado %}
+            <div class="mb-6 no-print">
+                <form method="get" action="{% url 'extrato_repasses_pdf' proprietario_selecionado %}" target="_blank">
+                    <input type="hidden" name="data_inicial" value="{{ data_inicial|date:'Y-m-d' }}">
+                    <input type="hidden" name="data_final" value="{{ data_final|date:'Y-m-d' }}">
+                    <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded">
+                        <i class="bi bi-file-earmark-pdf mr-2"></i> Gerar PDF de Repasses
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="card p-6 text-center">
+            <p class="text-gray-400">Selecione um proprietário para visualizar o extrato.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Formatação de valores monetários
+        function formatCurrency(value) {
+            if (typeof value !== 'string') {
+                value = value.toString();
+            }
+            
+            // Remove formatação existente e converte para número
+            let cleanValue = value.replace(/[^\d,-]/g, '').replace(',', '.');
+            let numValue = parseFloat(cleanValue);
+            
+            if (isNaN(numValue)) return 'R$ 0,00';
+            
+            return numValue.toLocaleString('pt-BR', { 
+                style: 'currency', 
+                currency: 'BRL',
+                minimumFractionDigits: 2
+            });
+        }
+        
+        // Formatar valores monetários na página
+        document.querySelectorAll('.receita, .despesa, .repasse, #total-receitas, #total-despesas, #total-repasses, #saldo').forEach(el => {
+            el.textContent = formatCurrency(el.textContent);
+        });
+        
+        // Filtros para o extrato
+        const btnReceitas = document.getElementById('btn-receitas');
+        const btnDespesas = document.getElementById('btn-despesas');
+        const btnRepasses = document.getElementById('btn-repasses');  // Novo botão para repasses
+        const btnTodos = document.getElementById('btn-todos');
+        const tabelaExtrato = document.getElementById('tabela-extrato');
+        
+        if (btnReceitas && btnDespesas && btnRepasses && btnTodos && tabelaExtrato) {
+            btnReceitas.addEventListener('click', function() {
+                const linhas = tabelaExtrato.querySelectorAll('tbody tr');
+                linhas.forEach(linha => {
+                    if (linha.classList.contains('tipo-receita')) {
+                        linha.style.display = '';
+                    } else {
+                        linha.style.display = 'none';
+                    }
+                });
+            });
+            
+            btnDespesas.addEventListener('click', function() {
+                const linhas = tabelaExtrato.querySelectorAll('tbody tr');
+                linhas.forEach(linha => {
+                    if (linha.classList.contains('tipo-despesa')) {
+                        linha.style.display = '';
+                    } else {
+                        linha.style.display = 'none';
+                    }
+                });
+            });
+            
+            // Novo handler para o botão de repasses
+            btnRepasses.addEventListener('click', function() {
+                const linhas = tabelaExtrato.querySelectorAll('tbody tr');
+                linhas.forEach(linha => {
+                    if (linha.classList.contains('tipo-repasse')) {
+                        linha.style.display = '';
+                    } else {
+                        linha.style.display = 'none';
+                    }
+                });
+            });
+            
+            btnTodos.addEventListener('click', function() {
+                const linhas = tabelaExtrato.querySelectorAll('tbody tr');
+                linhas.forEach(linha => {
+                    linha.style.display = '';
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

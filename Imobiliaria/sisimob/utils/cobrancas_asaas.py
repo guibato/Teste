@@ -5,7 +5,7 @@ import traceback
 ASAAS_API_KEY = "$aact_hmlg_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjlmMjIzMzYzLTQyY2EtNGYwZS1hYmY4LWVhMGYyODU0YzQ0ZDo6JGFhY2hfMTJkOTc0YTAtZGExNC00MmExLTg1OWUtYTk3YzA3ZTYwMjgx"
 ASAAS_URL = "https://sandbox.asaas.com/api/v3/payments"
 
-def gerar_cobranca(asaas_id, valor, vencimento, nome):
+def gerar_cobranca(asaas_id, valor, vencimento, nome, descricao=None):
     """Cria uma cobrança no Asaas para um cliente existente com logs detalhados."""
     
     print("\n=========== INÍCIO DA INTEGRAÇÃO COM ASAAS ===========")
@@ -14,6 +14,7 @@ def gerar_cobranca(asaas_id, valor, vencimento, nome):
     print(f"- valor: {valor}")
     print(f"- vencimento: {vencimento}")
     print(f"- nome: {nome}")
+    print(f"- descricao: {descricao}")
     
     # Verificação de parâmetros
     if not asaas_id:
@@ -24,9 +25,9 @@ def gerar_cobranca(asaas_id, valor, vencimento, nome):
         dados_cobranca = {
             "customer": asaas_id,
             "billingType": "BOLETO",
-            'value': float(valor),
+            "value": float(valor),
             "dueDate": vencimento,
-            "description": f"Aluguel {vencimento[5:7]}/{vencimento[0:4]}",
+            "description": descricao if descricao else f"Aluguel {vencimento[5:7]}/{vencimento[0:4]}",
             "name": nome,
             "interest": { "value": 1 },
             "fine": {
