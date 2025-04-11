@@ -5,6 +5,7 @@ from .views import atualizar_indices_view
 from django.conf import settings
 from django.conf.urls.static import static
 from .views import listar_indices_inflacao, gerar_extrato_rendimento, gerar_cobrancas_view, extrato_repasses_pdf
+from . import views
 
 urlpatterns = [
     path('', views.home, name='home'),  # Rota para a página inicial
@@ -49,11 +50,11 @@ urlpatterns = [
     path('excluir-despesa/<int:id>/', views.excluir_despesa, name='excluir_despesa'),
     path('executar-cobrancas/', gerar_cobrancas_view, name='executar_cobrancas'),
     path('extrato/', views.extrato, name='extrato'),
-    path(
-    'proprietarios/<int:proprietario_id>/extrato-repasses/pdf/',
-    views.extrato_repasses_pdf,  # ← nome real da sua função
-    name='extrato_repasses_pdf'
-)
+    path('proprietarios/<int:proprietario_id>/extrato-repasses/pdf/', views.extrato_repasses_pdf, name='extrato_repasses_pdf'),
+    path('extrato/', views.extrato, name='extrato'),
+    path('gerar-pdf/<int:contrato_id>/', views.gerar_pdf, name='gerar_pdf'),
+
+
 
 
 

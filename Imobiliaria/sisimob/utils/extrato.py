@@ -10,6 +10,8 @@ from reportlab.lib import colors
 from reportlab.lib.colors import HexColor
 import io
 from datetime import date
+from django.db.models import Sum
+from sisimob.models import Contrato, Cobranca
 
 # Configura o Django antes de usar qualquer funcionalidade
 if not settings.configured:
@@ -21,41 +23,26 @@ if not settings.configured:
     )
     django.setup()
 
-def gerar_extrato_rendimento(request):
-    # Dados simulados
-    ano = 2024
-    contrato = {
-        "id": 2,
-        "data_inicio": date(2024, 4, 9),
-        "imovel": {
-            "endereco": "Travessa Canto da Verônica",
-            "numero": "6",
-            "complemento": "",
-            "bairro": "Jardim Anália Franco",
-            "estado": "SP",
-            "cidade": "São Paulo",
-            "cep": "03333-050"
-        },
-        "proprietario": {
-            "nome": "José João Mecchi",
-            "CPF": "022.677.898-33"
-        },
-        "inquilino": {
-            "nome": "Renato Batalha da Silva Cordeiro",
-            "CPF": "214.093.328-10"
-        }
-    }
-    cobrancas = [
-        {"mes_referencia": 5, "valor": 2000.00},
-        {"mes_referencia": 6, "valor": 2000.00},
-        {"mes_referencia": 7, "valor": 2000.00},
-        {"mes_referencia": 8, "valor": 2000.00},
-        {"mes_referencia": 9, "valor": 2000.00},
-        {"mes_referencia": 10, "valor": 2000.00},
-        {"mes_referencia": 11, "valor": 2000.00},
-        {"mes_referencia": 12, "valor": 1710.03}
-    ]
-    taxa_administracao = 119.70
+def gerar_extrato_rendimento(contrato_id, ano):
+    # Buscar o contrato pelo ID
+    try:
+        print(f"Contrato ID recebido: {contrato_id}")
+        contrato = Contrato.objects.get(id=contrato_id)
+        print(f"Contrato recuperado: {contrato.id} - Proprietário: {contrato.proprietario.nome}")
+    except Contrato.DoesNotExist:
+        raise ValueError(f"Contrato com ID {contrato_id} não encontrado.")
+
+    # Filtrar as cobranças do contrato para o ano especificado
+    cobrancas = Cobranca.objects.filter(
+        contrato=contrato,
+        ano_referencia=ano
+    ).order_by('mes_referencia')
+    print(f"Cobranças encontradas para o contrato {contrato.id}: {[c.mes_referencia for c in cobrancas]}")
+
+    # Calcular o total de aluguel e taxa de administração
+    total_aluguel = cobrancas.aggregate(total=Sum('valor'))['total'] or 0
+    taxa_administracao = contrato.valor_taxa_administracao()
+    print(f"Taxa de administração calculada: {taxa_administracao}")
 
     # Configuração do PDF
     response = io.BytesIO()
@@ -100,16 +87,11 @@ def gerar_extrato_rendimento(request):
     elements.append(Spacer(1, 0.3 * cm))
 
     # Dados do Imóvel
-    endereco = f"{contrato['imovel']['endereco']}, {contrato['imovel']['numero']}"
-    if contrato['imovel']['complemento']:
-        endereco += f" - {contrato['imovel']['complemento']}"
-    if contrato['imovel']['bairro']:
-        endereco += f" - {contrato['imovel']['bairro']}"
-
+    endereco = contrato.imovel.endereco_completo()
     imovel_data = [
-        [f"<b>Número do contrato:</b> {contrato['id']}", f"<b>Início do contrato:</b> {contrato['data_inicio'].strftime('%d/%m/%Y')}", f"<b>Tipo do imóvel:</b> Urbano"],
-        [f"<b>Endereço do imóvel:</b> {endereco}"],  # Corrigido: removido aninhamento extra
-        [f"<b>UF:</b> {contrato['imovel']['estado']}", f"<b>Município:</b> {contrato['imovel']['cidade']}", f"<b>CEP:</b> {contrato['imovel']['cep']}"]
+        [f"<b>Número do contrato:</b> {contrato.id}", f"<b>Início do contrato:</b> {contrato.data_inicio.strftime('%d/%m/%Y')}", f"<b>Tipo do imóvel:</b> Urbano"],
+        [f"<b>Endereço do imóvel:</b> {endereco}"],
+        [f"<b>UF:</b> {contrato.imovel.estado}", f"<b>Município:</b> {contrato.imovel.cidade}", f"<b>CEP:</b> {contrato.imovel.cep}"]
     ]
     imovel_table = Table(
         [[Paragraph(cell, normal_style) for cell in row] for row in imovel_data], 
@@ -132,10 +114,12 @@ def gerar_extrato_rendimento(request):
     elements.append(Spacer(1, 0.5 * cm))
 
     # Locador e Locatário
-    elements.append(Paragraph("<b>Locador(a):</b> " + contrato['proprietario']['nome'] + " - CPF: " + contrato['proprietario']['CPF'], normal_style))
-    elements.append(Paragraph("<b>Locatário(a):</b> " + contrato['inquilino']['nome'] + " - CPF: " + contrato['inquilino']['CPF'], normal_style))
+    elements.append(Paragraph("<b>Locador(a):</b> " + contrato.proprietario.nome + " - CPF: " + contrato.proprietario.CPF, normal_style))
+    elements.append(Paragraph("<b>Locatário(a):</b> " + contrato.inquilino.nome + " - CPF: " + contrato.inquilino.CPF, normal_style))
     elements.append(Spacer(1, 0.5 * cm))
-
+    print(f"Imóvel: {contrato.imovel.endereco_completo()}")
+    print(f"Proprietário: {contrato.proprietario.nome} - CPF: {contrato.proprietario.CPF}")
+    print(f"Inquilino: {contrato.inquilino.nome} - CPF: {contrato.inquilino.CPF}")
     # Tabela de Rendimentos
     meses = {
         1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril', 
@@ -147,10 +131,10 @@ def gerar_extrato_rendimento(request):
     valores_por_mes = {mes: [0, 0, 0] for mes in range(1, 13)}
 
     for cobranca in cobrancas:
-        mes = cobranca["mes_referencia"]
-        valores_por_mes[mes][0] = cobranca["valor"]
+        mes = cobranca.mes_referencia
+        valores_por_mes[mes][0] = cobranca.valor
         valores_por_mes[mes][1] = taxa_administracao
-        valores_por_mes[mes][2] = 0
+        valores_por_mes[mes][2] = 0  # Imposto retido (não implementado)
 
     total_aluguel = 0
     total_taxa = 0
@@ -209,22 +193,3 @@ def gerar_extrato_rendimento(request):
     doc.build(elements)
     pdf = response.getvalue()
     return pdf
-
-if __name__ == "__main__":
-    # Simula uma requisição HTTP
-    request = HttpRequest()
-    request.GET = {"ano": "2024"}  # Ano desejado
-
-    # Chama a função e salva o PDF gerado
-    print("Gerando PDF...")
-    pdf_content = gerar_extrato_rendimento(request)
-    print(f"Tamanho do PDF gerado: {len(pdf_content)} bytes")
-
-    # Salva o PDF em um arquivo local
-    output_path = os.path.join(os.getcwd(), "extrato.pdf")  # Salva no diretório atual
-    try:
-        with open(output_path, "wb") as f:
-            f.write(pdf_content)
-        print(f"PDF salvo com sucesso em: {output_path}")
-    except Exception as e:
-        print(f"Erro ao salvar o PDF: {e}")

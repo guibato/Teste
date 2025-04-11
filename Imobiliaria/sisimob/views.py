@@ -1413,3 +1413,34 @@ def extrato_repasses_pdf(request, proprietario_id):
     # Gera o PDF
     pdf = gerar_pdf_extrato_repasses(proprietario, data_inicial, data_final, cobrancas)
     return HttpResponse(pdf, content_type="application/pdf")
+
+from django.http import HttpResponse, Http404
+from .utils.extrato import gerar_extrato_rendimento
+
+def gerar_pdf(request, contrato_id):
+    # Captura o ano dos parâmetros GET
+    ano = request.GET.get("ano")
+
+    # Valida se os parâmetros foram fornecidos
+    if not ano:
+        raise Http404("O parâmetro 'ano' é obrigatório.")
+
+    try:
+        # Converte o ano para inteiro
+        ano = int(ano)
+    except ValueError:
+        raise Http404("O parâmetro 'ano' deve ser um número válido.")
+
+    # Busca o contrato pelo ID
+    contrato = get_object_or_404(Contrato, id=contrato_id)
+
+    # Gera o PDF
+    try:
+        pdf_content = gerar_extrato_rendimento(contrato_id, ano)
+    except Exception as e:
+        raise Http404(f"Erro ao gerar o extrato: {str(e)}")
+
+    # Retorna o PDF como resposta HTTP
+    response = HttpResponse(pdf_content, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="extrato_{ano}.pdf"'
+    return response

@@ -17,37 +17,30 @@
         --accent-red: #fc8181;
         --border-color: #4a5568;
     }
-    
     body {
         background-color: var(--bg-primary);
         color: var(--text-primary);
     }
-    
     .card {
         background-color: var(--bg-card);
         border: 1px solid var(--border-color);
         border-radius: 0.5rem;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     }
-    
     .table-dark {
         background-color: var(--bg-secondary);
         color: var(--text-primary);
     }
-    
     .table-dark thead th {
         background-color: #2d3748;
         border-color: #4a5568;
     }
-    
     .table-dark tbody tr {
         border-color: #4a5568;
     }
-    
     .table-dark tbody tr:hover {
         background-color: #4a5568;
     }
-    
     .badge {
         display: inline-flex;
         align-items: center;
@@ -56,44 +49,63 @@
         font-size: 0.75rem;
         font-weight: 500;
     }
-    
     .badge-blue {
         background-color: rgba(99, 179, 237, 0.2);
         color: var(--accent-blue);
     }
-    
     .badge-green {
         background-color: rgba(104, 211, 145, 0.2);
         color: var(--accent-green);
     }
-    
     .badge-red {
         background-color: rgba(252, 129, 129, 0.2);
         color: var(--accent-red);
     }
-    
     .btn-primary {
         background-color: #4299e1;
         color: white;
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
     }
-    
     .btn-primary:hover {
         background-color: #3182ce;
     }
-    
+    .btn-primary i {
+        margin-right: 0.5rem;
+    }
     .form-control {
         background-color: #2d3748;
         border-color: #4a5568;
         color: var(--text-primary);
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        transition: border-color 0.3s ease;
     }
-    
     .form-control:focus {
         border-color: var(--accent-blue);
         box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.5);
     }
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+    .form-group select {
+        width: 100%;
+    }
+    .form-group button {
+        margin-top: 0.5rem;
+    }
 </style>
 {% endblock %}
-
 {% block content %}
 <div class="dark-theme container mx-auto p-4">
     <!-- Cabeçalho -->
@@ -121,7 +133,6 @@
             </div>
         </div>
     </div>
-
     <!-- Resumo Financeiro -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <!-- Receitas -->
@@ -137,7 +148,6 @@
                 {{ cobrancas_pagas.count }} pagamentos recebidos
             </p>
         </div>
-        
         <!-- Despesas -->
         <div class="card p-6 border-t-4 border-red-500">
             <h3 class="text-lg font-semibold mb-2 flex items-center">
@@ -151,7 +161,6 @@
                 Despesas considerando apenas parcelas do mês.
             </p>
         </div>
-        
         <!-- Saldo -->
         <div class="card p-6 border-t-4 border-green-500">
             <h3 class="text-lg font-semibold mb-2 flex items-center">
@@ -166,7 +175,6 @@
             </p>
         </div>
     </div>
-
     <!-- Seção Principal -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Coluna Esquerda -->
@@ -184,7 +192,6 @@
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-400">Término:</span>
-                        
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-400">Reajuste:</span>
@@ -196,7 +203,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Garantias -->
             <div class="card p-6">
                 <h3 class="text-lg font-semibold mb-4 flex items-center">
@@ -222,135 +228,122 @@
                 </div>
             </div>
         </div>
-
         <!-- Coluna Central -->
         <div class="space-y-6 lg:col-span-2">
             <!-- Tabela de Cobranças -->
             <div class="card p-6">
-            
-
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-600 table-dark">
-                            
-                            <div class="card p-6">
-                                <div class="flex justify-between items-center mb-4">
-                                    <h3 class="text-lg font-semibold flex items-center">
-                                        <i class="bi bi-calendar-check mr-2"></i>
-                                        Cronograma de Cobranças
-                                    </h3>
-                                    <!-- Filtro Atualizado -->
-                                    <div class="flex space-x-2">
-                                        <select name="ano" class="form-control bg-gray-700 text-sm py-1 px-2 rounded">
-                                            {% for ano in anos_disponiveis %}
-                                            <option value="{{ ano.year }}" {% if ano.year == ano_selecionado %}selected{% endif %}>
-                                                {{ ano.year }}
-                                            </option>
-                                            {% endfor %}
-                                        </select>
-                                        <select name="status" class="form-control bg-gray-700 text-sm py-1 px-2 rounded">
-                                            <option value="">Todos</option>
-                                            {% for status in status_choices %}
-                                            <option value="{{ status.0 }}" {% if status.0 == status_selecionado %}selected{% endif %}>
-                                                {{ status.1 }}
-                                            </option>
-                                            {% endfor %}
-                                        </select>
-                                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
-                                            Filtrar
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="overflow-x-auto">
-                                    <table class="min-w-full divide-y divide-gray-600 table-dark">
-                                        <thead>
-                                            <tr>
-                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider text-center">Mês/Ano</th>
-                                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider text-center">Valor Bruto</th>
-                                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider text-center">Administração</th>
-                                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider text-center">Valor Líquido</th>
-                                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider text-center">Recebimento/Repasse</th>
-                                                
-                                                
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-gray-600">
-                                            {% for cobranca in cobrancas %}
-                                            <tr class="{% if cobranca.status == 'paga' %}bg-gray-700{% elif cobranca.status == 'atrasada' %}bg-red-900 bg-opacity-30{% endif %}">
-                                                <td class="px-4 py-3 whitespace-nowrap text-center">
-                                                    <div class="text-sm font-medium">
-                                                        <!-- Exibe o mês e ano com dois dígitos -->
-                                                        {{ cobranca.mes_referencia|stringformat:"02d" }}/{{ cobranca.ano_referencia|stringformat:"02d" }}
-                                                    </div>
-                                                    <div class="text-xs text-gray-400">
-                                                        <!-- Formata a data de vencimento para o formato d/m/yy -->
-                                                        Venc {{ cobranca.data_vencimento|date:"d/m/y" }}
-                                                    </div>
-                                                </td>
-                                                
-                                                <!-- Valor Bruto (Aluguel) -->
-                                                <td class="px-4 py-3 whitespace-nowrap text-center ">
-                                                    <div class="text-sm font-medium valor-bruto"> {{ cobranca.valor }}</div>
-                                                </td>
-                                                <!-- Taxa de Administração -->
-                                                <td class="px-4 py-3 whitespace-nowrap text-center">
-                                                    <div class="text-sm text-blue-300 administracao">
-                                                        - {{ cobranca.valor_administracao|floatformat:2 }}
-                                                    </div>
-                                                    <div class="text-xs text-gray-400">
-                                                        {% if contrato.taxa_administracao_display %}
-                                                            ({{ contrato.taxa_administracao_display }})
-                                                        {% endif %}
-                                                    </div>
-                                                </td>
-                                                <!-- Valor Líquido (Repasse) -->
-                                                <td class="px-4 py-3 whitespace-nowrap text-center">
-                                                    <div class="text-sm font-bold text-green-300 valor-liquido">
-                                                         {{ cobranca.valor_liquido }}
-                                                    </div>
-                                                </td>
-                                                
-                                                <td class="px-4 py-3 whitespace-nowrap text-center">
-                                                    <div class="flex justify-center space-x-3">
-                                                        <!-- Recebida -->
-                                                        <form method="post" action="{% url 'atualizar_datas_cobranca' pk=cobranca.id %}" style="display: inline;">
-                                                            {% csrf_token %}
-                                                            <input type="date" name="data_pagamento" value="{{ cobranca.data_pagamento|date:'Y-m-d' }}" class="block w-full mt-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-black text-center  ">
-                                                            <button type="submit" class="text-green-500 hover:text-green-700 mt-1">
-                                                                Receber
-                                                            </button>
-                                                        </form>
-
-                                                        <!-- Repassada -->
-                                                        <form method="post" action="{% url 'atualizar_datas_cobranca' pk=cobranca.id %}" style="display: inline;">
-                                                            {% csrf_token %}
-                                                            <input type="date" name="data_repasse" value="{{ cobranca.data_repasse|date:'Y-m-d' }}" class="block w-full mt-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-black text-center ">
-                                                            <button type="submit" class="text-blue-500 hover:text-blue-700 mt-1">
-                                                                Repassar
-                                                            </button>
-                                                        </form>
-
-                                                        <!-- Editar -->
-                                                        <a href="{% url 'editar_cobranca' pk=cobranca.id %}" class="text-blue-400 hover:text-blue-300">
-                                                            <i class="bi bi-pencil-square"></i>
-                                                        </a>
-
-                                                        <!-- Excluir -->
-                                                        <a href="{% url 'confirmar_exclusao' model_name='cobranca' id=cobranca.id %}" class="text-red-400 hover:text-red-300">
-                                                            <i class="bi bi-trash"></i>
-                                                        </a>
-                                                    </div>
-                                                </td>    
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-600 table-dark">
+                        <div class="card p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold flex items-center">
+                                    <i class="bi bi-calendar-check mr-2"></i>
+                                    Cronograma de Cobranças
+                                </h3>
+                                <!-- Filtro Atualizado -->
+                                <div class="flex space-x-2">
+                                    <select name="ano" class="form-control bg-gray-700 text-sm py-1 px-2 rounded">
+                                        {% for ano in anos_disponiveis %}
+                                        <option value="{{ ano.year }}" {% if ano.year == ano_selecionado %}selected{% endif %}>
+                                            {{ ano.year }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <select name="status" class="form-control bg-gray-700 text-sm py-1 px-2 rounded">
+                                        <option value="">Todos</option>
+                                        {% for status in status_choices %}
+                                        <option value="{{ status.0 }}" {% if status.0 == status_selecionado %}selected{% endif %}>
+                                            {{ status.1 }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+                                        Filtrar
+                                    </button>
                                 </div>
                             </div>
-                        </table>
-                    </div>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-600 table-dark">
+                                    <thead>
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider text-center">Mês/Ano</th>
+                                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider text-center">Valor Bruto</th>
+                                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider text-center">Administração</th>
+                                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider text-center">Valor Líquido</th>
+                                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider text-center">Recebimento/Repasse</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-600">
+                                        {% for cobranca in cobrancas %}
+                                        <tr class="{% if cobranca.status == 'paga' %}bg-gray-700{% elif cobranca.status == 'atrasada' %}bg-red-900 bg-opacity-30{% endif %}">
+                                            <td class="px-4 py-3 whitespace-nowrap text-center">
+                                                <div class="text-sm font-medium">
+                                                    <!-- Exibe o mês e ano com dois dígitos -->
+                                                    {{ cobranca.mes_referencia|stringformat:"02d" }}/{{ cobranca.ano_referencia|stringformat:"02d" }}
+                                                </div>
+                                                <div class="text-xs text-gray-400">
+                                                    <!-- Formata a data de vencimento para o formato d/m/yy -->
+                                                    Venc {{ cobranca.data_vencimento|date:"d/m/y" }}
+                                                </div>
+                                            </td>
+                                            <!-- Valor Bruto (Aluguel) -->
+                                            <td class="px-4 py-3 whitespace-nowrap text-center ">
+                                                <div class="text-sm font-medium valor-bruto"> {{ cobranca.valor }}</div>
+                                            </td>
+                                            <!-- Taxa de Administração -->
+                                            <td class="px-4 py-3 whitespace-nowrap text-center">
+                                                <div class="text-sm text-blue-300 administracao">
+                                                    - {{ cobranca.valor_administracao|floatformat:2 }}
+                                                </div>
+                                                <div class="text-xs text-gray-400">
+                                                    {% if contrato.taxa_administracao_display %}
+                                                        ({{ contrato.taxa_administracao_display }})
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                            <!-- Valor Líquido (Repasse) -->
+                                            <td class="px-4 py-3 whitespace-nowrap text-center">
+                                                <div class="text-sm font-bold text-green-300 valor-liquido">
+                                                     {{ cobranca.valor_liquido }}
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-3 whitespace-nowrap text-center">
+                                                <div class="flex justify-center space-x-3">
+                                                    <!-- Recebida -->
+                                                    <form method="post" action="{% url 'atualizar_datas_cobranca' pk=cobranca.id %}" style="display: inline;">
+                                                        {% csrf_token %}
+                                                        <input type="date" name="data_pagamento" value="{{ cobranca.data_pagamento|date:'Y-m-d' }}" class="block w-full mt-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-black text-center  ">
+                                                        <button type="submit" class="text-green-500 hover:text-green-700 mt-1">
+                                                            Receber
+                                                        </button>
+                                                    </form>
+                                                    <!-- Repassada -->
+                                                    <form method="post" action="{% url 'atualizar_datas_cobranca' pk=cobranca.id %}" style="display: inline;">
+                                                        {% csrf_token %}
+                                                        <input type="date" name="data_repasse" value="{{ cobranca.data_repasse|date:'Y-m-d' }}" class="block w-full mt-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-black text-center ">
+                                                        <button type="submit" class="text-blue-500 hover:text-blue-700 mt-1">
+                                                            Repassar
+                                                        </button>
+                                                    </form>
+                                                    <!-- Editar -->
+                                                    <a href="{% url 'editar_cobranca' pk=cobranca.id %}" class="text-blue-400 hover:text-blue-300">
+                                                        <i class="bi bi-pencil-square"></i>
+                                                    </a>
+                                                    <!-- Excluir -->
+                                                    <a href="{% url 'confirmar_exclusao' model_name='cobranca' id=cobranca.id %}" class="text-red-400 hover:text-red-300">
+                                                        <i class="bi bi-trash"></i>
+                                                    </a>
+                                                </div>
+                                            </td>    
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </table>
                 </div>
             </div>
-
             <!-- Tabela de Despesas -->
             <div class="card p-6">
                 <div class="flex justify-between items-center mb-4">
@@ -362,7 +355,6 @@
                         <i class="bi bi-plus-circle mr-1"></i> Nova Despesa
                     </a>
                 </div>
-
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-600 table-dark text-center">
                         <thead>
@@ -388,7 +380,6 @@
                                     <div class="text-sm font-medium">{{ despesa.descricao }}</div>
                                     <div class="text-xs text-gray-400">
                                         {{ despesa.data_inicio|date:"d/m/Y" }}
-                                        
                                     </div>
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap text-center">
@@ -416,44 +407,50 @@
                 </div>
             </div>
         </div>
-    </div>
     
+        <form method="get" action="{% url 'gerar_pdf' contrato.id %}" class="form-group">
+            <div class="flex justify-between items-center mb-4">
+                <label for="ano" class="text-gray-400">Selecione o Ano:</label>
+                <select name="ano" id="ano" class="form-control bg-gray-700 text-sm py-1 px-2 rounded">
+                    {% for ano in anos_disponiveis %}
+                    <option value="{{ ano.year }}" {% if ano.year == ano_selecionado %}selected{% endif %}>
+                        {{ ano.year }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn-primary flex items-center px-3 py-1 text-sm rounded">
+                    <i class="bi bi-file-earmark-pdf mr-1"></i> Gerar Extrato de Rendimentos
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
-
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         function formatCurrency(value) {
             console.log("Valor original recebido:", value); // Log do valor recebido
-        
             if (typeof value !== 'string') {
                 value = value.toString();
             }
-        
             // Remove espaços extras e "R$"
             let cleanedValue = value.trim().replace(/\s/g, '').replace('R$', '');
             console.log("Após remoção de espaços e R$:", cleanedValue);
-        
             // Remove pontos de milhar (mantém a vírgula decimal)
             cleanedValue = cleanedValue.replace(/\./g, '');
             console.log("Após remover pontos de milhar:", cleanedValue);
-        
             // Substitui a vírgula decimal por ponto
             cleanedValue = cleanedValue.replace(',', '.');
             console.log("Após substituir vírgula por ponto:", cleanedValue);
-        
             // Converte para número e limita a duas casas decimais
             let numValue = parseFloat(cleanedValue);
             console.log("Valor numérico convertido:", numValue);
-        
             // Se for um número inválido, retorna o valor original
             if (isNaN(numValue)) {
                 console.warn("Valor inválido detectado:", value);
                 return value;
             }
-        
             // Garante que tenha apenas duas casas decimais
             numValue = parseFloat(numValue.toFixed(2));
-        
             // Retorna o valor formatado corretamente
             let formattedValue = new Intl.NumberFormat('pt-BR', {
                 style: 'currency',
@@ -461,11 +458,9 @@
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             }).format(numValue);
-        
             console.log("Valor formatado final:", formattedValue);
             return formattedValue;
         }
-        
         // Seletores para os valores monetários (incluindo despesas)
         const currencySelectors = [
             '.border-blue-500 .text-3xl',  // Receitas
@@ -480,15 +475,12 @@
             '.valor-liquido',              // Seletores para Valor Líquido
             '.despesa-valor'               // Adicionando seletor para despesa
         ];
-    
         // Aplicar a formatação e registrar logs no console
         currencySelectors.forEach(selector => {
             document.querySelectorAll(selector).forEach(el => {
                 let originalValue = el.textContent.trim();
                 console.log("Elemento encontrado:", el, "Valor antes da formatação:", originalValue);
-        
                 let formattedValue = formatCurrency(originalValue);
-                    
                 if (originalValue !== formattedValue) {
                     el.textContent = formattedValue;
                     console.log("Valor atualizado no DOM:", el.textContent);
@@ -497,7 +489,6 @@
                 }
             });
         });
-    
         // Formatar Mês/Ano para o formato MM/YY (excluindo formatação de moeda)
         const mesAnoElements = document.querySelectorAll('.mes-ano');
         mesAnoElements.forEach(element => {
@@ -506,6 +497,5 @@
             element.textContent = mes.padStart(2, '0') + '/' + ano.slice(-2); // Formata para MM/YY
         });
     });
-    </script>
-    
+</script>
 {% endblock %}
