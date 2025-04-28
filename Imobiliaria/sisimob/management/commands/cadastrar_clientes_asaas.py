@@ -1,26 +1,36 @@
 from django.core.management.base import BaseCommand
 from sisimob.models import Cliente
-from sisimob.utils.cobrancas_asaas import criar_cobranca_asaas
+from sisimob.utils.cobrancas_asaas import gerar_cobranca
+import requests
+from datetime import datetime, timedelta
+import logging
 import requests
 
-ASAAS_API_KEY = "$aact_hmlg_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjlmMjIzMzYzLTQyY2EtNGYwZS1hYmY4LWVhMGYyODU0YzQ0ZDo6JGFhY2hfMTJkOTc0YTAtZGExNC00MmExLTg1OWUtYTk3YzA3ZTYwMjgx"
-ASAAS_URL = "https://sandbox.asaas.com/api/v3/customers"
+ASAAS_API_KEY = "$aact_prod_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OmM0NmU2MWJmLTllYjctNGE0OC1hMDQ2LWY1NDU3YzhlMTY5ZTo6JGFhY2hfNzQ2MDIwYjktMGJmYi00ZGUwLWJhMDgtNGU0OTk4ZDA1NjNi"
+ASAAS_URL = "https://www.asaas.com/api/v3/customers"
+logger = logging.getLogger(__name__)
 
 def cadastrar_cliente_no_asaas(cliente):
     """ Envia os dados do Cliente para o Asaas e retorna o ID do Asaas. """
-    
+
+    if not cliente.nome_exibicao or not (cliente.cnpj or cliente.CPF):
+        logger.warning(f"Dados incompletos para o cliente: {cliente.id} - {cliente}")
+        return None
+
+    cpf_cnpj = cliente.cnpj if cliente.tipo_pessoa == 'J' else cliente.CPF
+
     dados_cliente = {
-        "name": cliente.nome,
-        "cpfCnpj": cliente.CPF,
-        "email": cliente.email if cliente.email else "",
-        "phone": cliente.celular if cliente.celular else cliente.telefone,
-        "postalCode": cliente.cep,
-        "address": cliente.endereco,
-        "addressNumber": cliente.numero,
-        "complement": cliente.complemento if cliente.complemento else "",
-        "province": cliente.bairro if cliente.bairro else "",
-        "city": cliente.cidade,
-        "state": cliente.estado,
+        "name": cliente.nome_exibicao.strip(),
+        "cpfCnpj": cpf_cnpj.strip(),
+        "email": (cliente.email or "").strip(),
+        "phone": (cliente.celular or cliente.telefone or "").strip(),
+        "postalCode": (cliente.cep or "").strip(),
+        "address": (cliente.endereco or "").strip(),
+        "addressNumber": (cliente.numero or "").strip(),
+        "complement": (cliente.complemento or "").strip(),
+        "province": (cliente.bairro or "").strip(),
+        "city": (cliente.cidade or "").strip(),
+        "state": (cliente.estado or "").strip(),
     }
 
     headers = {
@@ -28,13 +38,19 @@ def cadastrar_cliente_no_asaas(cliente):
         "access_token": ASAAS_API_KEY
     }
 
-    response = requests.post(ASAAS_URL, json=dados_cliente, headers=headers)
+    try:
+        response = requests.post(ASAAS_URL, json=dados_cliente, headers=headers)
+        response_data = response.json()
+    except Exception as e:
+        logger.error(f"Erro ao conectar com o Asaas: {e}")
+        return None
 
-    if response.status_code in [200, 201]:
-        return response.json()["id"]  # Retorna o ID do cliente cadastrado no Asaas
+    if response.status_code in [200, 201] and "id" in response_data:
+        logger.info(f"Cliente cadastrado com sucesso no Asaas: {cliente.nome_exibicao} - ID: {response_data['id']}")
+        return response_data["id"]
     else:
-        return None  # Em caso de erro
-
+        logger.error(f"Erro ao cadastrar cliente no Asaas ({cliente.nome_exibicao}): {response.status_code} - {response.text}")
+        return None
 class Command(BaseCommand):
     help = "Cadastra clientes no Asaas e cria cobranças"
 
@@ -46,18 +62,11 @@ class Command(BaseCommand):
             return
 
         for cliente in clientes_nao_cadastrados:
-            self.stdout.write(f"Cadastrando cliente: {cliente.nome}")
-            cliente.asaas_id = cadastrar_cliente_no_asaas(cliente)
-            cliente.save(update_fields=["asaas_id"])
-
-            if cliente.asaas_id:
-                # Criar uma cobrança de R$100,00 com vencimento em 10 dias
-                from datetime import datetime, timedelta
-                data_vencimento = (datetime.today() + timedelta(days=10)).strftime("%Y-%m-%d")
-
-                cobranca_id = criar_cobranca_asaas(cliente, valor=100.00, vencimento=data_vencimento)
-
-                if cobranca_id:
-                    self.stdout.write(f"Cobrança criada com sucesso! ID: {cobranca_id}")
-                else:
-                    self.stdout.write("Erro ao criar cobrança.")
+            self.stdout.write(f"Cadastrando cliente: {cliente.nome_exibicao}")
+            asaas_id = cadastrar_cliente_no_asaas(cliente)
+            if asaas_id:
+                cliente.asaas_id = asaas_id
+                cliente.save(update_fields=["asaas_id"])
+                self.stdout.write(self.style.SUCCESS(f"✅ Cliente {cliente.nome_exibicao} cadastrado com sucesso."))
+            else:
+                self.stdout.write(self.style.ERROR(f"❌ Falha ao cadastrar {cliente.nome_exibicao}."))

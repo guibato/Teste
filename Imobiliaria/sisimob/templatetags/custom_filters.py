@@ -47,3 +47,8 @@ def add_class(value, arg):
             css_classes = arg
         return value.as_widget(attrs={'class': css_classes})
     return value
+
+@register.filter
+def field_type(field):
+    """Return the field class name."""
+    return field.field.widget.__class__.__name__

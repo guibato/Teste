@@ -114,11 +114,11 @@
             <div>
                 <h2 class="text-2xl font-bold flex items-center">
                     <i class="bi bi-file-earmark-text mr-2"></i>
-                    Contrato: {{ contrato.imovel.endereco|truncatewords:4 }}
+                    Contrato: {{ contrato.imovel }}
                 </h2>
                 <div class="mt-3 space-y-1">
                     <p class="text-sm"><span class="text-gray-400">Proprietário:</span> {{ contrato.proprietario.nome }}</p>
-                    <p class="text-sm"><span class="text-gray-400">Inquilino:</span> {{ contrato.inquilino.nome }}</p>
+                    <p class="text-sm"><span class="text-gray-400">Inquilino:</span> {{ contrato.inquilino.nome_exibicao }}</p>
                     {% if contrato.fiador %}
                     <p class="text-sm"><span class="text-gray-400">Fiador:</span> {{ contrato.fiador.nome }}</p>
                     {% endif %}
@@ -134,47 +134,48 @@
         </div>
     </div>
     <!-- Resumo Financeiro -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <!-- Receitas -->
-        <div class="card p-6 border-t-4 border-blue-500">
-            <h3 class="text-lg font-semibold mb-2 flex items-center">
-                <i class="bi bi-arrow-down-circle text-blue-400 mr-2"></i>
-                Receitas
-            </h3>
-            <p class="text-3xl font-bold text-blue-400">
-                 {{ total_receitas }}
-            </p>
-            <p class="text-sm text-gray-400 mt-1">
-                {{ cobrancas_pagas.count }} pagamentos recebidos
-            </p>
-        </div>
-        <!-- Despesas -->
-        <div class="card p-6 border-t-4 border-red-500">
-            <h3 class="text-lg font-semibold mb-2 flex items-center">
-                <i class="bi bi-arrow-up-circle text-red-400 mr-2"></i>
-                Despesas
-            </h3>
-            <p class="text-3xl font-bold text-red-400">
-                {{ total_despesas }}
-            </p>
-            <p class="text-sm text-gray-400 mt-1">
-                Despesas considerando apenas parcelas do mês.
-            </p>
-        </div>
-        <!-- Saldo -->
-        <div class="card p-6 border-t-4 border-green-500">
-            <h3 class="text-lg font-semibold mb-2 flex items-center">
-                <i class="bi bi-graph-up text-green-400 mr-2"></i>
-                Saldo
-            </h3>
-            <p class="text-3xl font-bold {% if saldo_positivo %}text-green-400{% else %}text-red-400{% endif %}">
-                {{ saldo }}
-            </p>
-            <p class="text-sm text-gray-400 mt-1">
-                Período: {{ periodo }}
-            </p>
-        </div>
+    <!-- Resumo Financeiro -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <!-- Receitas -->
+    <div class="card p-6 border-t-4 border-blue-500">
+        <h3 class="text-lg font-semibold mb-2 flex items-center">
+            <i class="bi bi-arrow-down-circle text-blue-400 mr-2"></i>
+            Receitas
+        </h3>
+        <p class="text-3xl font-bold text-blue-400">
+             {{ total_receitas }}
+        </p>
+        <p class="text-sm text-gray-400 mt-1">
+            {{ cobrancas_pagas.count }} pagamentos recebidos
+        </p>
     </div>
+    <!-- Despesas -->
+    <div class="card p-6 border-t-4 border-red-500">
+        <h3 class="text-lg font-semibold mb-2 flex items-center">
+            <i class="bi bi-arrow-up-circle text-red-400 mr-2"></i>
+            Despesas
+        </h3>
+        <p class="text-3xl font-bold text-red-400">
+            {{ total_despesas }}
+        </p>
+        <p class="text-sm text-gray-400 mt-1">
+            Despesas considerando apenas parcelas do mês.
+        </p>
+    </div>
+    <!-- Saldo -->
+    <div class="card p-6 border-t-4 border-green-500">
+        <h3 class="text-lg font-semibold mb-2 flex items-center">
+            <i class="bi bi-graph-up text-green-400 mr-2"></i>
+            Saldo
+        </h3>
+        <p class="text-3xl font-bold {% if saldo_positivo %}text-green-400{% else %}text-red-400{% endif %}">
+            {{ saldo }}
+        </p>
+        <p class="text-sm text-gray-400 mt-1">
+            Período: {{ periodo }}
+        </p>
+    </div>
+</div>
     <!-- Seção Principal -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Coluna Esquerda -->
@@ -387,7 +388,13 @@
                                         - {{ despesa.valor_total }}
                                     </div>
                                     <div class="text-xs text-gray-400">
-                                        {{ despesa.numero_parcelas }}x de  {{ despesa.calcular_valor_parcela }}
+                                        {% if despesa.numero_parcelas and despesa.numero_parcelas > 1 %}
+                                            {{ despesa.numero_parcelas }}x de {{ despesa.calcular_valor_parcela }}
+                                            {% elif despesa.despesa_recorrente %}
+                                            Recorrente mensal de {{ despesa.calcular_valor_parcela }}
+                                            {% else %}
+                                            R$ {{ despesa.valor_total }}
+                                        {% endif %}
                                     </div>
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap text-center">

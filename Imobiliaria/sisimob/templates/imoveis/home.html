@@ -1,110 +1,145 @@
 {% extends 'imoveis/base.html' %}
 
 {% block content %}
-<div class="container mx-auto p-4">
-    <!-- Formulário de Busca -->
-    <form method="get" action="{% url 'buscar' %}" class="mb-8">
-        <div class="flex items-center">
-            <input
-                type="text"
-                name="q"
-                placeholder="Buscar clientes, imóveis ou contratos"
-                class="flex-grow p-2 bg-gray-900 text-white border border-gray-800 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
-            />
-            <button
-                type="submit"
-                class="bg-gray-700 text-white px-6 py-2 rounded-r-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
-            >
-                Buscar
-            </button>
-        </div>
-    </form>
-
-    <!-- Botões de Ação -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <a
-            href="{% url 'cadastro_cliente' %}"
-            class="bg-gray-900 text-white px-6 py-4 rounded-full focus:outline-none border border-gray-200 text-center hover:bg-gray-800 transition-colors"
-        >
-            Cadastrar Cliente
-        </a>
-        <a
-            href="{% url 'cadastro_imovel' %}"
-            class="bg-gray-900 text-white px-6 py-4 rounded-full focus:outline-none border border-gray-200 text-center hover:bg-gray-800 transition-colors"
-        >
-            Cadastrar Imóvel
-        </a>
-        <a href="{% url 'cadastro_contrato' %}" class="bg-gray-900 text-white px-6 py-4 rounded-full focus:outline-none border border-gray-200 text-center hover:bg-gray-800 transition-colors">
-            Cadastrar Contrato
-        </a>
-        <a
-            href="{% url 'listar_clientes' %}"
-            class="bg-gray-900 text-white px-6 py-4 rounded-full focus:outline-none border border-gray-200 text-center hover:bg-gray-800 transition-colors"
-        >
-            Listar Clientes
-        </a>
-        <a
-            href="{% url 'listar_imoveis' %}"
-            class="bg-gray-900 text-white px-6 py-4 rounded-full focus:outline-none border border-gray-200 text-center hover:bg-gray-800 transition-colors"
-        >
-            Listar Imóveis
-        </a>
-        <a
-            href="{% url 'listar_contratos' %}"
-            class="bg-gray-900 text-white px-6 py-4 rounded-full focus:outline-none border border-gray-200 text-center hover:bg-gray-800 transition-colors"
-        >
-            Listar Contratos
-        </a>
-        
-        <a
-            href="{% url 'cadastro_cobrancas' %}"
-            class="bg-gray-900 text-white px-6 py-4 rounded-full focus:outline-none border border-gray-200 text-center hover:bg-gray-800 transition-colors"
-        >
-            Gerar Cobranças
-        </a>
-        <button
-            id="atualizarIndices"
-            class="bg-gray-900 text-white px-6 py-4 rounded-full focus:outline-none border border-gray-200 text-center hover:bg-gray-800 transition-colors"
-        >
-            Atualizar Índices de Inflação
-        </button>
-        <a href="{% url 'extrato' %}" class="bg-gray-900 text-white px-6 py-4 rounded-full focus:outline-none border border-gray-200 text-center hover:bg-gray-800 transition-colors">
-            Extrato
-          </a>
-        
-        
-        
-        
-        
-
+<div class="mb-8">
+    <h1 class="text-3xl font-bold mb-4">Dashboard</h1>
+    {% if total_pendencias > 5 %}
+    <div class="bg-red-600 text-white px-4 py-3 rounded-lg mb-4 shadow-md">
+        🚨 Atenção: Existem {{ total_pendencias }} cobranças em atraso!
     </div>
-    <p id="statusAtualizacao" class="text-gray-300 mt-2"></p>
-</div>
-<script>
-    document.getElementById("atualizarIndices").addEventListener("click", async () => {
-        const statusMsg = document.getElementById("statusAtualizacao");
-        
-        // Mensagem de início
-        statusMsg.textContent = "Atualização em andamento...";
-        statusMsg.classList.remove("text-green-500", "text-red-500");
-        statusMsg.classList.add("text-blue-500");
-    
-        try {
-            const response = await fetch("/atualizar-indices/", { method: "POST" });
-    
-            if (response.ok) {
-                statusMsg.textContent = "Atualização concluída com sucesso!";
-                statusMsg.classList.remove("text-blue-500", "text-red-500");
-                statusMsg.classList.add("text-green-500");
-            } else {
-                throw new Error(`Erro na atualização (Status: ${response.status})`);
-            }
-        } catch (error) {
-            statusMsg.textContent = "Erro ao atualizar os índices.";
-            statusMsg.classList.remove("text-blue-500", "text-green-500");
-            statusMsg.classList.add("text-red-500");
-        }
-    });
-    </script>
+    {% endif %}
 
+    {% if repasses_pendentes > 0 %}
+    <div class="bg-yellow-600 text-black px-4 py-3 rounded-lg mb-4 shadow-md">
+        ⚠️ Há R$ {{ repasses_pendentes|floatformat:2 }} em repasses pendentes.
+    </div>
+    {% endif %}
+
+    <!-- Formulário de Busca -->
+    <form method="get" action="{% url 'buscar' %}" class="flex mb-6">
+        <input
+            type="text"
+            name="q"
+            placeholder="Buscar clientes, imóveis ou contratos..."
+            class="flex-grow p-2 bg-gray-800 border border-gray-600 rounded-l-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+        />
+        <button
+            type="submit"
+            class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-r-md transition"
+        >
+            Buscar
+        </button>
+    </form>
+</div>
+
+<!-- Cards de Resumo -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-gray-800 p-6 rounded-lg shadow">
+        <p class="text-sm text-gray-400">Clientes</p>
+        <p class="text-2xl font-semibold">{{ total_clientes }}</p>
+    </div>
+    <div class="bg-gray-800 p-6 rounded-lg shadow">
+        <p class="text-sm text-gray-400">Imóveis</p>
+        <p class="text-2xl font-semibold">{{ total_imoveis }}</p>
+    </div>
+    <div class="bg-gray-800 p-6 rounded-lg shadow">
+        <p class="text-sm text-gray-400">Contratos Ativos</p>
+        <p class="text-2xl font-semibold">{{ total_contratos_ativos }}</p>
+    </div>
+    <div class="bg-gray-800 p-6 rounded-lg shadow">
+        <p class="text-sm text-gray-400">Cobranças em Atraso</p>
+        <p class="text-2xl font-semibold text-red-400">{{ total_pendencias }}</p>
+    </div>
+</div>
+
+<!-- Ações Rápidas -->
+<h2 class="text-xl font-semibold mb-4">Ações rápidas</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
+    <a href="{% url 'cadastro_cliente' %}" class="bg-gray-700 text-white px-6 py-4 rounded-lg text-center hover:bg-gray-600">➕ Cadastrar Cliente</a>
+    <a href="{% url 'cadastro_imovel' %}" class="bg-gray-700 text-white px-6 py-4 rounded-lg text-center hover:bg-gray-600">🏠 Cadastrar Imóvel</a>
+    <a href="{% url 'cadastro_contrato' %}" class="bg-gray-700 text-white px-6 py-4 rounded-lg text-center hover:bg-gray-600">📝 Novo Contrato</a>
+    <a href="{% url 'cadastro_cobrancas' %}" class="bg-gray-700 text-white px-6 py-4 rounded-lg text-center hover:bg-gray-600">💰 Gerar Cobranças</a>
+    <a href="{% url 'listar_clientes' %}" class="bg-gray-700 text-white px-6 py-4 rounded-lg text-center hover:bg-gray-600">📋 Listar Clientes</a>
+    <a href="{% url 'listar_imoveis' %}" class="bg-gray-700 text-white px-6 py-4 rounded-lg text-center hover:bg-gray-600">🏘️ Listar Imóveis</a>
+    <a href="{% url 'listar_contratos' %}" class="bg-gray-700 text-white px-6 py-4 rounded-lg text-center hover:bg-gray-600">📄 Listar Contratos</a>
+    <a href="{% url 'extrato' %}" class="bg-gray-700 text-white px-6 py-4 rounded-lg text-center hover:bg-gray-600">📊 Ver Extrato</a>
+    <a href="{% url 'lembretes-preview' %}" class="bg-gray-700 text-white px-6 py-4 rounded-lg text-center hover:bg-gray-600">📢 Visualizar Lembretes</a>
+    <a href="{% url 'listar_reajustes' %}" class="bg-gray-700 text-white px-6 py-4 rounded-lg text-center hover:bg-gray-600">📈 Reajustar Aluguéis</a>
+    <button id="atualizarIndices" class="bg-gray-700 text-white px-6 py-4 rounded-lg text-center hover:bg-gray-600">🔄 Atualizar Índices</button>
+</div>
+<h2 class="text-xl font-semibold mb-4">Indicadores Financeiros</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <div class="bg-green-700 p-6 rounded-lg shadow text-white">
+        <p class="text-sm text-green-200">Receita Prevista ({{ now|date:"F/Y" }})</p>
+        <p class="text-2xl font-bold">R$ {{ receita_prevista|floatformat:2 }}</p>
+    </div>
+    <div class="bg-blue-700 p-6 rounded-lg shadow text-white">
+        <p class="text-sm text-blue-200">Receita Recebida</p>
+        <p class="text-2xl font-bold">R$ {{ receita_recebida|floatformat:2 }}</p>
+    </div>
+    <div class="bg-yellow-700 p-6 rounded-lg shadow text-white">
+        <p class="text-sm text-yellow-200">Cobranças em Aberto</p>
+        <p class="text-2xl font-bold">R$ {{ cobrancas_em_aberto|floatformat:2 }}</p>
+    </div>
+    <div class="bg-purple-700 p-6 rounded-lg shadow text-white">
+        <p class="text-sm text-purple-200">Repasses Pendentes</p>
+        <p class="text-2xl font-bold">R$ {{ repasses_pendentes|floatformat:2 }}</p>
+    </div>
+    <div class="bg-teal-700 p-6 rounded-lg shadow text-white">
+        <p class="text-sm text-teal-200">Repasses Realizados ({{ now|date:"F/Y" }})</p>
+        <p class="text-2xl font-bold">R$ {{ repasses_realizados|floatformat:2 }}</p>
+    </div>
+</div>
+<h2 class="text-xl font-semibold mb-4">Receita Recebida nos Últimos 6 Meses</h2>
+<div class="bg-gray-800 p-6 rounded-lg shadow mb-8">
+    <canvas id="graficoReceita" class="w-full h-64"></canvas>
+</div>
+
+
+<p id="statusAtualizacao" class="text-gray-300 mt-4"></p>
+
+<script>
+document.getElementById("atualizarIndices").addEventListener("click", async () => {
+    const statusMsg = document.getElementById("statusAtualizacao");
+    statusMsg.textContent = "Atualizando índices...";
+    statusMsg.className = "text-blue-400 mt-4";
+
+    try {
+        const response = await fetch("/atualizar-indices/", { method: "POST" });
+        if (response.ok) {
+            statusMsg.textContent = "Índices atualizados com sucesso!";
+            statusMsg.className = "text-green-400 mt-4";
+        } else {
+            throw new Error();
+        }
+    } catch {
+        statusMsg.textContent = "Erro ao atualizar os índices.";
+        statusMsg.className = "text-red-400 mt-4";
+    }
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('graficoReceita').getContext('2d');
+const grafico = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: {{ grafico_labels|safe }},
+        datasets: [{
+            label: 'Receita (R$)',
+            data: {{ grafico_valores|safe }},
+            backgroundColor: 'rgba(59, 130, 246, 0.7)', // azul
+            borderRadius: 8,
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
 {% endblock %}

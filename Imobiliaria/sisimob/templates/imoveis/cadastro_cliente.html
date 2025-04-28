@@ -2,124 +2,185 @@
 {% block content %}
 <h2 class="text-3xl font-bold text-gray-100 mb-6">{{ titulo|default:"Cadastro de Cliente" }}</h2>
 
-
-
-    <div>
-       
-        <form method="post" class="flex flex-wrap gap-4" enctype="multipart/form-data">
-            
-
-            {% csrf_token %}
-            {% if form.non_field_errors %}
-            <div style="color: red;">
-                {% for error in form.non_field_errors %}
-                {{ error }}
-                {% endfor %}
-            </div>
-            {% endif %}
-            {% for field in form %}
-            <div>
-                <label>{{ field.label }}</label>
-                {% if field.field.required %}
-                <span style="color: red;">*</span>
-                {% endif %}
-                {{ field }}
-                {% if field.errors %}
-                <span style="color: red;">{{ field.errors|join:", " }}</span>
-                {% endif %}
-                {% if field.help_text %}
-                <p>{{ field.help_text }}</p>
-                {% endif %}
-            </div>
+<div>
+    <form method="post" class="flex flex-wrap gap-4" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div style="color: red;">
+            {% for error in form.non_field_errors %}
+            {{ error }}
             {% endfor %}
-            <button type="submit" class="w-full bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">Cadastrar</button>
-        </form>
-    </div>
-    
+        </div>
+        {% endif %}
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Aplicar classes aos inputs
-            const inputs = document.querySelectorAll('input, select, textarea');
-            inputs.forEach(input => {
-                if (!input.classList.contains('bg-white')) {
-                    input.classList.add('bg-white', 'text-gray-900', 'p-2', 'rounded-lg', 'border', 'border-gray-300', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'w-full');
-                }
-            });
+        {% for field in form %}
+        <div id="field_{{ field.name }}">
+            <label>{{ field.label }}</label>
+            {% if field.field.required %}<span style="color: red;">*</span>{% endif %}
+            {{ field }}
+            {% if field.errors %}<span style="color: red;">{{ field.errors|join:", " }}</span>{% endif %}
+            {% if field.help_text %}<p>{{ field.help_text }}</p>{% endif %}
+        </div>
+        {% endfor %}
+
         
-            // Função para consultar CEP
-            const consultarCEP = async (cep) => {
-                try {
-                    const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-                    const data = await response.json();
-                    
-                    if (data.erro) {
-                        alert('CEP não encontrado');
-                        return;
-                    }
-        
-                    // Preenche os campos com os dados retornados
-                    document.getElementById('id_endereco').value = data.logradouro || '';
-                    document.getElementById('id_bairro').value = data.bairro || ''; // Preenche o bairro
-                    document.getElementById('id_cidade').value = data.localidade || '';
-                    document.getElementById('id_estado').value = data.uf || '';
-                } catch (error) {
-                    console.error('Erro ao consultar CEP:', error);
-                    alert('Erro ao consultar CEP. Tente novamente.');
-                }
-            };
-        
-            // Adiciona máscara ao campo de CEP
-            const cepInput = document.getElementById('id_cep');
-            cepInput.addEventListener('input', (e) => {
-                let value = e.target.value.replace(/\D/g, ''); // Remove caracteres não numéricos
-                if (value.length > 8) value = value.slice(0, 8); // Limita a 8 dígitos
-                if (value.length > 5) {
-                    value = value.slice(0, 5) + '-' + value.slice(5); // Adiciona o hífen
-                }
-                e.target.value = value;
-        
-                // Consulta o CEP automaticamente quando tiver 8 dígitos
-                if (value.replace('-', '').length === 8) {
-                    consultarCEP(value.replace('-', ''));
-                }
-            });
+
+        <button type="submit" class="w-full bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">Cadastrar</button>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputs = document.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            if (!input.classList.contains('bg-white')) {
+                input.classList.add('bg-white', 'text-gray-900', 'p-2', 'rounded-lg', 'border', 'border-gray-300', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'w-full');
+            }
         });
-        </script>
-        <script>
-        function toggleFields() {
-            const tipo = document.querySelector('select[name="tipo"]').value;
-            const anuenteField = document.querySelector('select[name="Anuente"]');
-    
-            // Desabilita o campo "anuente" se o tipo for "Anuente"
-            if (tipo === 'Anuente') {
-                anuenteField.disabled = true;
+
+        const consultarCEP = async (cep) => {
+            try {
+                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const data = await response.json();
+
+                if (data.erro) {
+                    alert('CEP não encontrado');
+                    return;
+                }
+
+                document.getElementById('id_endereco').value = data.logradouro || '';
+                document.getElementById('id_bairro').value = data.bairro || '';
+                document.getElementById('id_cidade').value = data.localidade || '';
+                document.getElementById('id_estado').value = data.uf || '';
+            } catch (error) {
+                console.error('Erro ao consultar CEP:', error);
+                alert('Erro ao consultar CEP. Tente novamente.');
+            }
+        };
+
+        const cepInput = document.getElementById('id_cep');
+        cepInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 8) value = value.slice(0, 8);
+            if (value.length > 5) {
+                value = value.slice(0, 5) + '-' + value.slice(5);
+            }
+            e.target.value = value;
+
+            if (value.replace('-', '').length === 8) {
+                consultarCEP(value.replace('-', ''));
+            }
+        });
+
+        const tipoPessoaSelect = document.querySelector('[name="tipo_pessoa"]');
+        const pfFields = ['CPF', 'rg_rne', 'estado_civil', 'regime_casamento', 'profissao'];
+        const pjFields = ['razao_social', 'nome_fantasia', 'cnpj'];
+        const enderecoFields = ['cep', 'endereco', 'bairro', 'cidade', 'estado'];
+
+        function togglePessoaFields() {
+            const tipo = tipoPessoaSelect.value;
+
+            pfFields.forEach(id => {
+                const el = document.getElementById(`id_${id}`);
+                if (el) el.closest('div').style.display = tipo === 'F' ? 'block' : 'none';
+            });
+
+            pjFields.forEach(id => {
+                const el = document.getElementById(`id_${id}`);
+                if (el) el.closest('div').style.display = tipo === 'J' ? 'block' : 'none';
+            });
+
+            enderecoFields.forEach(id => {
+                const el = document.getElementById(`id_${id}`);
+                if (el) el.closest('div').style.display = 'block';
+            });
+
+            const representantes = document.getElementById('representantes_section');
+            if (tipo === 'J') {
+                representantes.classList.remove('hidden');
             } else {
-                anuenteField.disabled = false;
+                representantes.classList.add('hidden');
             }
         }
-    
-        document.addEventListener('DOMContentLoaded', () => {
-            toggleFields();
-        });
-        </script>
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
-        <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
-        
-        <script>
-        $(document).ready(function() {
-            $('.autocomplete').each(function() {
-                const model = $(this).data('model');
-                const field = $(this).data('field');
-                const url = `/autocomplete/${model}/${field}/`;
-                
-                $(this).autocomplete({
-                    source: url,
-                    minLength: 2,
-                });
+
+        togglePessoaFields();
+        tipoPessoaSelect.addEventListener('change', togglePessoaFields);
+    });
+</script>
+<script>
+    function toggleFields() {
+        const tipo = document.querySelector('select[name="tipo"]').value;
+        const anuenteField = document.querySelector('select[name="Anuente"]');
+
+        if (tipo === 'Anuente') {
+            anuenteField.disabled = true;
+        } else {
+            anuenteField.disabled = false;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        toggleFields();
+    });
+</script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+<script>
+    $(document).ready(function() {
+        $('.autocomplete').each(function() {
+            const model = $(this).data('model');
+            const field = $(this).data('field');
+            const url = `/autocomplete/${model}/${field}/`;
+
+            $(this).autocomplete({
+                source: url,
+                minLength: 2,
             });
         });
-        </script>
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const cnpjInput = document.getElementById('id_cnpj');
+        if (cnpjInput) {
+            cnpjInput.addEventListener('input', function (e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 14) value = value.slice(0, 14);
+                value = value.replace(/^(\d{2})(\d)/, '$1.$2')
+                             .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+                             .replace(/\.(\d{3})(\d)/, '.$1/$2')
+                             .replace(/(\d{4})(\d)/, '$1-$2');
+                e.target.value = value;
+            });
+        }
+    });
+</script>
+<script>
+    function togglePessoaFields() {
+        const tipoPessoa = document.querySelector('[name="tipo_pessoa"]').value;
+        const pfFields = ['CPF', 'rg_rne', 'estado_civil', 'regime_casamento', 'profissao', 'nome', 'telefone', 'celular', 'email', 'pix_modalidade', 'chave_pix', 'banco', 'agencia', 'conta_corrente', 'poupanca', 'nacionalidade', 'anuente'];
+        const pjFields = ['razao_social', 'nome_fantasia', 'cnpj', 'inscricao_estadual', 'representante_legal'];
+        
+        pfFields.forEach(id => {
+            const el = document.getElementById(`id_${id}`);
+            if (el) el.closest('div').style.display = tipoPessoa === 'F' ? 'block' : 'none';
+        });
+    
+        pjFields.forEach(id => {
+            const el = document.getElementById(`id_${id}`);
+            if (el) el.closest('div').style.display = tipoPessoa === 'J' ? 'block' : 'none';
+        });
+    
+        // Mostra/esconde representante
+        const representanteField = document.getElementById('representante_field');
+        representanteField.style.display = tipoPessoa === 'J' ? 'block' : 'none';
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        togglePessoaFields();
+        document.querySelector('[name="tipo_pessoa"]').addEventListener('change', togglePessoaFields);
+    });
+    </script>
     
 {% endblock %}

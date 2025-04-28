@@ -1,0 +1,25 @@
+{% extends "imoveis/base.html" %}
+{% block content %}
+  <h1>Pré-visualização de Lembretes de WhatsApp</h1>
+  <hr>
+  {% for item in mensagens %}
+    <div style="border:1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 10px;">
+      <strong>Inquilino:</strong> {{ item.nome }}<br>
+      <strong>Telefone:</strong> {{ item.telefone }}<br>
+      <strong>Mensagem:</strong>
+      <pre>{{ item.mensagem }}</pre>
+
+      <form method="post" action="{% url 'enviar_mensagem_manual' %}">
+        {% csrf_token %}
+        <input type="hidden" name="telefone" value="{{ item.telefone }}">
+        <input type="hidden" name="mensagem" value="{{ item.mensagem|escape }}">
+        <input type="hidden" name="cobranca_id" value="{{ item.id }}">
+        <input type="hidden" name="dias" value="{{ item.dias }}">
+        <button type="submit">📤 Enviar via WhatsApp</button>
+      </form>
+      
+    </div>
+  {% empty %}
+    <p>Nenhuma mensagem a ser exibida.</p>
+  {% endfor %}
+{% endblock %}

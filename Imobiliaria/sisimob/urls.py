@@ -53,12 +53,16 @@ urlpatterns = [
     path('proprietarios/<int:proprietario_id>/extrato-repasses/pdf/', views.extrato_repasses_pdf, name='extrato_repasses_pdf'),
     path('extrato/', views.extrato, name='extrato'),
     path('gerar-pdf/<int:contrato_id>/', views.gerar_pdf, name='gerar_pdf'),
-
-
-
-
-
-]
+    path('webhook/zapi/', views.webhook_zapi, name='webhook_zapi'),
+    path('teste-envio/', views.teste_envio, name='teste_envio'),
+    path('lembretes-preview/', views.visualizar_lembretes, name='lembretes-preview'),
+    path('lembretes/enviar/', views.enviar_mensagem_manual, name='enviar_mensagem_manual'),
+    path("reajustes/", views.listar_reajustes, name="listar_reajustes"),
+    path("reajustes/aplicar/<int:contrato_id>/<str:data_reajuste>/", views.aplicar_reajuste, name="aplicar_reajuste"),
+    path('reajustes/', views.listar_reajustes, name='listar_reajustes'),
+    path('reajustes/aprovar/<int:contrato_id>/', views.aprovar_reajuste, name='aprovar_reajuste'),
+    path('aprovar/<int:contrato_id>/', views.aprovar_reajuste, name='aprovar_reajuste'),
+]   
 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

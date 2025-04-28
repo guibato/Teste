@@ -2,15 +2,15 @@ import requests
 import json
 import traceback
 
-ASAAS_API_KEY = "$aact_hmlg_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjlmMjIzMzYzLTQyY2EtNGYwZS1hYmY4LWVhMGYyODU0YzQ0ZDo6JGFhY2hfMTJkOTc0YTAtZGExNC00MmExLTg1OWUtYTk3YzA3ZTYwMjgx"
-ASAAS_URL = "https://sandbox.asaas.com/api/v3/customers"
+ASAAS_API_KEY = "$aact_prod_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OmM0NmU2MWJmLTllYjctNGE0OC1hMDQ2LWY1NDU3YzhlMTY5ZTo6JGFhY2hfNzQ2MDIwYjktMGJmYi00ZGUwLWJhMDgtNGU0OTk4ZDA1NjNi"
+ASAAS_URL = "https://www.asaas.com/api/v3/customers"
 
 def cadastrar_cliente_no_asaas(cliente):
     """ Envia os dados do Cliente para o Asaas e retorna o ID do Asaas. """
     
     print("\n=========== INÍCIO DA INTEGRAÇÃO COM ASAAS - CADASTRAR CLIENTE ===========")
     print(f"Parâmetros recebidos:")
-    print(f"- Nome: {cliente.nome}")
+    print(f"- Nome: {cliente.nome_exibicao}")
     print(f"- CPF: {cliente.CPF}")
     print(f"- Email: {cliente.email}")
     print(f"- Celular: {cliente.celular}")
@@ -24,7 +24,7 @@ def cadastrar_cliente_no_asaas(cliente):
     print(f"- Estado: {cliente.estado}")
     
     dados_cliente = {
-        "name": cliente.nome,
+        "name": cliente.nome_exibicao,
         "cpfCnpj": cliente.CPF,
         "email": cliente.email if cliente.email else "",
         "phone": cliente.celular if cliente.celular else cliente.telefone,
@@ -33,8 +33,9 @@ def cadastrar_cliente_no_asaas(cliente):
         "addressNumber": cliente.numero,
         "complement": cliente.complemento if cliente.complemento else "",
         "province": cliente.bairro if cliente.bairro else "",
-        "city": cliente.cidade,
-        "state": cliente.estado,
+        # "city": cliente.cidade, # Asaas API might infer city from postalCode
+        # "state": cliente.estado, # Asaas API might infer state from postalCode
+        # Ensure required fields match Asaas documentation
     }
     
     print(f"📌 Dados do cliente montados:")
@@ -42,15 +43,15 @@ def cadastrar_cliente_no_asaas(cliente):
 
     headers = {
         "Content-Type": "application/json",
-        "access_token": ASAAS_API_KEY
+        "access_token": asaas_api_key
     }
     
-    print(f"🔑 Token API sendo usado: {ASAAS_API_KEY[:10]}...{ASAAS_API_KEY[-5:]}")
-    print(f"🌐 URL: {ASAAS_URL}")
+    print(f"🔑 Token API sendo usado: {asaas_api_key[:10]}...{asaas_api_key[-5:]}")
+    print(f"🌐 URL: {asaas_url}")
     
     try:
         print("⏳ Enviando requisição para o Asaas...")
-        response = requests.post(ASAAS_URL, json=dados_cliente, headers=headers, timeout=30)
+        response = requests.post(asaas_url, json=dados_cliente, headers=headers, timeout=30)
         print(f"📊 Status code: {response.status_code}")
         
         try:
@@ -58,6 +59,11 @@ def cadastrar_cliente_no_asaas(cliente):
             print(f"🔍 Resposta do Asaas:")
             print(json.dumps(resposta_json, indent=2))
             
+            # Check for errors in the response
+            if response.status_code >= 400:
+                print(f"❌ Erro na API Asaas: {resposta_json.get('errors', 'Erro desconhecido')}")
+                return None
+
             # Verifica se a resposta contém um id de cliente
             if "id" in resposta_json:
                 print("✅ Cliente criado com sucesso!")

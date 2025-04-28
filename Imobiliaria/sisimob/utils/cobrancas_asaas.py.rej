@@ -1,0 +1,30 @@
+diff a/Imobiliaria/sisimob/utils/cobrancas_asaas.py b/Imobiliaria/sisimob/utils/cobrancas_asaas.py	(rejected hunks)
+@@ -1,13 +1,26 @@
+ import requests
+ import json
+ import traceback
++from django.conf import settings  # Import Django settings
+ 
+-ASAAS_API_KEY = "$aact_hmlg_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjlmMjIzMzYzLTQyY2EtNGYwZS1hYmY4LWVhMGYyODU0YzQ0ZDo6JGFhY2hfMTJkOTc0YTAtZGExNC00MmExLTg1OWUtYTk3YzA3ZTYwMjgx"
+-ASAAS_URL = "https://sandbox.asaas.com/api/v3/payments"
++# Remove hardcoded values
++# ASAAS_API_KEY = "..."
++# ASAAS_URL = "..."
+ 
+ def gerar_cobranca(asaas_id, valor, vencimento, nome, descricao=None):
+     """Cria uma cobrança no Asaas para um cliente existente com logs detalhados."""
+     
++    # Use settings for API key and URL
++    asaas_api_key = settings.ASAAS_API_KEY
++    asaas_url = f"{settings.ASAAS_API_URL}/payments"  # Construct the specific endpoint URL
++
++    if not asaas_api_key:
++        print("❌ ERRO: ASAAS_API_KEY não configurada nas settings do Django.")
++        return {"erro": "Chave de API do Asaas não configurada"}
++    if not asaas_url:
++        print("❌ ERRO: ASAAS_API_URL não configurada nas settings do Django.")
++        return {"erro": "URL da API do Asaas não configurada"}
++    
+     print("\n=========== INÍCIO DA INTEGRAÇÃO COM ASAAS ===========")
+     print(f"Parâmetros recebidos:")
+     print(f"- asaas_id: {asaas_id}")

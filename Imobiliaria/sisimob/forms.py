@@ -2,6 +2,9 @@ from django import forms
 from .models import Cliente, Imovel, Contrato, Cobranca, Despesa
 from decimal import Decimal
 from datetime import datetime
+from djmoney.forms.fields import MoneyField
+from djmoney.forms.widgets import MoneyWidget
+from djmoney.money import Money
 
 class ImovelForm(forms.ModelForm):
     class Meta:
@@ -37,7 +40,8 @@ class ImovelForm(forms.ModelForm):
 class ClienteForm(forms.ModelForm):
     class Meta:
         model = Cliente
-        fields = '__all__'
+        exclude = ['asaas_id']
+        
         labels = {
             'tipo': 'Tipo',
             'nome': 'Nome',
@@ -74,6 +78,7 @@ class ClienteForm(forms.ModelForm):
             'pix_modalidade': forms.Select(attrs={'class': 'form-control'}),
             'nacionalidade': forms.TextInput(attrs={'class': 'form-control'}),
             'profissao': forms.TextInput(attrs={'class': 'form-control'}),
+            'tipo_pessoa': forms.Select(attrs={'onchange': 'togglePessoaFields()', 'class': 'form-control'}),
         }
 
     def clean_rg_rne(self):
@@ -83,6 +88,13 @@ class ClienteForm(forms.ModelForm):
         return rg_rne
 
 class ContratoForm(forms.ModelForm):
+    valor_aluguel = MoneyField(label='Valor do Aluguel', required=False)
+    valor_pacote = MoneyField(label='Valor do Pacote', required=False)
+    valor_taxa_administracao_fixo = MoneyField(label='Adm - R$', required=False)
+    valor_caucao = MoneyField(label='Valor Caução', required=False)
+    valor_segfi = MoneyField(label='Valor Seguro Fiança', required=False)
+    valor_cap = MoneyField(label='Valor Capitalização', required=False)
+
     class Meta:
         model = Contrato
         fields = '__all__'
@@ -107,6 +119,7 @@ class ContratoForm(forms.ModelForm):
             'dia_pagamento': 'Dia de Pagamento',
             'garantia': 'Garantia',
             'fiador': 'Fiador',
+            'valor_segfi': 'Valor Seguro Fiança',
             'valor_caucao': 'Valor Caução',
             'seguradora': 'Seguradora',
             'apolice': 'Apólice',
@@ -115,82 +128,69 @@ class ContratoForm(forms.ModelForm):
             'documentos': 'Documentos',
         }
         widgets = {
-            'data_inicio': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'data_fim': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'tipo': forms.Select(attrs={'class': 'form-control'}),
-            'fator_reajuste': forms.Select(attrs={'class': 'form-control'}),
-            'multa_contratual': forms.Select(attrs={'class': 'form-control'}),
-            'carencia_dias': forms.NumberInput(attrs={'class': 'form-control'}),
-            'valor_iptu': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
-            'tipo_pagamento': forms.Select(attrs={'onchange': 'toggleAluguelFields()', 'class': 'form-control'}),
-            'documentos': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+            'data_inicio': forms.DateInput(attrs={'type': 'date', 'class': 'input input-bordered'}),
+            'data_fim': forms.DateInput(attrs={'type': 'date', 'class': 'input input-bordered'}),
+            'tipo': forms.Select(attrs={'class': 'select select-bordered'}),
+            'fator_reajuste': forms.Select(attrs={'class': 'select select-bordered'}),
+            'multa_contratual': forms.Select(attrs={'class': 'select select-bordered'}),
+            'carencia_dias': forms.NumberInput(attrs={'class': 'input input-bordered'}),
+            'tipo_pagamento': forms.Select(attrs={
+                'onchange': 'toggleAluguelFields()',
+                'class': 'select select-bordered'
+            }),
+            'documentos': forms.ClearableFileInput(attrs={'class': 'file-input'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['valor_aluguel'].widget.attrs['class'] = 'despesas-field form-control'
-        self.fields['valor_pacote'].widget.attrs['class'] = 'pacote-field form-control'
-        
+
+        # Filtros nos campos relacionados a Cliente
         self.fields['proprietario'].queryset = Cliente.objects.filter(tipo='Proprietario')
         self.fields['inquilino'].queryset = Cliente.objects.filter(tipo='Inquilino')
-        self.fields['fiador'].queryset = Cliente.objects.filter(tipo='Fiador')
-        self.fields['historico_aluguel'].required = False
-        self.initial['historico_aluguel'] = {}
+
+        if 'fiador' in self.fields:
+            self.fields['fiador'].queryset = Cliente.objects.filter(tipo='Fiador(a)')
+
+        if 'anuente' in self.fields:
+            self.fields['anuente'].queryset = Cliente.objects.filter(tipo='Anuente')
+
+        # Aplica Tailwind aos campos comuns
+        for field_name, field in self.fields.items():
+            if isinstance(field.widget, (forms.TextInput, forms.NumberInput, forms.DateInput, forms.Select)):
+                field.widget.attrs['class'] = 'input input-bordered'
+
+        # Substitui o widget dos campos monetários para exibir corretamente com moeda BRL
+        money_fields = [
+            'valor_aluguel', 'valor_pacote', 'valor_taxa_administracao_fixo',
+            'valor_caucao', 'valor_segfi', 'valor_cap'
+        ]
+
+        for field_name in money_fields:
+            if field_name in self.fields:
+                self.fields[field_name].widget = MoneyWidget(
+                    amount_widget=forms.TextInput(attrs={'class': 'input input-bordered currency', 'placeholder': 'R$ 0,00'}),
+                    currency_widget=forms.HiddenInput(attrs={'value': 'BRL'})
+                )
 
     def clean(self):
         cleaned_data = super().clean()
-        tipo_pagamento = cleaned_data.get('tipo_pagamento')
-        
-        if tipo_pagamento == 'pacote':
-            valor_pacote = cleaned_data.get('valor_pacote')
-            if valor_pacote is None or valor_pacote <= 0:
-                self.add_error('valor_pacote', 'Este campo é obrigatório.')
-            cleaned_data['valor_aluguel'] = 0.00
-        elif tipo_pagamento == 'despesas_separadas':
-            valor_aluguel = cleaned_data.get('valor_aluguel')
-            if valor_aluguel is None or valor_aluguel <= 0:
-                self.add_error('valor_aluguel', 'Este campo é obrigatório.')
-            cleaned_data['valor_pacote'] = 0.00
-        
-        return cleaned_data
-
-    def clean_carencia_dias(self):
-        carencia = self.cleaned_data.get('carencia_dias')
-        if carencia is None:
-            return 0
-        return carencia
-    
-    def clean_valor(self, field_name):
-        valor = self.cleaned_data.get(field_name)
-        if valor is None:
-            return Decimal('0.00')
-        return valor
-
-    def clean_carencia_dias(self):
-        carencia = self.cleaned_data.get('carencia_dias')
-        if carencia is None:
-            return 0
-        return carencia
-    
-    def clean_valor(self, field_name):
-        valor = self.cleaned_data.get(field_name)
-        if valor is None:
-            return Decimal('0.00')
-        return valor
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        tipo_taxa = cleaned_data.get('tipo_taxa')
-        
-        if tipo_taxa == Contrato.valor_taxa_administracao_percentual:
-            if not cleaned_data.get('valor_taxa_administracao_percentual'):
-                self.add_error('valor_taxa_administracao_percentual', 'Informe o percentual')
-            cleaned_data['valor_taxa_administracao_fixo'] = None
-        elif tipo_taxa == Contrato.valor_taxa_administracao_fixo:
-            if not cleaned_data.get('valor_taxa_administracao_fixo'):
-                self.add_error('valor_taxa_administracao_fixo', 'Informe o valor fixo')
-            cleaned_data['valor_taxa_administracao_percentual'] = None
-        
+        money_fields = [
+            'valor_aluguel', 'valor_pacote', 'valor_taxa_administracao_fixo',
+            'valor_caucao', 'valor_segfi', 'valor_cap'
+        ]
+        for field in money_fields:
+            value = cleaned_data.get(field)
+            try:
+                if isinstance(value, Money) and not value.currency:
+                    value.currency = 'BRL'
+                    cleaned_data[field] = value
+                elif isinstance(value, (int, float, Decimal)):
+                    cleaned_data[field] = Money(value, 'BRL')
+                elif value is None:
+                    cleaned_data[field] = None
+            except Exception as e:
+                print(f"Erro ao processar o campo {field}: {e}")
+                cleaned_data[field] = Money(0, 'BRL')
         return cleaned_data
 
 class GerarCobrancasForm(forms.Form):
@@ -244,36 +244,64 @@ class CobrancaForm(forms.ModelForm):
             'data_fim': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
 
-from django.core.exceptions import ValidationError
-
-from django import forms
-from decimal import Decimal, ROUND_HALF_UP
-from .models import Despesa, Contrato
-
 class DespesaForm(forms.ModelForm):
     valor_total = forms.CharField(
-        label='Valor Total',
-        widget=forms.TextInput(attrs={'placeholder': 'R$ 0,00'})
+        label='Valor (R$)',
+        widget=forms.TextInput(attrs={'class': 'currency', 'placeholder': 'R$ 0,00'}),
+        help_text='Informe o valor total ou o valor por parcela, conforme selecionado.'
     )
 
     class Meta:
         model = Despesa
-        exclude = ['contrato']  # Excluir o campo contrato do formulário
+        exclude = ['contrato']
 
     def __init__(self, *args, **kwargs):
-        contrato = kwargs.pop('contrato', None)  # Obtém o contrato dos kwargs
+        contrato = kwargs.pop('contrato', None)
         super().__init__(*args, **kwargs)
         if contrato:
-            self.instance.contrato = contrato  # Associa o contrato à instância
+            self.instance.contrato = contrato
 
     def clean_valor_total(self):
-        valor_total = self.cleaned_data.get('valor_total')
+        valor = self.cleaned_data.get('valor_total')
+        
+        # Se já for um objeto Money, retorne diretamente
+        if isinstance(valor, Money):
+            return valor
+            
+        # Trata o formato brasileiro R$ 1.234,56 -> 1234.56
+        if isinstance(valor, str):
+            # Remove R$ e espaços
+            valor = valor.replace('R$', '').strip()
+            
+            # Se tiver pontos e vírgulas (formato brasileiro)
+            if ',' in valor:
+                # Remove os pontos de milhar
+                valor = valor.replace('.', '')
+                # Substitui a vírgula decimal por ponto
+                valor = valor.replace(',', '.')
+                
+            try:
+                valor_decimal = Decimal(valor)
+                return Money(valor_decimal, 'BRL')
+            except:
+                raise forms.ValidationError("Valor inválido")
+        
+        # Se for um número, apenas converte
         try:
-            # Remove formatação e converte para decimal
-            valor_limpo = valor_total.replace('R$', '').replace(' ', '').strip()
-            # Substitui ponto por vazio (para milhares) e vírgula por ponto (para decimais)
-            valor_limpo = valor_limpo.replace('.', '').replace(',', '.')
-            valor_decimal = Decimal(valor_limpo)
-            return valor_decimal.quantize(Decimal('0.00'))
-        except Exception as e:
-            raise forms.ValidationError(f"Valor inválido: {str(e)}")
+            return Money(Decimal(str(valor)), 'BRL')
+        except:
+            raise forms.ValidationError("Valor inválido")
+
+    def clean(self):
+        cleaned_data = super().clean()
+        valor = cleaned_data.get('valor_total')
+        parcelas = cleaned_data.get('numero_parcelas')
+        por_parcela = cleaned_data.get('valor_por_parcela')
+
+        if valor and por_parcela and parcelas:
+            total = valor.amount * int(parcelas)
+            self.instance.valor_total = Money(total, 'BRL')
+        elif valor:
+            self.instance.valor_total = valor
+
+        return cleaned_data

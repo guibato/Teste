@@ -2,8 +2,8 @@ import requests
 import json
 import traceback
 
-ASAAS_API_KEY = "$aact_hmlg_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjlmMjIzMzYzLTQyY2EtNGYwZS1hYmY4LWVhMGYyODU0YzQ0ZDo6JGFhY2hfMTJkOTc0YTAtZGExNC00MmExLTg1OWUtYTk3YzA3ZTYwMjgx"
-ASAAS_URL = "https://sandbox.asaas.com/api/v3/payments"
+ASAAS_API_KEY = "$aact_prod_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OmM0NmU2MWJmLTllYjctNGE0OC1hMDQ2LWY1NDU3YzhlMTY5ZTo6JGFhY2hfNzQ2MDIwYjktMGJmYi00ZGUwLWJhMDgtNGU0OTk4ZDA1NjNi"
+ASAAS_URL = "https://www.asaas.com/api/v3/payments"
 
 def gerar_cobranca(asaas_id, valor, vencimento, nome, descricao=None):
     """Cria uma cobrança no Asaas para um cliente existente com logs detalhados."""
@@ -41,16 +41,16 @@ def gerar_cobranca(asaas_id, valor, vencimento, nome, descricao=None):
 
         headers = {
             "Content-Type": "application/json",
-            "access_token": ASAAS_API_KEY
+            "access_token": asaas_api_key
         }
         
-        print(f"🔑 Token API sendo usado: {ASAAS_API_KEY[:10]}...{ASAAS_API_KEY[-5:]}")
-        print(f"🌐 URL: {ASAAS_URL}")
+        print(f"🔑 Token API sendo usado: {asaas_api_key[:10]}...{asaas_api_key[-5:]}")
+        print(f"🌐 URL: {asaas_url}")
         
         # Tenta fazer a requisição com timeout
         try:
             print("⏳ Enviando requisição para o Asaas...")
-            response = requests.post(ASAAS_URL, json=dados_cobranca, headers=headers, timeout=30)
+            response = requests.post(asaas_url, json=dados_cobranca, headers=headers, timeout=30)
             print(f"📊 Status code: {response.status_code}")
             
             try:
@@ -58,6 +58,11 @@ def gerar_cobranca(asaas_id, valor, vencimento, nome, descricao=None):
                 print(f"🔍 Resposta do Asaas:")
                 print(json.dumps(resposta_json, indent=2))
                 
+                # Check for errors in the response
+                if response.status_code >= 400:
+                    print(f"❌ Erro na API Asaas: {resposta_json.get('errors', 'Erro desconhecido')}")
+                    return {"erro": resposta_json}
+
                 # Verifica se a resposta contém um id de cobrança
                 if "id" in resposta_json:
                     print("✅ Cobrança criada com sucesso!")

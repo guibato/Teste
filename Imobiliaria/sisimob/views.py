@@ -1,51 +1,92 @@
-from django.shortcuts import render, get_object_or_404, redirect, reverse
+# Built-in
+import os
+import io
+import json
+import sys
+import threading
+import traceback
+from datetime import date, datetime, timedelta
+from decimal import Decimal, InvalidOperation
+from moneyed import Money, CurrencyDoesNotExist
+from collections import OrderedDict
+
+
+# Django
+from django.apps import apps
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from .forms import ClienteForm, ImovelForm, ContratoForm, GerarCobrancasForm, CobrancaForm, DespesaForm  # Importe DespesaForm aqui
-from .models import Cliente, Imovel, Contrato, Cobranca, Despesa, IndiceInflacao, MovimentoConta, LancamentoContaCorrente
-from django.views.generic import ListView
-from django.db.models import Q
-from datetime import date, datetime
-import pandas as pd
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from .utils import atualizar_indices_inflacao
-from decimal import Decimal
-from dateutil.relativedelta import relativedelta
+from django.db.models import F, Q, Sum
+from django.http import HttpResponse, JsonResponse, Http404
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.utils import timezone
-from django.apps import apps
-from .rent_calculations import calcular_aluguel_projetado
+from django.utils.timezone import now
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import ListView
+from django.db.models.functions import TruncMonth
+
+# Terceiros
+import pandas as pd
+from PIL import Image
+from djmoney.money import Money
+from dateutil.relativedelta import relativedelta
 from reportlab.lib.pagesizes import letter, portrait
 from reportlab.lib.units import cm, mm
 from reportlab.lib.colors import black, gray, lightgrey, HexColor
-from reportlab.platypus import Table, TableStyle, SimpleDocTemplate, Paragraph, Spacer, Image
+from reportlab.platypus import Table, TableStyle, SimpleDocTemplate, Paragraph, Spacer, Image as RLImage
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT, TA_JUSTIFY
 from reportlab.pdfgen import canvas
-from django.conf import settings
-import os
-from django.db.models import F, Sum
-from PIL import Image
-import io
-from django.views.generic import ListView
-from .models import Contrato
-from datetime import timedelta
-from django.db.models import Sum
-from datetime import date, timedelta
-from django.shortcuts import redirect, render
-from django.contrib import messages
-from .models import Contrato, Cobranca
-from django.db.models import Sum
-from datetime import date, timedelta
-from datetime import date
-from datetime import datetime
-import threading
-from sisimob.utils.integracao_asaas import cadastrar_cliente_no_asaas
+
+# Apps locais - models
+from .models import (
+    Cliente, Imovel, Contrato, Cobranca, Despesa,
+    IndiceInflacao, MovimentoConta, LancamentoContaCorrente, Reajuste, LembreteEnviado
+)
+
+# Apps locais - forms
+from .forms import (
+    ClienteForm, ImovelForm, ContratoForm,
+    GerarCobrancasForm, CobrancaForm, DespesaForm
+)
+
+# Apps locais - utils e serviços
+from .utils import atualizar_indices_inflacao
+from .utils.cobrancas_asaas import gerar_cobranca
+from .utils.integracao_asaas import cadastrar_cliente_no_asaas
+from .utils.extrato import gerar_extrato_rendimento
+from .utils.pdf import gerar_pdf_extrato_repasses
 from .gerar_extrato_repasses_pdf import gerar_extrato_repasses_pdf
-from django.http import HttpResponse
+from .rent_calculations import calcular_aluguel_projetado
+from .services.zapi import enviar_mensagem
+from sisimob.utils import calcular_fator_acumulado_com_historico, calcular_valor_reajustado
+from sisimob.utils.reajuste import calcular_reajuste
+from sisimob.services.notificacao import gerar_mensagem_cobranca
 
 
+def safe_money(valor, currency='BRL'):
+    try:
+        # Verificar se o valor é nulo ou inválido
+        if valor in [None, '', 'null', '--']:
+            return Money(0, currency)
+        
+        # Garantir que o valor seja do tipo adequado antes de converter para Decimal
+        if isinstance(valor, (int, float)):
+            valor = str(valor)
+
+        return Money(Decimal(str(valor).replace(',', '.')), currency)
+    except (ValueError, TypeError, InvalidOperation):
+        return Money(0, currency)
+
+
+def format_currency_br(value):
+    if isinstance(value, Money):
+        value = value.amount
+    if value is None:
+        value = Decimal('0.00')
+    return f"R$ {value:,.2f}".replace(",", "v").replace(".", ",").replace("v", ".")
 
 class ContratoListView(ListView):
     model = Contrato
@@ -82,7 +123,80 @@ def atualizar_indices_view(request):
     return JsonResponse({"error": "Método inválido"}, status=400)
 
 def home(request):
-    return render(request, 'imoveis/home.html')
+    hoje = now().date()
+    mes = hoje.month
+    ano = hoje.year
+    seis_meses_atras = hoje - timedelta(days=180)
+
+    total_clientes = Cliente.objects.count()
+    total_imoveis = Imovel.objects.count()
+    total_contratos_ativos = Contrato.objects.filter(ativo=True).count()
+    total_pendencias = Cobranca.objects.filter(
+        data_vencimento__lt=hoje,
+        status__in=['pendente', 'atrasada']
+    ).count()
+
+    # Indicadores financeiros
+    receita_prevista = Cobranca.objects.filter(
+        data_vencimento__month=mes,
+        data_vencimento__year=ano
+    ).aggregate(total=Sum('valor'))['total'] or 0
+
+    receita_recebida = Cobranca.objects.filter(
+        data_pagamento__month=mes,
+        data_pagamento__year=ano,
+        status='paga'
+    ).aggregate(total=Sum('valor'))['total'] or 0
+
+    cobrancas_em_aberto = Cobranca.objects.filter(
+        status__in=['pendente', 'atrasada']
+    ).aggregate(total=Sum('valor'))['total'] or 0
+
+    repasses_pendentes = Cobranca.objects.filter(
+        status='paga',
+        status_repasse='pendente'
+    ).aggregate(total=Sum('valor'))['total'] or 0
+
+    repasses_realizados = Cobranca.objects.filter(
+        data_repasse__month=mes,
+        data_repasse__year=ano,
+        status_repasse='repassado'
+    ).aggregate(total=Sum('valor'))['total'] or 0
+
+    receitas_mensais = (
+        Cobranca.objects.filter(data_pagamento__gte=seis_meses_atras, status='paga')
+        .annotate(mes=TruncMonth('data_pagamento'))
+        .values('mes')
+        .annotate(total=Sum('valor'))
+        .order_by('mes')
+    )
+
+    labels = []
+    valores = []
+
+    for item in receitas_mensais:
+        labels.append(item['mes'].strftime('%b/%Y'))
+        valores.append(float(item['total'] or 0))
+
+
+
+
+
+    context = {
+        'total_clientes': total_clientes,
+        'total_imoveis': total_imoveis,
+        'total_contratos_ativos': total_contratos_ativos,
+        'total_pendencias': total_pendencias,
+        'receita_prevista': receita_prevista,
+        'receita_recebida': receita_recebida,
+        'cobrancas_em_aberto': cobrancas_em_aberto,
+        'repasses_pendentes': repasses_pendentes,
+        'repasses_realizados': repasses_realizados,
+        'grafico_labels': labels,
+        'grafico_valores': valores,
+    }
+
+    return render(request, 'imoveis/home.html', context)
 
 def logout_view(request):
     logout(request)
@@ -98,7 +212,7 @@ def cadastrar_cliente(request):
             cliente = form.save(commit=False)  # Salva o cliente sem commitar para poder atualizar o asaas_id
             cliente.save()  # Salva o cliente no banco de dados
             
-            print(f"🔧 Tentando cadastrar cliente {cliente.nome} no Asaas")
+            print(f"🔧 Tentando cadastrar cliente {cliente.nome_exibicao} no Asaas")
             
             try:
                 # Chamada para o Asaas
@@ -106,7 +220,7 @@ def cadastrar_cliente(request):
                 print(f"🔧 Resposta do Asaas: {resposta}")
                 
                 if resposta:  # Verifica se o ID do Asaas foi retornado
-                    print(f"✅ SUCESSO: Cliente {cliente.nome} cadastrado no Asaas! ID: {resposta}")
+                    print(f"✅ SUCESSO: Cliente {cliente.nome_exibicao} cadastrado no Asaas! ID: {resposta}")
                     
                     # Atualiza o cliente com o asaas_id
                     cliente.asaas_id = resposta
@@ -115,7 +229,7 @@ def cadastrar_cliente(request):
                     
                     messages.success(request, "Cliente cadastrado com sucesso!")
                 else:
-                    print(f"❌ ERRO: Falha ao cadastrar cliente {cliente.nome} no Asaas")
+                    print(f"❌ ERRO: Falha ao cadastrar cliente {cliente.nome_exibicao} no Asaas")
                     messages.error(request, "Falha ao cadastrar cliente no Asaas. Verifique os dados e tente novamente.")
             except Exception as e:
                 print(f"❌ ERRO na integração com Asaas: {str(e)}")
@@ -148,15 +262,71 @@ def cadastrar_imovel(request):
 
 def cadastrar_contrato(request):
     if request.method == 'POST':
-        form = ContratoForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Contrato cadastrado com sucesso!")
-            return redirect('listar_contratos')
-        else:
-            messages.error(request, "Por favor, corrija os erros no formulário.")
+        try:
+            # Cria uma cópia do POST para modificar
+            post_data = request.POST.copy()
+            
+            # Lista de todos os campos monetários
+            money_fields = [
+                'valor_aluguel', 'valor_pacote', 'valor_taxa_administracao_fixo',
+                'valor_caucao', 'valor_segfi', 'valor_cap'
+            ]
+            
+            # Força definir os campos de moeda como BRL
+            for field in money_fields:
+                currency_field = f'{field}_currency'
+                post_data[currency_field] = 'BRL'
+                
+                # Se o campo de valor estiver vazio, define como 0
+                amount_field = field
+                if amount_field in post_data and not post_data[amount_field]:
+                    post_data[amount_field] = '0'
+            
+            # Cria o formulário com os dados modificados
+            form = ContratoForm(post_data, request.FILES)
+            
+            # Tenta validar o formulário
+            if form.is_valid():
+                # Antes de salvar, garante que todos os campos Money têm moeda BRL
+                contrato = form.save(commit=False)
+                for field in money_fields:
+                    valor = getattr(contrato, field)
+                    if valor is None:
+                        setattr(contrato, field, Money(0, 'BRL'))
+                    elif not hasattr(valor, 'currency') or not valor.currency:
+                        try:
+                            valor_decimal = Decimal(str(valor)) if valor else Decimal('0')
+                            setattr(contrato, field, Money(valor_decimal, 'BRL'))
+                        except:
+                            setattr(contrato, field, Money(0, 'BRL'))
+                
+                # Agora salva com segurança
+                contrato.save()
+                messages.success(request, "Contrato cadastrado com sucesso!")
+                return redirect('listar_contratos')
+            else:
+                # Se o formulário tiver erros
+                for field in form.errors:
+                    print(f"Erro no campo {field}: {form.errors[field]}")
+                messages.error(request, "Por favor, corrija os erros no formulário.")
+                return render(request, 'imoveis/cadastro_contrato.html', {'form': form})
+                
+        except CurrencyDoesNotExist as e:
+            # Captura o erro específico de moeda
+            print(f"Erro de moeda: {e}")
+            messages.error(request, "Erro na moeda. Tente novamente.")
+            form = ContratoForm()
+            return render(request, 'imoveis/cadastro_contrato.html', {'form': form})
+            
+        except Exception as e:
+            # Captura qualquer outro erro
+            print(f"Erro: {e}")
+            messages.error(request, f"Ocorreu um erro: {e}")
+            form = ContratoForm()
+            return render(request, 'imoveis/cadastro_contrato.html', {'form': form})
     else:
         form = ContratoForm()
+    
     return render(request, 'imoveis/cadastro_contrato.html', {'form': form})
 
 def listar_clientes(request):
@@ -243,109 +413,77 @@ def editar_imovel(request, id):
 def sucesso(request):
     return render(request, 'sucesso.html', {'mensagem': 'Contrato cadastrado com sucesso!'})
 
-
-def dashboard(request, id):  # Mantenha o parâmetro como 'id'
+def dashboard(request, id):
     contrato = get_object_or_404(Contrato, id=id)
     aluguel_projetado = contrato.calcular_aluguel_projetado()
+    print(f"Aluguel projetado: {aluguel_projetado}, Tipo: {type(aluguel_projetado)}")
+
     ano_filtro = request.GET.get('ano')
     status_filtro = request.GET.get('status')
-    if ano_filtro:
-        cobrancas = cobrancas.filter(ano_referencia=ano_filtro)
-    if status_filtro:
-        cobrancas = cobrancas.filter(status=status_filtro)
-    total = contrato.calcular_valor_total()
-    historico_aluguel = contrato.historico_aluguel or {}
-    despesas = contrato.despesas.all().order_by('data_inicio')
-    despesa_form = DespesaForm()  # Inclua o DespesaForm no contexto
-
-    total_receitas = contrato.cobrancas.filter(status='paga').aggregate(
-        total=Sum('valor')
-    )['total'] or 0
-    
-    cobrancas = Cobranca.objects.filter(contrato_id=id)
-
-    total_despesas = Decimal('0.00')
-    for cobranca in cobrancas:
-        # Verifica se a cobrança está paga para calcular as despesas
-        if cobranca.status == 'paga':
-            valor_liquido = cobranca.valor - cobranca.valor_administracao
-            total_despesas += valor_liquido
-    
-    saldo = total_receitas - total_despesas
-
-    ano_filtro = request.GET.get('ano', str(date.today().year))
-    status_filtro = request.GET.get('status', '')
-    
+    # Cobrancas base
     cobrancas = contrato.cobrancas.all().order_by('ano_referencia', 'mes_referencia')
-    
     if ano_filtro:
         cobrancas = cobrancas.filter(ano_referencia=int(ano_filtro))
     if status_filtro:
         cobrancas = cobrancas.filter(status=status_filtro)
-    
-    # Gerar lista de anos disponíveis
-    anos_disponiveis = contrato.cobrancas.dates('data_vencimento', 'year').distinct()
 
+    total = contrato.calcular_valor_total()
+    print(f"Total: {total}, Tipo: {type(total)}")
+    historico_aluguel = contrato.historico_aluguel or {}
+    despesas = contrato.despesas.all().order_by('data_inicio')
+    despesa_form = DespesaForm()
+
+    # Receitas totais pagas
+    total_receitas = contrato.cobrancas.filter(status='paga').aggregate(
+        total=Sum('valor')
+    )['total'] or Money(0, 'BRL')
+    print(f"Total Receitas: {total_receitas}, Tipo: {type(total_receitas)}")
+
+    # Despesas totais pagas
+    total_despesas = Money(0, 'BRL')
+    for cobranca in cobrancas:
+        if cobranca.status == 'paga':
+            valor_liquido = cobranca.valor - cobranca.valor_administracao
+            print(f"Valor Líquido Cobrança: {valor_liquido}, Tipo: {type(valor_liquido)}")
+            total_despesas += valor_liquido
+    print(f"Total Despesas: {total_despesas}, Tipo: {type(total_despesas)}")
+
+    saldo = total_receitas - total_despesas
+    print(f"Saldo: {saldo}, Tipo: {type(saldo)}")
+
+    # Corrigir taxa nula
     if contrato.tipo_taxa == Contrato.valor_taxa_administracao_percentual and not contrato.valor_taxa_administracao_percentual:
         contrato.valor_taxa_administracao_percentual = Decimal('0.00')
         contrato.save()
     elif contrato.tipo_taxa == Contrato.valor_taxa_administracao_fixo and not contrato.valor_taxa_administracao_fixo:
-        contrato.valor_taxa_administracao_fixo = Decimal('0.00')
+        contrato.valor_taxa_administracao_fixo = Money(0, 'BRL')
         contrato.save()
 
-    
-    
-    
-
-    
-
+    anos_disponiveis = contrato.cobrancas.dates('data_vencimento', 'year').distinct()
     context = {
         'contrato': contrato,
-        'aluguel_projetado': aluguel_projetado,
+        'aluguel_projetado': format_currency_br(aluguel_projetado),
         'cobrancas': cobrancas,
-        'total': total,
+        'total': format_currency_br(total),
         'historico_aluguel': historico_aluguel,
         'despesas': despesas,
         'despesa_form': despesa_form,
         'periodo': f"{date.today().year}",
-        'cobrancas': cobrancas,
         'ano_selecionado': ano_filtro,
         'status_selecionado': status_filtro,
-        'anos_disponiveis': anos_disponiveis,  # Adicione o DespesaForm ao contexto
-        'total_receitas': format_currency(total_receitas),
-        'total_despesas': format_currency(total_despesas),
-        'saldo': format_currency(saldo),
-        'aluguel_projetado': format_currency(aluguel_projetado),
-        'total_receitas': format_currency(total_receitas),
-        'total_despesas': format_currency(total_despesas),
-        'saldo': format_currency(saldo),
-        'aluguel_projetado': format_currency(aluguel_projetado),
-        'contrato.valor_caucao': format_currency(contrato.valor_caucao),
-        'contrato.valor_aluguel': format_currency(contrato.valor_aluguel),
-        'contrato.valor_taxa_administracao_fixo': format_currency(contrato.valor_taxa_administracao_fixo or 0),
-        'contrato.valor_taxa_administracao_percentual': format_currency(contrato.valor_taxa_administracao_percentual or 0),
-        'contrato': contrato,
-        'aluguel_projetado': format_currency(aluguel_projetado),
-        'cobrancas': cobrancas,
-        'despesas': despesas,
-        'total_receitas': format_currency(total_receitas),
-        'total_despesas': format_currency(total_despesas),
-        'saldo': format_currency(saldo),
-        'contrato_valor_caucao': format_currency(contrato.valor_caucao or 0),
-        'contrato_valor_aluguel': format_currency(contrato.valor_aluguel or 0),
-        'contrato_valor_taxa_administracao_fixo': format_currency(contrato.valor_taxa_administracao_fixo or 0),
-        'contrato_valor_taxa_administracao_percentual': format_currency(contrato.valor_taxa_administracao_percentual or 0),
-        'ano_selecionado': ano_filtro,
-        'status_selecionado': status_filtro,
-        'anos_disponiveis': contrato.cobrancas.dates('data_vencimento', 'year').distinct(),
-        
-
-
+        'anos_disponiveis': anos_disponiveis,
+        # Valores formatados
+        'total_receitas': format_currency_br(total_receitas),
+        'total_despesas': format_currency_br(total_despesas),
+        'saldo': format_currency_br(saldo),
+        'contrato_valor_caucao': format_currency_br(contrato.valor_caucao or Money(0, 'BRL')),
+        'contrato_valor_aluguel': format_currency_br(contrato.valor_aluguel or Money(0, 'BRL')),
+        'contrato_valor_taxa_administracao_fixo': format_currency_br(contrato.valor_taxa_administracao_fixo or Money(0, 'BRL')),
+        'contrato_valor_taxa_administracao_percentual': contrato.valor_taxa_administracao_percentual or Decimal('0.00'),
     }
-
-    context['saldo'] = float(total_receitas) - float(total_despesas)
-    context['saldo_positivo'] = context['saldo'] >= 0
-    
+    # Saldo numérico (float) e sinal
+    context['saldo_numerico'] = float(saldo.amount)
+    context['saldo_positivo'] = saldo.amount >= 0
     return render(request, 'imoveis/dashboard.html', context)
 
 def listar_indices_inflacao(request):
@@ -383,18 +521,14 @@ def editar_contrato(request, contrato_id):
         form = ContratoForm(request.POST, request.FILES, instance=contrato)
         if form.is_valid():
             form.save()
-            messages.success(request, "Contrato atualizado com sucesso!")
             return redirect('listar_contratos')
-        else:
-            messages.error(request, "Por favor, corrija os erros no formulário.")
     else:
         form = ContratoForm(instance=contrato)
-    return render(request, 'imoveis/cadastro_contrato.html', {
+    return render(request, 'imoveis/editar_contrato.html', {
         'form': form,
         'titulo': 'Editar Contrato',
-        'botao_acao': 'Salvar'
+        'botao_acao': 'Atualizar'
     })
-
 
 class ListarContratosView(ListView):
     model = Contrato
@@ -797,19 +931,7 @@ def editar_cobranca(request, pk):
         'cobranca': cobranca
     })
 
-import os
-import sys
-import traceback
-from datetime import date, timedelta
-from dateutil.relativedelta import relativedelta
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from sisimob.models import Contrato, Despesa, Cobranca
-from sisimob.utils.cobrancas_asaas import gerar_cobranca  # Certifique-se de que esta importação está correta
-
-# Configuração para forçar saída imediata para logs
 sys.stdout.flush()
-
 def gerar_cobrancas_view(request):
     if request.method == "POST":
         mes_referencia = int(request.POST.get("mes_referencia"))
@@ -820,7 +942,9 @@ def gerar_cobrancas_view(request):
         cobrancas_geradas = 0
 
         for contrato in contratos:
-            valor_fixo = contrato.valor_aluguel or contrato.valor_pacote or 0  
+            # Usa .amount para obter o valor decimal do objeto Money
+            valor_fixo_amount = (contrato.valor_aluguel.amount if contrato.valor_aluguel else 0) or \
+                               (contrato.valor_pacote.amount if contrato.valor_pacote else 0) or 0  
 
             # Esta é a consulta aprimorada que corrige o problema do IPTU
             despesas = Despesa.objects.filter(
@@ -834,8 +958,8 @@ def gerar_cobrancas_view(request):
 
             # Filtrar despesas ativas e separar por tipo
             despesas_ativas = []
-            despesas_repassadas = 0
-            despesas_deduzidas = 0
+            despesas_repassadas = Decimal('0.00')
+            despesas_deduzidas = Decimal('0.00')
 
             for despesa in despesas:
                 if despesa.numero_parcelas is None:  # Se for recorrente, sempre válida
@@ -848,17 +972,32 @@ def gerar_cobrancas_view(request):
                     if data_fim_despesa >= data_referencia:
                         despesas_ativas.append(despesa)
 
-            # Calcular valores de despesas repassadas e deduzidas
-            for despesa in despesas_ativas:
-                valor_parcela = despesa.calcular_valor_parcela()
-                if hasattr(despesa, 'tipo') and despesa.tipo == 'deduzida':
-                    despesas_deduzidas += valor_parcela
-                else:
-                    # Se não tiver tipo ou for 'repassada'
-                    despesas_repassadas += valor_parcela
+            despesas_repassadas = Decimal('0.00')
+            despesas_deduzidas = Decimal('0.00')
 
-            valor_base_administracao = contrato.valor_aluguel or contrato.valor_pacote or 0  
-            valor_total_cobranca = valor_base_administracao + despesas_repassadas - despesas_deduzidas
+            for despesa in despesas_ativas:
+                # Calcular o valor da parcela
+                valor_parcela_amount = despesa.calcular_valor_parcela().amount
+                
+                # Verifica quem paga a despesa para determinar se é repassada ou deduzida
+                if despesa.paga == 'inquilino':
+                    # Despesas pagas pelo inquilino são adicionadas à cobrança
+                    despesas_repassadas += valor_parcela_amount
+                elif despesa.paga in ['proprietario', 'imobiliaria']:
+                    # Despesas pagas pelo proprietário ou imobiliária são deduzidas da cobrança
+                    despesas_deduzidas += valor_parcela_amount
+
+
+            # Usa .amount para obter o valor decimal do objeto Money
+            valor_base_administracao_amount = (contrato.valor_aluguel.amount if contrato.valor_aluguel else 0) or \
+                                             (contrato.valor_pacote.amount if contrato.valor_pacote else 0) or 0
+            
+            # Calcular valor total como Decimal
+            valor_total_cobranca_amount = valor_base_administracao_amount + despesas_repassadas - despesas_deduzidas
+            
+            # Criar um objeto Money com a moeda padrão (geralmente BRL para o Brasil)
+            from djmoney.money import Money
+            valor_total_cobranca = Money(valor_total_cobranca_amount, 'BRL')
 
             # Definir data de vencimento
             dia_vencimento = contrato.dia_pagamento
@@ -875,35 +1014,31 @@ def gerar_cobrancas_view(request):
                 ano_referencia=ano_referencia
             ).exists():
                 # Montar a descrição detalhada da cobrança
-                descricao_itens = [f"Aluguel ({mes_referencia}/{ano_referencia}) - R$ {valor_base_administracao:.2f}"]
+                descricao_itens = [f"Aluguel ({mes_referencia}/{ano_referencia}) - R$ {valor_base_administracao_amount:.2f}"]
+
+            for despesa in despesas_ativas:
+                valor_parcela = despesa.calcular_valor_parcela()
                 
-                for despesa in despesas_ativas:
-                    valor_parcela = despesa.calcular_valor_parcela()
-                    if hasattr(despesa, 'tipo') and despesa.tipo == 'deduzida':
-                        descricao_itens.append(f"{despesa.descricao} (deduzida) - R$ {valor_parcela:.2f}")
-                    else:
-                        # Verificar se a despesa é o IPTU e calcular o número da parcela
-                        if despesa.descricao.lower() == "iptu":
-                            # Calcular o número da parcela
-                            mes_inicial_iptu = despesa.data_inicio.month
-                            ano_inicial_iptu = despesa.data_inicio.year
-                            mes_atual = mes_referencia
-                            ano_atual = ano_referencia
-                            
-                            # Calcular o número da parcela
-                            meses_passados = (ano_atual - ano_inicial_iptu) * 12 + (mes_atual - mes_inicial_iptu) + 1
-                            numero_parcela = meses_passados
-                            
-                            descricao_itens.append(f"IPTU ({numero_parcela}/{despesa.numero_parcelas}) - R$ {valor_parcela:.2f}")
-                        else:
-                            descricao_itens.append(f"{despesa.descricao} - R$ {valor_parcela:.2f}")
+                # Formata o texto da parcela para IPTU, se aplicável
+                if despesa.tipo == 'iptu':
+                    meses_passados = (ano_referencia - despesa.data_inicio.year) * 12 + (mes_referencia - despesa.data_inicio.month) + 1
+                    numero_parcela = min(meses_passados, despesa.numero_parcelas)
+                    descricao_despesa = f"IPTU ({numero_parcela}/{despesa.numero_parcelas})"
+                else:
+                    descricao_despesa = despesa.descricao or despesa.get_tipo_display()
                 
+                # Adiciona sinal de + ou - dependendo de quem paga
+                if despesa.paga == 'inquilino':
+                    descricao_itens.append(f"+ {descricao_despesa} - R$ {valor_parcela.amount:.2f}")
+                else:
+                    descricao_itens.append(f"- {descricao_despesa} - R$ {valor_parcela.amount:.2f}")
+                            
                 descricao = ", ".join(descricao_itens)
                 
                 # Cria a cobrança com os campos que existem no modelo
                 cobranca = Cobranca.objects.create(
                     contrato=contrato,
-                    valor=valor_total_cobranca,
+                    valor=valor_total_cobranca,  # Agora é um objeto Money
                     data_vencimento=data_vencimento,
                     mes_referencia=mes_referencia,
                     ano_referencia=ano_referencia,
@@ -912,17 +1047,18 @@ def gerar_cobrancas_view(request):
                 
                 # Adiciona os valores como atributos temporários (não salvos no banco)
                 # Isso permite que o template acesse esses valores na sessão atual
-                cobranca.despesas_repassadas = despesas_repassadas
-                cobranca.despesas_deduzidas = despesas_deduzidas
+                # Convertemos para Money para manter a consistência
+                cobranca.despesas_repassadas = Money(despesas_repassadas, 'BRL')
+                cobranca.despesas_deduzidas = Money(despesas_deduzidas, 'BRL')
                 
                 print(f"🔧 Tentando gerar cobrança no Asaas para {contrato.inquilino.nome} (ID: {contrato.inquilino.asaas_id})")
                 
                 if contrato.inquilino and contrato.inquilino.asaas_id:
                     try:
-                        # Chamada para o Asaas
+                        # Chamada para o Asaas - precisa converter Money para float
                         resposta = gerar_cobranca(
                             asaas_id=contrato.inquilino.asaas_id,
-                            valor=float(valor_total_cobranca),
+                            valor=float(valor_total_cobranca.amount),  # Converte para float
                             vencimento=data_vencimento.strftime('%Y-%m-%d'),
                             nome=contrato.inquilino.nome,
                             descricao=descricao  # Passa a descrição detalhada
@@ -1096,8 +1232,9 @@ def excluir_despesa(request, id):
 
     return redirect('dashboard', contrato_id=contrato_id)  # Redireciona corretamente
 
+
 def extrato(request):
-    proprietarios = Cliente.objects.all().order_by('nome')
+    proprietarios = Cliente.objects.filter(tipo='Proprietario').order_by('nome')
     proprietario_id = request.GET.get('proprietario_id')
 
     hoje = timezone.now()
@@ -1122,35 +1259,29 @@ def extrato(request):
     }
 
     if proprietario_id:
-        proprietario = Cliente.objects.get(id=proprietario_id)
+        proprietario = proprietarios.get(id=proprietario_id)
         contratos = Contrato.objects.filter(proprietario=proprietario)
-        
-        # Lista para imóveis do proprietário
+
         imoveis_dict = {}
-        
+
         for contrato in contratos:
             imovel = contrato.imovel
             if imovel.id not in imoveis_dict:
-                # Use getattr para acessar atributos com segurança
                 situacao = getattr(imovel, 'situacao', None) or getattr(imovel, 'status', 'desconhecido')
-                status_display = getattr(imovel, 'get_situacao_display', 
-                                 lambda: getattr(imovel, 'get_status_display', 
-                                 lambda: 'Desconhecido'))()
-                
+                status_display = getattr(imovel, 'get_situacao_display', lambda: getattr(imovel, 'get_status_display', lambda: 'Desconhecido'))()
                 imoveis_dict[imovel.id] = {
                     'id': imovel.id,
                     'endereco': getattr(imovel, 'endereco', ''),
                     'status': situacao,
                     'get_status_display': status_display,
-                    'receitas': 0,
-                    'despesas': 0,
-                    'repasses': 0,  # Adicionado campo para repasses
-                    'saldo': 0
+                    'receitas': Money(0, 'BRL'),
+                    'despesas': Money(0, 'BRL'),
+                    'repasses': Money(0, 'BRL'),
+                    'saldo': Money(0, 'BRL'),
                 }
 
         lancamentos = []
 
-        # RECEITAS (Aluguel)
         cobrancas = Cobranca.objects.filter(
             contrato__proprietario=proprietario,
             data_pagamento__range=(data_inicial, data_final),
@@ -1162,25 +1293,18 @@ def extrato(request):
         for cobranca in cobrancas:
             imovel = cobranca.contrato.imovel
             data = cobranca.data_pagamento
-            mes_ano = f"{cobranca.mes_referencia}/{cobranca.ano_referencia}"
-            
-            # Usar o valor do aluguel do contrato, não da cobrança
+            mes_ano = f"{cobranca.mes_referencia:02d}/{cobranca.ano_referencia}"
             contrato = cobranca.contrato
-            valor_aluguel_contrato = getattr(contrato, 'valor_aluguel', None) or getattr(contrato, 'valor_pacote', 0)
-            
-            # O valor da taxa de administração ainda vem da cobrança
-            valor_admin = cobranca.valor_administracao
-            
-            # Calcular IPTU e outros encargos presentes na cobrança mas não no valor do aluguel
-            valor_cobranca_total = cobranca.valor
+
+            valor_aluguel_contrato = safe_money(contrato.valor_aluguel.amount if contrato.valor_aluguel else 0)
+            valor_admin = safe_money(cobranca.valor_administracao.amount if cobranca.valor_administracao else 0)
+            valor_cobranca_total = safe_money(cobranca.valor.amount if cobranca.valor else 0)
             valor_encargos = valor_cobranca_total - valor_aluguel_contrato
-            
-            # Atualizar receitas do imóvel
+
             if imovel.id in imoveis_dict:
                 imoveis_dict[imovel.id]['receitas'] += valor_aluguel_contrato
                 imoveis_dict[imovel.id]['despesas'] += valor_admin
-            
-            # Adicionar lançamento para o valor do aluguel puro
+
             lancamentos.append({
                 'data': data,
                 'descricao': f'Aluguel {mes_ano}',
@@ -1189,11 +1313,7 @@ def extrato(request):
                 'valor': valor_aluguel_contrato,
                 'imovel': imovel,
             })
-            
-            # Se houver encargos adicionais na cobrança, adicionar como um lançamento separado
-            
-            
-            # Adicionar lançamento para a taxa de administração
+
             lancamentos.append({
                 'data': data,
                 'descricao': f'Taxa de Administração {mes_ano}',
@@ -1203,7 +1323,6 @@ def extrato(request):
                 'imovel': imovel,
             })
 
-                # DESPESAS
         despesas = Despesa.objects.filter(
             contrato__proprietario=proprietario,
             data_inicio__lte=data_final,
@@ -1214,9 +1333,9 @@ def extrato(request):
         for despesa in despesas:
             imovel = despesa.contrato.imovel
             qtd_parcelas = despesa.numero_parcelas or 1
-            valor_parcela = despesa.valor_total / qtd_parcelas
+            valor_parcela = safe_money(despesa.valor_total.amount if despesa.valor_total else 0) / qtd_parcelas
 
-            for parcela in range(qtd_parcelas):  # ✅ Agora está dentro do loop da despesa
+            for parcela in range(qtd_parcelas):
                 data_parcela = despesa.data_inicio + timezone.timedelta(days=parcela * 30)
                 if data_inicial <= data_parcela <= data_final:
                     responsavel = getattr(despesa, 'paga', 'proprietario')
@@ -1238,9 +1357,6 @@ def extrato(request):
                         'imovel': imovel,
                     })
 
-
-
-        # ✅ REPASSES (fora do loop de despesas)
         repasses = Cobranca.objects.filter(
             contrato__proprietario=proprietario,
             data_repasse__range=(data_inicial, data_final)
@@ -1250,7 +1366,7 @@ def extrato(request):
 
         for repasse in repasses:
             imovel = repasse.contrato.imovel
-            valor_liquido = repasse.valor_liquido
+            valor_liquido = safe_money(repasse.valor_liquido.amount if repasse.valor_liquido else 0)
 
             if imovel and imovel.id in imoveis_dict:
                 imoveis_dict[imovel.id]['repasses'] += valor_liquido
@@ -1264,15 +1380,12 @@ def extrato(request):
                 'imovel': imovel,
             })
 
-        # 🔄 Atualizar saldo por imóvel
         for imovel_id, imovel_info in imoveis_dict.items():
             imovel_info['saldo'] = imovel_info['receitas'] - imovel_info['despesas'] - imovel_info['repasses']
 
-        # 📅 Ordenar lançamentos por data
         lancamentos.sort(key=lambda x: x['data'])
 
-        # 📊 Calcular saldo acumulado
-        saldo = 0
+        saldo = Money(0, 'BRL')
         lancamentos_com_saldo = []
 
         for lancamento in lancamentos:
@@ -1287,16 +1400,15 @@ def extrato(request):
             lancamento_com_saldo['saldo'] = saldo
             lancamentos_com_saldo.append(lancamento_com_saldo)
 
-        # 📦 Totais finais
-        total_receitas = sum(l['valor'] for l in lancamentos if l['tipo'] == 'RECEITA')
-        total_despesas = sum(l['valor'] for l in lancamentos if l['tipo'] == 'DESPESA')
-        total_repasses_valor = sum(l['valor'] for l in lancamentos if l['tipo'] == 'REPASSE')
+        total_receitas = sum((l['valor'] for l in lancamentos if l['tipo'] == 'RECEITA'), Money(0, 'BRL'))
+        total_despesas = sum((l['valor'] for l in lancamentos if l['tipo'] == 'DESPESA'), Money(0, 'BRL'))
+        total_repasses_valor = sum((l['valor'] for l in lancamentos if l['tipo'] == 'REPASSE'), Money(0, 'BRL'))
 
         imoveis = list(imoveis_dict.values())
 
         context.update({
             'lancamentos': lancamentos_com_saldo,
-            'saldo': total_receitas - total_despesas - total_repasses_valor,
+            'saldo': saldo,
             'total_receitas': total_receitas,
             'total_despesas': total_despesas,
             'total_repasses': total_repasses_valor,
@@ -1305,8 +1417,8 @@ def extrato(request):
             'total_repasses_feitos': total_repasses,
             'imoveis': imoveis,
         })
-    return render(request, 'imoveis/extrato.html', context)
 
+    return render(request, 'imoveis/extrato.html', context)
 
 def montar_extrato_do_proprietario(proprietario, data_inicial=None, data_final=None):
     extrato = []
@@ -1366,7 +1478,6 @@ def montar_extrato_do_proprietario(proprietario, data_inicial=None, data_final=N
     extrato.sort(key=lambda x: x["data"])
     return extrato
 
-
 def gerar_extrato_pdf(request, pk):
     data_inicio = request.GET.get('data_inicio')
     data_fim = request.GET.get('data_fim')
@@ -1381,14 +1492,6 @@ def gerar_extrato_pdf(request, pk):
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="extrato_{proprietario.nome}.pdf"'
     return response
-
-
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponse
-from datetime import datetime
-from decimal import Decimal
-from .models import Cliente, Cobranca
-from .utils.pdf import gerar_pdf_extrato_repasses  # você ainda vai criar ou adaptar essa função
 
 def extrato_repasses_pdf(request, proprietario_id):
     # Pega as datas do GET
@@ -1413,9 +1516,6 @@ def extrato_repasses_pdf(request, proprietario_id):
     # Gera o PDF
     pdf = gerar_pdf_extrato_repasses(proprietario, data_inicial, data_final, cobrancas)
     return HttpResponse(pdf, content_type="application/pdf")
-
-from django.http import HttpResponse, Http404
-from .utils.extrato import gerar_extrato_rendimento
 
 def gerar_pdf(request, contrato_id):
     # Captura o ano dos parâmetros GET
@@ -1444,3 +1544,268 @@ def gerar_pdf(request, contrato_id):
     response = HttpResponse(pdf_content, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="extrato_{ano}.pdf"'
     return response
+
+@csrf_exempt
+def webhook_zapi(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        print('Mensagem recebida:', data)
+        # Aqui você pode processar a mensagem recebida
+        return JsonResponse({'status': 'ok'})
+    return JsonResponse({'error': 'Método não permitido'}, status=405)
+
+def notificar_usuario(usuario):
+    numero = usuario.telefone  # no formato 55DDXXXXXXXXX
+    mensagem = f"Olá {usuario.nome}, sua cobrança foi gerada com sucesso!"
+    resposta = enviar_mensagem(numero, mensagem)
+    print(resposta)
+
+def teste_envio(request):
+    numero = '5511995972506'  # exemplo: 5511999999999
+    mensagem = 'Olá! Teste de envio via Django e Z-API.'
+    resposta = enviar_mensagem(numero, mensagem)
+    return JsonResponse(resposta)
+
+def visualizar_lembretes(request):
+    hoje = date.today()
+    dias_aviso = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]  # Dias de aviso antes do vencimento
+
+    # Busca todas as cobranças com contrato associado
+    cobrancas = Cobranca.objects.filter(contrato__isnull=False)
+
+    mensagens = []
+    for cobranca in cobrancas:
+        # Calcula quantos dias faltam para o vencimento
+        dias_faltando = (cobranca.data_vencimento - hoje).days
+
+        # Verifica se o número de dias restantes está na lista de dias de aviso
+        if dias_faltando in dias_aviso:
+            # Verifica se já foi enviado um lembrete para essa cobrança nesse período
+            enviado = LembreteEnviado.objects.filter(
+                cobranca=cobranca,
+                dias_antecipacao=dias_faltando
+            ).exists()
+
+            if not enviado:
+                try:
+                    # Gera a mensagem personalizada
+                    mensagem = gerar_mensagem_cobranca(cobranca)
+                    inquilino = cobranca.contrato.inquilino
+
+                    # Adiciona a mensagem à lista
+                    mensagens.append({
+                        'id': cobranca.id,
+                        'nome': inquilino.nome if inquilino else 'Cliente',
+                        'telefone': inquilino.telefone if inquilino else '',
+                        'mensagem': mensagem,
+                        'dias': dias_faltando
+                    })
+                except Exception as e:
+                    # Em caso de erro, adiciona uma mensagem de erro
+                    mensagens.append({
+                        'id': cobranca.id,
+                        'nome': 'Erro',
+                        'telefone': '',
+                        'mensagem': f"Erro ao gerar mensagem: {str(e)}",
+                        'dias': dias_faltando
+                    })
+
+    # Renderiza o template com as mensagens
+    return render(request, 'imoveis/visualizar_lembretes.html', {'mensagens': mensagens})
+
+def enviar_mensagem_manual(request):
+    telefone = request.POST.get('telefone')
+    mensagem = request.POST.get('mensagem')
+    cobranca_id = request.POST.get('cobranca_id')
+    dias = request.POST.get('dias')
+
+    print(f"Recebido: telefone={telefone}, mensagem={mensagem}, cobranca_id={cobranca_id}, dias={dias}")
+
+    if telefone and mensagem and cobranca_id and dias is not None:
+        try:
+            cobranca_id = int(cobranca_id)
+            cobranca = get_object_or_404(Cobranca, id=cobranca_id)
+
+            print(f"Enviando mensagem para {telefone}: {mensagem}")
+
+            resposta = enviar_mensagem(telefone, mensagem)
+            print(f"Resposta da API: {resposta}")
+
+            LembreteEnviado.objects.create(
+                cobranca=cobranca,
+                dias_antecipacao=int(dias)
+            )
+
+            messages.success(request, f"Mensagem enviada com sucesso para {telefone}.")
+        except ValueError:
+            messages.error(request, "ID de cobrança inválido.")
+        except Exception as e:
+            print(f"Erro ao enviar mensagem: {str(e)}")
+            messages.error(request, f"Erro ao enviar mensagem: {str(e)}")
+    else:
+        messages.error(request, "Dados incompletos.")
+
+    return redirect('visualizar_lembretes')
+
+def listar_reajustes(request):
+    hoje = timezone.now().date()
+    contratos = Contrato.objects.filter(ativo=True)
+    reajustaveis = []
+
+    for contrato in contratos:
+        historico = contrato.historico_aluguel or {}
+        datas = sorted([timezone.datetime.strptime(k, "%Y-%m-%d").date() for k in historico.keys()])
+        if not datas:
+            continue
+
+        ultima_data = datas[-1]
+        if hoje < ultima_data + relativedelta(months=12):
+            continue
+
+        valor_anterior = Money(Decimal(historico[str(ultima_data)]), contrato.valor_aluguel.currency)
+        indices = IndiceInflacao.objects.filter(
+            tipo=contrato.fator_reajuste,
+            data_referencia__gt=ultima_data,
+            data_referencia__lte=hoje
+        ).order_by('data_referencia')
+
+        fator = Decimal("1.00")
+        detalhes = []
+        for i in indices:
+            fator *= (1 + i.valor / 100)
+            detalhes.append({
+                "mes": i.data_referencia.strftime("%b/%Y"),
+                "indice": i.valor
+            })
+
+        novo_valor = Money((valor_anterior * fator).quantize(Decimal("0.01")), contrato.valor_aluguel.currency)
+
+        reajustaveis.append({
+            "contrato": contrato,
+            "ultima_data": ultima_data,
+            "valor_anterior": valor_anterior,
+            "fator": fator,
+            "detalhes": detalhes,
+            "novo_valor": novo_valor,
+            "proxima_data": ultima_data + relativedelta(months=12)
+        })
+
+    return render(request, "imoveis/reajustes/lista.html", {"reajustaveis": reajustaveis})
+
+def aplicar_reajuste(request, contrato_id, data_reajuste):
+    contrato = get_object_or_404(Contrato, id=contrato_id)
+    data_reajuste = timezone.datetime.strptime(data_reajuste, "%Y-%m-%d").date()
+    historico = contrato.historico_aluguel or {}
+
+    valor_anterior = Decimal(historico[str(data_reajuste - relativedelta(months=12))])
+    indices = IndiceInflacao.objects.filter(
+        tipo=contrato.fator_reajuste,
+        data_referencia__gt=data_reajuste - relativedelta(months=12),
+        data_referencia__lte=data_reajuste
+    ).order_by("data_referencia")
+
+    fator = Decimal("1.00")
+    for i in indices:
+        fator *= (1 + i.valor / 100)
+
+    novo_valor = (valor_anterior * fator).quantize(Decimal("0.01"))
+    historico[str(data_reajuste)] = str(novo_valor.quantize(Decimal('0.01')))
+    contrato.valor_aluguel = Money(novo_valor, contrato.valor_aluguel.currency)
+    contrato.historico_aluguel = historico
+    contrato.save()
+
+    messages.success(request, f"Reajuste aplicado: R$ {valor_anterior} → R$ {novo_valor}")
+    return redirect("listar_reajustes")
+
+def listar_reajustes(request):
+    contratos = Contrato.objects.all()
+    contratos_com_reajuste = []
+
+    for contrato in contratos:
+        resultado = calcular_reajuste(contrato)
+        if resultado:
+            contratos_com_reajuste.append({
+                'contrato': contrato,
+                'fator': resultado['fator'],
+                'novo_valor': resultado['valor'],
+                'data_base': resultado['data_base'],
+                'historico': resultado['historico']
+            })
+
+    return render(request, 'imoveis/reajustes/lista.html', {'contratos_com_reajuste': contratos_com_reajuste})
+
+def aprovar_reajuste(request, contrato_id):
+    if request.method != 'POST':
+        messages.error(request, "Método não permitido.")
+        return redirect('listar_reajustes')
+    
+    contrato = get_object_or_404(Contrato, id=contrato_id)
+    resultado = calcular_reajuste(contrato)
+
+    if not resultado:
+        messages.error(request, "Não há reajuste pendente para este contrato.")
+        return redirect('listar_reajustes')
+
+    # Pega o valor calculado pelo sistema
+    valor_calculado = resultado['valor']
+    
+    # Tratamento mais robusto para o valor aceito
+    try:
+        valor_aceito_str = request.POST.get('valor_aceito', '').strip()
+        
+        # Remova qualquer caractere que não seja dígito, ponto ou vírgula
+        import re
+        valor_aceito_str = re.sub(r'[^\d.,]', '', valor_aceito_str)
+        
+        # Substitui vírgula por ponto (padrão para operações numéricas em Python)
+        valor_aceito_str = valor_aceito_str.replace(',', '.')
+        
+        # Verifica se há algum valor para converter
+        if not valor_aceito_str:
+            raise ValueError("Valor em branco")
+            
+        # Converte para float primeiro e depois para Decimal para evitar erros de sintaxe
+        valor_aceito = Decimal(str(float(valor_aceito_str)))
+        
+    except Exception as e:
+        # Registrar o erro para debugging
+        import traceback
+        print(f"Erro ao converter valor: '{valor_aceito_str}'. Exceção: {e}\n{traceback.format_exc()}")
+        messages.error(request, "Valor aceito inválido. Use apenas números (exemplo: 1000.50 ou 1000,50).")
+        return redirect('listar_reajustes')
+
+    # Resto do código permanece o mesmo...
+    # Validação do campo 'currency'
+    if not isinstance(contrato.valor_aluguel, Money):
+        messages.error(request, "O campo 'valor_aluguel' deve ser uma instância de Money.")
+        return redirect('listar_reajustes')
+
+    # Cria o objeto Money para o valor aceito
+    valor_aceito_money = Money(valor_aceito, contrato.valor_aluguel.currency)
+    
+    # Cria o registro de reajuste
+    Reajuste.objects.create(
+        contrato=contrato,
+        data_reajuste=resultado['data_base'] + relativedelta(months=+12),
+        fator_calculado=resultado['fator'],
+        valor_calculado=valor_calculado.amount,
+        fator_aprovado=valor_aceito / contrato.valor_aluguel.amount,
+        valor_aprovado=valor_aceito,
+        aprovado=True
+    )
+
+    # Atualiza o valor do aluguel para o valor aceito
+    contrato.valor_aluguel = valor_aceito_money
+    contrato.save()
+
+    # Exibe mensagem de sucesso com detalhes
+    if valor_aceito == valor_calculado.amount:
+        messages.success(request, f"Reajuste aprovado com sucesso. Novo valor: R$ {valor_aceito}")
+    else:
+        percentual_diferenca = ((valor_aceito / valor_calculado.amount) - 1) * 100
+        messages.success(request, 
+                      f"Reajuste personalizado aprovado. Valor calculado: R$ {valor_calculado.amount}, " 
+                      f"Valor aceito: R$ {valor_aceito} " 
+                      f"({percentual_diferenca:.2f}% em relação ao calculado)")
+    
+    return redirect('listar_reajustes')

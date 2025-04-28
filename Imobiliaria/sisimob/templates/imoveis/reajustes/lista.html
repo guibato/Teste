@@ -1,0 +1,70 @@
+{% extends 'imoveis/base.html' %}
+
+{% block content %}
+<div class="container mx-auto p-6 text-white">
+    <h1 class="text-2xl font-bold mb-6">Reajuste de Aluguéis</h1>
+
+    {% if contratos_com_reajuste %}
+        <table class="min-w-full table-auto border border-gray-700 text-sm mb-10">
+            <thead class="bg-gray-800">
+                <tr>
+                    <th class="px-4 py-2 text-left">Inquilino</th>
+                    <th class="px-4 py-2 text-left">Imóvel</th>
+                    <th class="px-4 py-2 text-center">Início</th>
+                    <th class="px-4 py-2 text-center">Valor Atual</th>
+                    <th class="px-4 py-2 text-center">Fator</th>
+                    <th class="px-4 py-2 text-center">Reajustado</th>
+                    <th class="px-4 py-2 text-center">Valor Aceito</th>
+                    <th class="px-4 py-2 text-center">Ação</th>
+                </tr>
+            </thead>
+            <tbody class="bg-gray-900 divide-y divide-gray-700">
+                {% for item in contratos_com_reajuste %}
+                    <tr>
+                        <td class="px-4 py-2">{{ item.contrato.inquilino.nome }}</td>
+                        <td class="px-4 py-2">{{ item.contrato.imovel.endereco_resumido }}</td>
+                        <td class="px-4 py-2 text-center">{{ item.contrato.data_inicio|date:"d/m/Y" }}</td>
+                        <td class="px-4 py-2 text-center">R$ {{ item.contrato.valor_aluguel.amount|floatformat:2 }}</td>
+                        <td class="px-4 py-2 text-center">{{ item.fator|floatformat:4 }}</td>
+                        <td class="px-4 py-2 text-center">R$ {{ item.novo_valor.amount|floatformat:2 }}</td>
+
+                        <td class="px-4 py-2 text-center" colspan="2">
+                            <form method="post" action="{% url 'aprovar_reajuste' item.contrato.id %}" class="flex items-center justify-center gap-2">
+                                {% csrf_token %}
+                                <input type="text" name="valor_aceito" class="bg-gray-800 text-white text-center rounded px-2 py-1 w-24" 
+                                    value="{{ item.novo_valor.amount|floatformat:2 }}" 
+                                    pattern="[0-9]*[.,]?[0-9]+" 
+                                    placeholder="0.00" 
+                                    title="Digite um valor decimal válido (ex: 1000.50 ou 1000,50)">
+                                <input type="hidden" name="valor_calculado" value="{{ item.novo_valor.amount }}">
+                                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded">
+                                    Aprovar
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="bg-gray-800 p-4 rounded">
+            <h2 class="text-xl font-semibold mb-4">Histórico de Índices Aplicados</h2>
+
+            {% for item in contratos_com_reajuste %}
+                <div class="mb-4">
+                    <h3 class="font-bold">Contrato #{{ item.contrato.id }}</h3>
+                    <p>Fator de Reajuste: {{ item.fator }}</p>
+                    <p>Valor Reajustado: R$ {{ item.novo_valor.amount|floatformat:2 }}</p>
+                    <ul class="list-disc ml-6 mt-2">
+                        {% for hist in item.historico %}
+                            <li>{{ hist.referencia }}: {{ hist.percentual }}%</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>Não há contratos para reajustar no momento.</p>
+    {% endif %}
+</div>
+{% endblock %}
