@@ -74,6 +74,7 @@ class ClienteForm(forms.ModelForm):
             'pix_modalidade': forms.Select(attrs={'class': 'form-control'}),
             'nacionalidade': forms.TextInput(attrs={'class': 'form-control'}),
             'profissao': forms.TextInput(attrs={'class': 'form-control'}),
+            'documentos': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
         }
 
     def clean_rg_rne(self):

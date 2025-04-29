@@ -43,7 +43,6 @@ class Cliente(models.Model):
     CPF = models.CharField(max_length=14, null=True, blank=True, verbose_name="CPF")
     rg_rne = models.CharField(max_length=20, null=True, blank=True, unique=True, verbose_name="RG/RNE")
     telefone = models.CharField(max_length=15, null=True, blank=True, verbose_name="Telefone")
-    codigo_internacional_celular = models.CharField(max_length=5, null=True, blank=True, verbose_name="Código Internacional (Celular)")
     celular = models.CharField(max_length=15, null=True, blank=True, verbose_name="Celular")
     email = models.EmailField(null=True, blank=True, verbose_name="E-mail")
     pix_modalidade = models.CharField(max_length=20, choices=MODALIDADE_PIX_CHOICES, null=True, blank=True, verbose_name="Modalidade PIX")
@@ -59,7 +58,7 @@ class Cliente(models.Model):
     bairro = models.CharField(max_length=100, null=True, blank=True, verbose_name="Bairro")
     cidade = models.CharField(max_length=100, verbose_name="Cidade")
     estado = models.CharField(max_length=2, verbose_name="Estado")
-    documento = models.CharField(max_length=100, null=True, blank=True)
+    documentos = models.FileField(upload_to='clientes/documentos/', null=True, blank=True, verbose_name="Documentos")
 
     def __str__(self):
         return self.nome
