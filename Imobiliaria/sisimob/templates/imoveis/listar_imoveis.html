@@ -25,7 +25,7 @@
             <tbody>
                 {% for imovel in page_obj %}
                 <tr class="border-b hover:bg-gray-700 text-center">
-                    <td class="px-4 py-2">{{ imovel.endereco }}, {{ imovel.numero }}{{ imovel.complemento|default:"" }}</td>
+                    <td class="px-4 py-2">{{ imovel.endereco}}, {{ imovel.numero }}  {{ imovel.complemento|default:"" }}</td>
                     
                     <td class="px-4 py-2">
                         <a href="{% url 'editar_imovel' imovel.id %}" 

@@ -245,36 +245,104 @@ class CobrancaForm(forms.ModelForm):
             'data_fim': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
 
-from django.core.exceptions import ValidationError
-
-from django import forms
-from decimal import Decimal, ROUND_HALF_UP
-from .models import Despesa, Contrato
-
 class DespesaForm(forms.ModelForm):
+
     valor_total = forms.CharField(
         label='Valor Total',
         widget=forms.TextInput(attrs={'placeholder': 'R$ 0,00'})
     )
-
+    
     class Meta:
         model = Despesa
         exclude = ['contrato']  # Excluir o campo contrato do formulário
-
+        
     def __init__(self, *args, **kwargs):
         contrato = kwargs.pop('contrato', None)  # Obtém o contrato dos kwargs
         super().__init__(*args, **kwargs)
         if contrato:
             self.instance.contrato = contrato  # Associa o contrato à instância
+            
+        # Organizar os campos em uma ordem lógica
+        field_order = [
+            'tipo', 'is_recorrente', 'descricao', 'valor_total', 
+            'paga', 'numero_parcelas', 'periodicidade', 'data_inicio',
+            'cobranca_referencia', 'percentual_repassado', 'is_base_calculo_administracao'
+        ]
+        
+        # Adicionar classes de estilo para manter consistência
+        for field_name, field in self.fields.items():
+            if field_name != 'valor_total':  # Já configurado acima
+                field.widget.attrs.update({'class': 'block w-full pl-10 pr-3 py-2 border border-gray-700 bg-gray-900 text-white rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm'})
+                
+        # Adicionar comportamento dinâmico para campos específicos
+            if field_name == 'tipo':
+                field.widget.attrs.update({'onchange': 'handleTipoChange(this)'})
 
     def clean_valor_total(self):
-        valor_total = self.cleaned_data.get('valor_total')
-        try:
-            # Remove formatação e converte para decimal
-            valor_limpo = valor_total.replace('R$', '').replace(' ', '').strip()
-            # Substitui ponto por vazio (para milhares) e vírgula por ponto (para decimais)
-            valor_limpo = valor_limpo.replace('.', '').replace(',', '.')
-            valor_decimal = Decimal(valor_limpo)
-            return valor_decimal.quantize(Decimal('0.00'))
-        except Exception as e:
-            raise forms.ValidationError(f"Valor inválido: {str(e)}")
+        import re
+        # Obtenha o valor bruto enviado pelo formulário
+        valor_bruto = self.cleaned_data.get('valor_total')
+        # Se não houver valor, retorne None ou 0
+        if not valor_bruto:
+            return 0
+        # Debugando o valor recebido
+        print(f"VALOR RECEBIDO NO FORM: {valor_bruto}")
+        # Se o valor estiver em formato de string, converta para float
+        if isinstance(valor_bruto, str):
+            # Verifique se é um valor muito grande (possivelmente em centavos)
+            try:
+                # Remova símbolos de moeda, espaços e sinais
+                is_negative = '-' in valor_bruto
+                valor_limpo = valor_bruto.replace('R$', '').replace('-', '').strip()
+                print(f"VALOR LIMPO: {valor_limpo}")
+                # Trate o formato brasileiro de moeda (1.568,49)
+                # Primeiro remova pontos de milhar
+                valor_limpo = valor_limpo.replace('.', '')
+                print(f"VALOR SEM MILHARES: {valor_limpo}")
+                # Depois substitua vírgula por ponto para decimais
+                valor_limpo = valor_limpo.replace(',', '.')
+                print(f"VALOR COM PONTO DECIMAL: {valor_limpo}")
+                # Verificar se é um número puro sem formatação
+                if re.match(r'^\d+$', valor_limpo) and len(valor_limpo) > 4:
+                    # Provavelmente é um valor em centavos, converter para reais
+                    valor_numerico = Decimal(valor_limpo) / 100
+                    print(f"VALOR INTERPRETADO COMO CENTAVOS: {valor_limpo} -> {valor_numerico}")
+                else:
+                    valor_numerico = Decimal(valor_limpo)
+                    print(f"VALOR FINAL CONVERTIDO: {valor_numerico}")
+                # Aplicar sinal negativo se necessário
+                if is_negative:
+                    valor_numerico = -valor_numerico
+                    print(f"VALOR FINAL COM SINAL NEGATIVO: {valor_numerico}")
+                return valor_numerico
+            except ValueError as e:
+                print(f"ERRO NA CONVERSÃO: {e}")
+                raise forms.ValidationError("Valor inválido. Use o formato: R$ 0,00")
+        return valor_bruto
+    
+
+from django import forms
+from .models import Contrato, IndiceInflacao
+
+class ReajusteContratosForm(forms.Form):
+    data_inicio = forms.DateField(label="Data de Início do Reajuste", widget=forms.DateInput(attrs={'type': 'date'}))
+    valor_manual = forms.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        label="Valor Manual de Reajuste (%)",
+        required=False,
+        widget=forms.NumberInput(attrs={'step': '0.01'})
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        data_inicio = cleaned_data.get('data_inicio')
+        valor_manual = cleaned_data.get('valor_manual')
+
+        if not data_inicio:
+            self.add_error('data_inicio', "Informe a data de início do reajuste.")
+
+        if valor_manual is not None and valor_manual < 0:
+            self.add_error('valor_manual', "O valor manual de reajuste não pode ser negativo.")
+
+        return cleaned_data

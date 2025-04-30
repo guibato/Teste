@@ -1,11 +1,9 @@
 from django.urls import path
 from . import views
-from .views import ListarContratosView
-from .views import atualizar_indices_view
+from .views import ListarContratosView, atualizar_indices_view
 from django.conf import settings
 from django.conf.urls.static import static
 from .views import listar_indices_inflacao, gerar_extrato_rendimento, gerar_cobrancas_view, extrato_repasses_pdf
-from . import views
 
 urlpatterns = [
     path('', views.home, name='home'),  # Rota para a página inicial
@@ -34,12 +32,9 @@ urlpatterns = [
     path('extrato-rendimento/<int:contrato_id>/', gerar_extrato_rendimento, name='gerar_extrato_rendimento'),
     path('despesa/editar/<int:pk>/', views.editar_despesa, name='editar_despesa'),
     path('dashboard/<int:id>/', views.dashboard, name='dashboard'),
-    path('dashboard/<int:contrato_id>/', views.dashboard, name='dashboard'),
     path("atualizar-indices/", atualizar_indices_view, name="atualizar_indices"),
     path('cobranca/editar/<int:pk>/', views.editar_cobranca, name='editar_cobranca'),
     path('excluir-cobranca/<int:pk>/', views.excluir_cobranca, name='excluir_cobranca'),
-    path('editar-cobranca/<int:pk>/', views.editar_cobranca, name='editar_cobranca'),
-    path('confirmar-exclusao/<str:model_name>/<int:id>/', views.confirmar_exclusao, name='confirmar_exclusao'),
     path('marcar-como-recebida/<int:pk>/', views.marcar_como_recebida, name='marcar_como_recebida'),
     path('marcar-como-repassada/<int:pk>/', views.marcar_como_repassada, name='marcar_como_repassada'),
     path('atualizar-datas/<int:pk>/', views.atualizar_datas_cobranca, name='atualizar_datas_cobranca'),
@@ -51,13 +46,9 @@ urlpatterns = [
     path('executar-cobrancas/', gerar_cobrancas_view, name='executar_cobrancas'),
     path('extrato/', views.extrato, name='extrato'),
     path('proprietarios/<int:proprietario_id>/extrato-repasses/pdf/', views.extrato_repasses_pdf, name='extrato_repasses_pdf'),
-    path('extrato/', views.extrato, name='extrato'),
     path('gerar-pdf/<int:contrato_id>/', views.gerar_pdf, name='gerar_pdf'),
-
-
-
-
-
+    path('reajustar-contratos/', views.reajustar_contratos, name='reajustar_contratos'),
+    path('reajustar-contrato/<int:contrato_id>/', views.reajustar_contrato_individual, name='reajustar_contrato_individual'),
 ]
 
 if settings.DEBUG:

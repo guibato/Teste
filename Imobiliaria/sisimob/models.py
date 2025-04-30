@@ -6,8 +6,6 @@ from sisimob.utils.integracao_asaas import cadastrar_cliente_no_asaas  # Certifi
 from django.conf import settings
 from sisimob.utils.cobrancas_asaas import gerar_cobranca
 
-
-
 class Cliente(models.Model):
     TIPO_CLIENTE_CHOICES = [
         ('Proprietario', 'Proprietário(a)'),
@@ -112,8 +110,6 @@ class Imovel(models.Model):
     
         return ', '.join(partes)
 
-
-
 class Contrato(models.Model):
     class Meta:
         ordering = ['-data_inicio']
@@ -182,6 +178,7 @@ class Contrato(models.Model):
     vencimento_seguro_incendio = models.DateField(verbose_name="Vencimento do Seguro", null=True, blank=True)
     documentos = models.FileField(upload_to='contratos/documentos/', null=True, blank=True, verbose_name="Documentos")
     historico_aluguel = models.JSONField(default=dict, verbose_name="Histórico de Aluguel")
+    data_ultimo_reajuste = models.DateField(null=True, blank=True, verbose_name="Data do último reajuste")
 
     def __str__(self):
         return f"Contrato {self.id} - {self.imovel.endereco}"
@@ -427,6 +424,7 @@ class Despesa(models.Model):
         ('iptu', 'IPTU'),
         ('condominio', 'Condomínio'),
         ('manutencao', 'Manutenção'),
+        ('despesa_recorrente', 'Despesa Recorrente'),
         ('outros', 'Outros'),
     ]
     PAGA_CHOICES = [
@@ -489,7 +487,15 @@ class Despesa(models.Model):
         default=100,
         help_text="Percentual da despesa que será repassado ao inquilino"
     )
-    is_base_calculo_administracao = models.BooleanField(default=False, verbose_name="É base para cálculo da administração?")
+    is_base_calculo_administracao = models.BooleanField(
+        default=False, 
+        verbose_name="É base para cálculo da administração?"
+    )
+    is_recorrente = models.BooleanField(
+        default=False, 
+        verbose_name="É despesa recorrente?",
+        help_text="Marque para despesas que se repetem periodicamente como condomínio"
+    )
 
     def __str__(self):
         return f"{self.get_tipo_display()} - {self.descricao}"
@@ -513,6 +519,14 @@ class Despesa(models.Model):
         
         return self.parcelas_pagas(data_referencia) < self.numero_parcelas
     
+    def save(self, *args, **kwargs):
+        """Sobrescreve o método save para aplicar regras de negócio na despesa"""
+        # Se for do tipo condomínio, marcar automaticamente como recorrente
+        if self.tipo == 'condominio':
+            self.is_recorrente = True
+            
+        super().save(*args, **kwargs)
+
 class MovimentoConta(models.Model):
     TIPO_MOVIMENTO = (
         ('credito', 'Crédito'),

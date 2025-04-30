@@ -1444,3 +1444,194 @@ def gerar_pdf(request, contrato_id):
     response = HttpResponse(pdf_content, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="extrato_{ano}.pdf"'
     return response
+
+from django.shortcuts import render
+from django.contrib import messages
+from decimal import Decimal
+from dateutil.relativedelta import relativedelta
+from .models import Contrato, IndiceInflacao
+from .forms import ReajusteContratosForm
+
+def calcular_fator_acumulado(contrato, data_inicio, data_fim):
+    indices = IndiceInflacao.objects.filter(
+        tipo=contrato.fator_reajuste,
+        data_referencia__gte=data_inicio,
+        data_referencia__lt=data_fim
+    ).order_by('data_referencia')
+
+    if indices.count() < 12:
+        return None, None
+
+    fator_acumulado = Decimal('1.00')
+    for indice in indices:
+        fator_acumulado *= (1 + indice.valor / Decimal('100'))
+
+    valor_projetado = contrato.valor_aluguel * fator_acumulado
+    if valor_projetado < contrato.valor_aluguel:
+        valor_projetado = contrato.valor_aluguel
+
+    return fator_acumulado, valor_projetado
+
+def reajustar_contratos(request):
+    form = ReajusteContratosForm(request.POST or None)
+
+    contratos_com_indices = []
+    if request.method == 'POST' and form.is_valid():
+        data_inicio = form.cleaned_data['data_inicio'].replace(day=1)
+        valor_manual = form.cleaned_data['valor_manual']
+
+        for contrato in Contrato.objects.filter(data_inicio__lte=data_inicio):
+            # Identifica o ciclo correto
+            if contrato.data_ultimo_reajuste:
+                data_base = contrato.data_ultimo_reajuste + relativedelta(months=1)
+            else:
+                data_base = contrato.data_inicio.replace(day=1)
+
+            data_fim = data_base + relativedelta(months=12)
+
+            fator_acumulado, valor_projetado = calcular_fator_acumulado(contrato, data_base, data_fim)
+
+            if fator_acumulado:
+                contratos_com_indices.append({
+                    'contrato': contrato,
+                    'fator_acumulado': fator_acumulado,
+                    'valor_projetado': valor_projetado,
+                })
+
+        return render(request, 'imoveis/reajustar_contratos.html', {
+            'form': form,
+            'contratos_com_indices': contratos_com_indices,
+            'data_inicio': data_inicio,
+            'valor_manual': valor_manual
+        })
+
+    else:
+        for contrato in Contrato.objects.all():
+            if contrato.data_ultimo_reajuste:
+                data_base = contrato.data_ultimo_reajuste + relativedelta(months=1)
+            else:
+                data_base = contrato.data_inicio.replace(day=1)
+            data_fim = data_base + relativedelta(months=12)
+
+            fator_acumulado, valor_projetado = calcular_fator_acumulado(contrato, data_base, data_fim)
+
+            if fator_acumulado:
+                contratos_com_indices.append({
+                    'contrato': contrato,
+                    'fator_acumulado': fator_acumulado,
+                    'valor_projetado': valor_projetado,
+                })
+
+    return render(request, 'imoveis/reajustar_contratos.html', {
+        'form': form,
+        'contratos_com_indices': contratos_com_indices
+    })
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from datetime import datetime
+from decimal import Decimal
+from dateutil.relativedelta import relativedelta
+from .models import Contrato, IndiceInflacao
+
+def reajustar_contrato_individual(request, contrato_id):
+    contrato = get_object_or_404(Contrato, id=contrato_id)
+
+    if request.method == 'POST':
+        data_inicio_str = request.POST.get('data_inicio')
+        valor_manual = request.POST.get('valor_manual')
+
+        if not data_inicio_str:
+            messages.error(request, "Informe a data de início do reajuste.")
+            return redirect('reajustar_contrato_individual', contrato_id=contrato_id)
+
+        data_inicio = datetime.strptime(data_inicio_str, "%Y-%m-%d").date().replace(day=1)
+
+        if contrato.data_ultimo_reajuste and contrato.data_ultimo_reajuste >= contrato.data_inicio:
+            base_reajuste = contrato.data_ultimo_reajuste + relativedelta(months=1)
+        else:
+            base_reajuste = contrato.data_inicio.replace(day=1)
+
+        data_fim = base_reajuste + relativedelta(months=12)
+
+        # Coleta dos índices
+        indices = []
+        for i in range(12):
+            mes = base_reajuste + relativedelta(months=i)
+            indice = IndiceInflacao.objects.filter(
+                tipo=contrato.fator_reajuste,
+                data_referencia__year=mes.year,
+                data_referencia__month=mes.month
+            ).first()
+
+            if not indice:
+                messages.error(request, f"Índice não disponível para {mes.strftime('%m/%Y')}.")
+                return redirect('reajustar_contrato_individual', contrato_id=contrato_id)
+
+            indices.append(indice)
+
+        if valor_manual:
+            try:
+                fator_reajuste = 1 + (Decimal(valor_manual) / Decimal('100'))
+            except:
+                messages.error(request, "Valor manual inválido.")
+                return redirect('reajustar_contrato_individual', contrato_id=contrato_id)
+        else:
+            fator_reajuste = Decimal('1.00')
+            for indice in indices:
+                fator_reajuste *= (1 + indice.valor / Decimal('100'))
+
+        novo_valor = contrato.valor_aluguel * fator_reajuste
+        if novo_valor < contrato.valor_aluguel:
+            novo_valor = contrato.valor_aluguel
+
+        contrato.valor_aluguel = novo_valor
+        contrato.data_ultimo_reajuste = data_inicio
+        contrato.data_base = data_inicio + relativedelta(months=12)
+        contrato.save()
+
+        from django.utils import timezone
+        hoje = timezone.now().date().isoformat()
+        historico = contrato.historico_aluguel or {}
+        historico[hoje] = float(novo_valor)
+        contrato.historico_aluguel = historico
+        contrato.save()
+
+        
+
+        messages.success(request, f"Contrato {contrato.id} reajustado com sucesso.")
+        return redirect('reajustar_contratos')
+
+    # GET request
+    if contrato.data_ultimo_reajuste:
+        base_reajuste = contrato.data_ultimo_reajuste + relativedelta(months=1)
+    else:
+        base_reajuste = contrato.data_inicio.replace(day=1)
+
+    indices = []
+    for i in range(12):
+        mes = base_reajuste + relativedelta(months=i)
+        indice = IndiceInflacao.objects.filter(
+            tipo=contrato.fator_reajuste,
+            data_referencia__year=mes.year,
+            data_referencia__month=mes.month
+        ).first()
+        if indice:
+            indices.append(indice)
+
+    fator_acumulado = Decimal('1.00')
+    for indice in indices:
+        fator_acumulado *= (1 + indice.valor / Decimal('100'))
+
+    valor_projetado = contrato.valor_aluguel * fator_acumulado
+    if valor_projetado < contrato.valor_aluguel:
+        valor_projetado = contrato.valor_aluguel
+
+    return render(request, 'imoveis/reajustar_contrato_individual.html', {
+        'contrato': contrato,
+        'indices': indices,
+        'data_inicio': base_reajuste,
+        'valor_manual': request.GET.get('valor_manual', ''),
+        'fator_acumulado': fator_acumulado,
+        'valor_projetado': valor_projetado
+    })

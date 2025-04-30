@@ -1,5 +1,5 @@
 {% extends 'imoveis/base.html' %}
-<script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
+
 {% block content %}
 <h2 class="text-3xl font-bold text-gray-100 mb-8 text-center">Lançar Nova Despesa</h2>
 
@@ -16,8 +16,6 @@
         </div>
         {% endif %}
         
-        
-        
         <!-- Tipo de Despesa -->
         <div>
             <label class="block text-sm font-medium text-gray-200 mb-2">Tipo de Despesa</label>
@@ -27,7 +25,7 @@
                         <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804C1.29 5.106 0 6.559 0 8.12v3.76c0 1.561.29 3.012 1.5 4.316C2.557 17.71 3.745 18 5.5 18c1.755 0 3.443-.29 5-.804V4.804z" />
                     </svg>
                 </span>
-                <select name="{{ form.tipo.name }}" id="{{ form.tipo.id_for_label }}" class="block w-full pl-10 pr-3 py-2 border border-gray-700 bg-gray-900 text-white rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                <select name="{{ form.tipo.name }}" id="{{ form.tipo.id_for_label }}" class="block w-full pl-10 pr-3 py-2 border border-gray-700 bg-gray-900 text-white rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm" onchange="handleTipoChange(this)">
                     {% for value, label in form.tipo.field.choices %}
                     <option value="{{ value }}" {% if form.tipo.value == value %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
@@ -38,6 +36,19 @@
             {% endif %}
         </div>
         
+        <!-- É despesa recorrente? -->
+        <div id="is-recorrente-container">
+            <label class="block text-sm font-medium text-gray-200 mb-2">É despesa recorrente?</label>
+            <div class="relative flex items-center mt-3">
+                <input type="checkbox" name="{{ form.is_recorrente.name }}" id="{{ form.is_recorrente.id_for_label }}" class="h-5 w-5 text-blue-600 rounded border-gray-700 bg-gray-900 focus:ring-blue-500" {% if form.is_recorrente.value %}checked{% endif %}>
+                <label for="{{ form.is_recorrente.id_for_label }}" class="ml-2 block text-sm text-gray-300">
+                    Marque para despesas que se repetem periodicamente
+                </label>
+            </div>
+            {% if form.is_recorrente.errors %}
+            <span class="text-red-400 text-sm">{{ form.is_recorrente.errors|join:", " }}</span>
+            {% endif %}
+        </div>
         
         <!-- Quem Paga? -->
         <div>
@@ -85,7 +96,7 @@
                         <path d="M8.445 14.832A1 1 0 0010 14v-2.798c0-.407-.28-.783-.674-1.008C8.928 10.033 8 9.418 8 8.649V7.32c0-.407.28-.783.674-1.008C9.072 6.145 10 5.53 10 4.761V3a1 1 0 00-1.555-.832l-2 2.914A1 1 0 006 7v1.32c0 .407-.28.783-.674 1.008C4.928 9.967 4 10.582 4 11.351v1.299c0 .407.28.783.674 1.008C5.072 13.855 6 14.47 6 15.239V17a1 1 0 001.555.832l2-2.914A1 1 0 0010 14v-1.202zM14 11a1 1 0 100-2 1 1 0 000 2z" />
                     </svg>
                 </span>
-                <input type="text" name="{{ form.valor_total.name }}" id="{{ form.valor_total.id_for_label }}" class="block w-full pl-10 pr-3 py-2 border border-gray-700 bg-gray-900 text-white rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value="{{ form.valor_total.value|default_if_none:'' }}">
+                <input type="text" name="{{ form.valor_total.name }}" id="{{ form.valor_total.id_for_label }}" class="currency-input block w-full pl-10 pr-3 py-2 border border-gray-700 bg-gray-900 text-white rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value="{{ form.valor_total.value|default_if_none:'' }}">
             </div>
             {% if form.valor_total.errors %}
             <span class="text-red-400 text-sm">Erro de valor: {{ form.valor_total.errors|join:", " }}</span>
@@ -180,6 +191,20 @@
             <span class="text-red-400 text-sm">{{ form.percentual_repassado.errors|join:", " }}</span>
             {% endif %}
         </div>
+
+        <!-- É base para cálculo da administração? -->
+        <div>
+            <label class="block text-sm font-medium text-gray-200 mb-2">Base para cálculo da administração?</label>
+            <div class="relative flex items-center mt-3">
+                <input type="checkbox" name="{{ form.is_base_calculo_administracao.name }}" id="{{ form.is_base_calculo_administracao.id_for_label }}" class="h-5 w-5 text-blue-600 rounded border-gray-700 bg-gray-900 focus:ring-blue-500" {% if form.is_base_calculo_administracao.value %}checked{% endif %}>
+                <label for="{{ form.is_base_calculo_administracao.id_for_label }}" class="ml-2 block text-sm text-gray-300">
+                    Marque se esta despesa deve ser base para o cálculo da taxa de administração
+                </label>
+            </div>
+            {% if form.is_base_calculo_administracao.errors %}
+            <span class="text-red-400 text-sm">{{ form.is_base_calculo_administracao.errors|join:", " }}</span>
+            {% endif %}
+        </div>
         
         <!-- Botões de Ação -->
         <div class="col-span-full flex justify-end gap-4 mt-6">
@@ -192,36 +217,53 @@
         </div>
     </form>
 </div>
-
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-    console.log("✅ O JavaScript foi carregado corretamente!");
-
-    const valorTotalInput = document.querySelector('input[name="valor_total"]');
-    if (valorTotalInput) {
-        console.log("🟢 Elemento de valor total encontrado:", valorTotalInput);
-
-        new Cleave(valorTotalInput, {
-            numeral: true,
-            numeralThousandsGroupStyle: 'thousand',
-            prefix: 'R$ ',
-            rawValueTrimPrefix: true
+        const currencyInputs = document.querySelectorAll('.currency-input');
+    
+        currencyInputs.forEach(input => {
+            input.addEventListener('input', function(event) {
+                // Remove todos os caracteres não numéricos, exceto a vírgula
+                let cleanedValue = event.target.value.replace(/[^\d,]/g, '');
+                
+                // Separa os centavos (parte após a vírgula)
+                let parts = cleanedValue.split(',');
+                let integerPart = parts[0];
+                let decimalPart = parts.length > 1 ? parts[1].substring(0, 2) : '';
+    
+                // Formata a parte inteira com pontos como separador de milhar
+                integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    
+                // Combina a parte inteira e a parte decimal
+                let formattedValue = integerPart;
+                if (decimalPart) {
+                    formattedValue += ',' + decimalPart;
+                }
+    
+                // Adiciona o símbolo R$ no início
+                event.target.value = 'R$ ' + formattedValue;
+            });
+    
+            // Adiciona um evento para remover o símbolo R$ ao focar no campo
+            input.addEventListener('focus', function(event) {
+                let value = event.target.value.replace('R$ ', '');
+                event.target.value = value;
+            });
+    
+            // Adiciona um evento para adicionar o símbolo R$ ao desfocar do campo
+            input.addEventListener('blur', function(event) {
+                let cleanedValue = event.target.value.replace(/[^\d,]/g, '');
+                let parts = cleanedValue.split(',');
+                let integerPart = parts[0];
+                let decimalPart = parts.length > 1 ? parts[1].substring(0, 2) : '';
+                integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                let formattedValue = integerPart;
+                if (decimalPart) {
+                    formattedValue += ',' + decimalPart;
+                }
+                event.target.value = 'R$ ' + formattedValue;
+            });
         });
-
-        const form = document.querySelector('form');
-        form.addEventListener('submit', function(e) {
-            // Garantir que o valor seja enviado corretamente sem a formatação
-            let valorFormatado = valorTotalInput.rawValue;  // Valor não formatado
-            console.log("📤 Tentando enviar - Valor digitado:", valorTotalInput.value);
-            console.log("🔄 Valor convertido para envio:", valorFormatado);
-
-            // Definindo o valor no campo oculto para envio ao backend
-            valorTotalInput.value = valorFormatado;  // Envia o valor sem o prefixo "R$"
-        });
-    } else {
-        console.error("❌ O campo de valor total NÃO foi encontrado!");
-    }
-});
-
+    });
 </script>
 {% endblock %}
