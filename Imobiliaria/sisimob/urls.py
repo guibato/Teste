@@ -49,6 +49,9 @@ urlpatterns = [
     path('gerar-pdf/<int:contrato_id>/', views.gerar_pdf, name='gerar_pdf'),
     path('reajustar-contratos/', views.reajustar_contratos, name='reajustar_contratos'),
     path('reajustar-contrato/<int:contrato_id>/', views.reajustar_contrato_individual, name='reajustar_contrato_individual'),
+    path('mensagens-cobranca/', views.visualizar_mensagens_cobranca, name='visualizar_mensagens'),
+    path('confirmar-cobrancas/', views.confirmar_cobrancas_view, name='confirmar_cobrancas'),
+    path('teste-historico/', views.teste_historico, name='confirmar_cobrancas'),
 ]
 
 if settings.DEBUG:

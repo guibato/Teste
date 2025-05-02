@@ -107,12 +107,16 @@
         </div>
         <!-- Valor Manual -->
         <div>
-            <label class="block text-sm font-medium text-gray-200 mb-2">Valor Manual de Reajuste (%)</label>
+            <label for="tipo_valor_manual">Tipo de Reajuste:</label>
+            <select name="tipo_valor_manual" id="tipo_valor_manual" class="block w-full pl-10 pr-3 py-2 border border-gray-700 bg-gray-900 text-white rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            <option value="percentual">Percentual (%)</option>
+            <option value="fator">Fator (ex: 1.05)</option>
+            <option value="fixo">Valor Final (R$)</option>
+            </select>
+
             <div class="relative">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M8.445 14.832A1 1 0 0010 14v-2.798c0-.407-.28-.783-.674-1.008C8.928 10.033 8 9.418 8 8.649V7.32c0-.407.28-.783.674-1.008C9.072 6.145 10 5.53 10 4.761V3a1 1 0 00-1.555-.832l-2 2.914A1 1 0 006 7v1.32c0 .407-.28.783-.674 1.008C4.928 9.967 4 10.582 4 11.351v1.299c0 .407.28.783.674 1.008C5.072 13.855 6 14.47 6 15.239V17a1 1 0 001.555.832l2-2.914A1 1 0 0010 14v-1.202zM14 11a1 1 0 100-2 1 1 0 000 2z" />
-                    </svg>
+                    
                 </span>
                 <input type="text" name="valor_manual" id="id_valor_manual" class="block w-full pl-10 pr-3 py-2 border border-gray-700 bg-gray-900 text-white rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value="{{ valor_manual|default_if_none:'' }}">
             </div>

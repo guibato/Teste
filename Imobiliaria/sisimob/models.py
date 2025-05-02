@@ -6,6 +6,7 @@ from sisimob.utils.integracao_asaas import cadastrar_cliente_no_asaas  # Certifi
 from django.conf import settings
 from sisimob.utils.cobrancas_asaas import gerar_cobranca
 
+
 class Cliente(models.Model):
     TIPO_CLIENTE_CHOICES = [
         ('Proprietario', 'Proprietário(a)'),
@@ -277,6 +278,12 @@ class Contrato(models.Model):
         else:
             valor_total = self.valor_pacote
         return max(valor_total, Decimal('0.00'))  # Garante que o valor não seja negativo
+    
+    def save(self, *args, **kwargs):
+        if not self.historico_aluguel or str(self.data_inicio) not in self.historico_aluguel:
+            ultimo_valor = list(self.historico_aluguel.values())[-1] if self.historico_aluguel else self.valor_aluguel
+            self.historico_aluguel[str(self.data_inicio)] = float(ultimo_valor)
+        super().save(*args, **kwargs)
 
 class Cobranca(models.Model):
     STATUS_CHOICES = [
@@ -319,6 +326,9 @@ class Cobranca(models.Model):
     asaas_codigo_barras = models.CharField(max_length=150, null=True, blank=True)
     inquilino = models.ForeignKey("Cliente", on_delete=models.SET_NULL, null=True, blank=True)
     descricao = models.TextField(null=True, blank=True)
+    lembrete_10_enviado = models.BooleanField(default=False)
+    lembrete_3_enviado = models.BooleanField(default=False)
+    lembrete_0_enviado = models.BooleanField(default=False)
 
 
     @property

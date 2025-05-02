@@ -1,0 +1,21 @@
+{% extends "imoveis/base.html" %}
+
+{% block content %}
+<h2 class="text-xl font-bold mb-4">Mensagens de Cobrança Programadas para Hoje</h2>
+
+{% if mensagens %}
+    <ul class="space-y-4">
+        {% for m in mensagens %}
+            <li class="border p-4 rounded-md bg-white shadow">
+                <p><strong>Inquilino:</strong> {{ m.nome }}</p>
+                <p><strong>Telefone:</strong> {{ m.telefone }}</p>
+                <p><strong>Vencimento:</strong> {{ m.vencimento|date:"d/m/Y" }}</p>
+                <p><strong>Dias úteis antes:</strong> {{ m.dias_uteis }}</p>
+                <pre class="bg-gray-100 p-2 rounded whitespace-pre-wrap">{{ m.mensagem }}</pre>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p class="text-gray-600">Nenhuma mensagem programada para hoje.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'imoveis/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto p-4">
+    <h2 class="text-2xl font-bold mb-4">Pré-visualização das Cobranças</h2>
+    <form method="post" action="{% url 'confirmar_cobrancas' %}">
+        {% csrf_token %}
+        <table class="table-auto w-full mb-4">
+            <thead>
+                <tr>
+                    <th>Contrato</th>
+                    <th>Valor</th>
+                    <th>Vencimento</th>
+                    <th>Descrição</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cobranca in cobrancas_preview %}
+                <tr>
+                    <td>{{ cobranca.contrato }}</td>
+                    <td class="text-right currency" data-value="{{ cobranca.valor }}"></td>
+                    <td>{{ cobranca.data_vencimento|date:"d/m/Y" }}</td>
+                    <td>{{ cobranca.descricao }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center text-gray-500 py-4">Nenhuma cobrança gerada para o período selecionado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            
+        </table>
+        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Confirmar Cobranças</button>
+    </form>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        function formatCurrency(value) {
+            const numericValue = Number(value);
+            return isNaN(numericValue) ? 'R$ 0,00' : numericValue.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            });
+        }
+
+        document.querySelectorAll('.currency').forEach(element => {
+            const rawValue = element.getAttribute('data-value');
+            element.textContent = formatCurrency(rawValue);
+        });
+    });
+</script>
+
+{% endblock %}
