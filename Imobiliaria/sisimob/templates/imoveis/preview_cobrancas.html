@@ -10,7 +10,7 @@
             <thead>
                 <tr>
                     <th>Contrato</th>
-                    <th>Valor</th>
+                    
                     <th>Vencimento</th>
                     <th>Descrição</th>
                 </tr>
@@ -18,8 +18,8 @@
             <tbody>
                 {% for cobranca in cobrancas_preview %}
                 <tr>
-                    <td>{{ cobranca.contrato }}</td>
-                    <td class="text-right currency" data-value="{{ cobranca.valor }}"></td>
+                    <td>{{ cobranca.contrato.imovel }}</td>
+                    
                     <td>{{ cobranca.data_vencimento|date:"d/m/Y" }}</td>
                     <td>{{ cobranca.descricao }}</td>
                 </tr>

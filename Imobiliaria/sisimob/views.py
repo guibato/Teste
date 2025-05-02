@@ -851,11 +851,18 @@ def obter_valor_historico(historico_json, data_cobranca):
     return valor_vigente
 
 
+from calendar import month_name
+import locale
+locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+
 def gerar_cobrancas_view(request):
     if request.method == "POST":
         mes_referencia = int(request.POST.get("mes_referencia"))
         ano_referencia = int(request.POST.get("ano_referencia"))
         data_referencia = date(ano_referencia, mes_referencia, 1)
+
+        # Para refletir a cobrança de janeiro referente a dezembro, ajustamos para o mês anterior
+        data_referencia_cobranca = data_referencia - timedelta(days=1)
 
         contratos = Contrato.objects.filter(
             ativo=True,
@@ -872,7 +879,7 @@ def gerar_cobrancas_view(request):
             except Exception:
                 valor_fixo = contrato.valor_aluguel or contrato.valor_pacote or 0
 
-            valor_fixo = Decimal(valor_fixo)  # Conversão importante
+            valor_fixo = Decimal(valor_fixo)
 
             despesas = Despesa.objects.filter(
                 contrato=contrato,
@@ -881,7 +888,9 @@ def gerar_cobrancas_view(request):
 
             despesas_ativas = []
             for despesa in despesas:
-                if despesa.numero_parcelas is None:
+                if despesa.is_recorrente:
+                    despesas_ativas.append(despesa)
+                elif despesa.numero_parcelas is None:
                     despesas_ativas.append(despesa)
                 else:
                     data_fim_despesa = despesa.data_inicio + relativedelta(months=despesa.numero_parcelas - 1)
@@ -892,8 +901,7 @@ def gerar_cobrancas_view(request):
             despesas_deduzidas = Decimal(0)
 
             for despesa in despesas_ativas:
-                valor_parcela = despesa.calcular_valor_parcela()
-                valor_parcela = Decimal(valor_parcela)
+                valor_parcela = Decimal(despesa.calcular_valor_parcela())
                 if hasattr(despesa, 'tipo') and despesa.tipo == 'deduzida':
                     despesas_deduzidas += valor_parcela
                 else:
@@ -909,20 +917,24 @@ def gerar_cobrancas_view(request):
                 ultimo_dia_mes = (proximo_mes - timedelta(days=proximo_mes.day)).day
                 data_vencimento = data_referencia.replace(day=ultimo_dia_mes)
 
-            descricao_itens = [f"Aluguel ({mes_referencia}/{ano_referencia}) - R$ {valor_fixo:.2f}"]
+            descricao_itens = [f"Aluguel ({month_name[data_referencia_cobranca.month].capitalize()}/{data_referencia_cobranca.year}) - {locale.currency(valor_fixo, grouping=True)}"]
 
             for despesa in despesas_ativas:
                 valor_parcela = Decimal(despesa.calcular_valor_parcela())
                 if hasattr(despesa, 'tipo') and despesa.tipo == 'deduzida':
-                    descricao_itens.append(f"{despesa.descricao} (deduzida) - R$ {valor_parcela:.2f}")
+                    descricao_itens.append(f"{despesa.descricao} (deduzida) - {locale.currency(valor_parcela, grouping=True)}")
                 else:
                     if despesa.descricao.lower() == "iptu":
                         mes_inicial_iptu = despesa.data_inicio.month
                         ano_inicial_iptu = despesa.data_inicio.year
                         numero_parcela = (ano_referencia - ano_inicial_iptu) * 12 + (mes_referencia - mes_inicial_iptu) + 1
-                        descricao_itens.append(f"IPTU ({numero_parcela}/{despesa.numero_parcelas}) - R$ {valor_parcela:.2f}")
+                        descricao_itens.append(f"IPTU ({numero_parcela}/{despesa.numero_parcelas}) - {locale.currency(valor_parcela, grouping=True)}")
+                    elif despesa.is_recorrente:
+                        # Usando o mês anterior para a descrição da despesa recorrente
+                        mes_nome = month_name[data_referencia_cobranca.month].capitalize()
+                        descricao_itens.append(f"{despesa.descricao} ({mes_nome}/{data_referencia_cobranca.year}) - {locale.currency(valor_parcela, grouping=True)}")
                     else:
-                        descricao_itens.append(f"{despesa.descricao} - R$ {valor_parcela:.2f}")
+                        descricao_itens.append(f"{despesa.descricao} - {locale.currency(valor_parcela, grouping=True)}")
 
             descricao = ", ".join(descricao_itens)
 
@@ -959,7 +971,6 @@ def gerar_cobrancas_view(request):
     }
 
     return render(request, "imoveis/cadastro_cobrancas.html", context)
-
 
 def confirmar_cobrancas_view(request):
     if request.method == "POST":
