@@ -45,7 +45,8 @@ from sisimob.utils.integracao_asaas import cadastrar_cliente_no_asaas
 from .gerar_extrato_repasses_pdf import gerar_extrato_repasses_pdf
 from django.http import HttpResponse
 from .utils import obter_valor_historico
-
+from django.db.models import Q
+import requests
 
 
 class ContratoListView(ListView):
@@ -400,11 +401,11 @@ def editar_contrato(request, contrato_id):
 class ListarContratosView(ListView):
     model = Contrato
     template_name = 'imoveis/listar_contratos.html'
-    paginate_by = 10
+    paginate_by = 20
     context_object_name = 'page_obj'
 
     def get_queryset(self):
-        queryset = Contrato.objects.select_related('proprietario', 'inquilino', 'imovel').all()
+        queryset = Contrato.objects.prefetch_related('inquilino', 'proprietario', 'imovel', 'fiador').all()
         filtro_tipo = self.request.GET.get('filtro_tipo')
         buscar = self.request.GET.get('buscar')
         if filtro_tipo == 'ativo':
@@ -849,185 +850,6 @@ def obter_valor_historico(historico_json, data_cobranca):
             break
 
     return valor_vigente
-
-
-from calendar import month_name
-import locale
-locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
-
-def gerar_cobrancas_view(request):
-    if request.method == "POST":
-        mes_referencia = int(request.POST.get("mes_referencia"))
-        ano_referencia = int(request.POST.get("ano_referencia"))
-        data_referencia = date(ano_referencia, mes_referencia, 1)
-
-        # Para refletir a cobrança de janeiro referente a dezembro, ajustamos para o mês anterior
-        data_referencia_cobranca = data_referencia - timedelta(days=1)
-
-        contratos = Contrato.objects.filter(
-            ativo=True,
-            data_inicio__lte=data_referencia,
-            data_fim__gte=data_referencia
-        )
-        cobrancas_preview = []
-
-        for contrato in contratos:
-            historico = getattr(contrato, 'historico_aluguel', {})
-
-            try:
-                valor_fixo = obter_valor_historico(historico, data_referencia)
-            except Exception:
-                valor_fixo = contrato.valor_aluguel or contrato.valor_pacote or 0
-
-            valor_fixo = Decimal(valor_fixo)
-
-            despesas = Despesa.objects.filter(
-                contrato=contrato,
-                data_inicio__lte=data_referencia
-            )
-
-            despesas_ativas = []
-            for despesa in despesas:
-                if despesa.is_recorrente:
-                    despesas_ativas.append(despesa)
-                elif despesa.numero_parcelas is None:
-                    despesas_ativas.append(despesa)
-                else:
-                    data_fim_despesa = despesa.data_inicio + relativedelta(months=despesa.numero_parcelas - 1)
-                    if data_fim_despesa >= data_referencia:
-                        despesas_ativas.append(despesa)
-
-            despesas_repassadas = Decimal(0)
-            despesas_deduzidas = Decimal(0)
-
-            for despesa in despesas_ativas:
-                valor_parcela = Decimal(despesa.calcular_valor_parcela())
-                if hasattr(despesa, 'tipo') and despesa.tipo == 'deduzida':
-                    despesas_deduzidas += valor_parcela
-                else:
-                    despesas_repassadas += valor_parcela
-
-            valor_total = valor_fixo + despesas_repassadas - despesas_deduzidas
-
-            dia_vencimento = contrato.dia_pagamento
-            try:
-                data_vencimento = data_referencia.replace(day=dia_vencimento)
-            except ValueError:
-                proximo_mes = data_referencia.replace(day=28) + timedelta(days=4)
-                ultimo_dia_mes = (proximo_mes - timedelta(days=proximo_mes.day)).day
-                data_vencimento = data_referencia.replace(day=ultimo_dia_mes)
-
-            descricao_itens = [f"Aluguel ({month_name[data_referencia_cobranca.month].capitalize()}/{data_referencia_cobranca.year}) - {locale.currency(valor_fixo, grouping=True)}"]
-
-            for despesa in despesas_ativas:
-                valor_parcela = Decimal(despesa.calcular_valor_parcela())
-                if hasattr(despesa, 'tipo') and despesa.tipo == 'deduzida':
-                    descricao_itens.append(f"{despesa.descricao} (deduzida) - {locale.currency(valor_parcela, grouping=True)}")
-                else:
-                    if despesa.descricao.lower() == "iptu":
-                        mes_inicial_iptu = despesa.data_inicio.month
-                        ano_inicial_iptu = despesa.data_inicio.year
-                        numero_parcela = (ano_referencia - ano_inicial_iptu) * 12 + (mes_referencia - mes_inicial_iptu) + 1
-                        descricao_itens.append(f"IPTU ({numero_parcela}/{despesa.numero_parcelas}) - {locale.currency(valor_parcela, grouping=True)}")
-                    elif despesa.is_recorrente:
-                        # Usando o mês anterior para a descrição da despesa recorrente
-                        mes_nome = month_name[data_referencia_cobranca.month].capitalize()
-                        descricao_itens.append(f"{despesa.descricao} ({mes_nome}/{data_referencia_cobranca.year}) - {locale.currency(valor_parcela, grouping=True)}")
-                    else:
-                        descricao_itens.append(f"{despesa.descricao} - {locale.currency(valor_parcela, grouping=True)}")
-
-            descricao = ", ".join(descricao_itens)
-
-            cobrancas_preview.append({
-                'contrato': contrato,
-                'valor': valor_total,
-                'data_vencimento': data_vencimento,
-                'descricao': descricao,
-                'despesas_repassadas': despesas_repassadas,
-                'despesas_deduzidas': despesas_deduzidas,
-                'mes_referencia': mes_referencia,
-                'ano_referencia': ano_referencia
-            })
-
-        context = {
-            'cobrancas_preview': cobrancas_preview,
-            'mes_referencia': mes_referencia,
-            'ano_referencia': ano_referencia
-        }
-
-        return render(request, 'imoveis/preview_cobrancas.html', context)
-
-    # Requisição GET
-    hoje = date.today()
-    meses = [{"numero": i, "nome": date(hoje.year, i, 1).strftime("%B")} for i in range(1, 13)]
-
-    mes_selecionado = request.GET.get("mes", hoje.month)
-    ano_selecionado = request.GET.get("ano", hoje.year)
-
-    context = {
-        "meses": meses,
-        "mes_atual": int(mes_selecionado),
-        "ano_atual": int(ano_selecionado),
-    }
-
-    return render(request, "imoveis/cadastro_cobrancas.html", context)
-
-def confirmar_cobrancas_view(request):
-    if request.method == "POST":
-        cobrancas_data = request.session.get('cobrancas_preview', [])
-        cobrancas_geradas = 0
-
-        for cobranca_data in cobrancas_data:
-            contrato_id = cobranca_data['contrato_id']
-            contrato = get_object_or_404(Contrato, id=contrato_id)
-
-            if not Cobranca.objects.filter(
-                contrato=contrato,
-                mes_referencia=cobranca_data['mes_referencia'],
-                ano_referencia=cobranca_data['ano_referencia']
-            ).exists():
-                cobranca = Cobranca.objects.create(
-                    contrato=contrato,
-                    valor=cobranca_data['valor'],
-                    data_vencimento=cobranca_data['data_vencimento'],
-                    mes_referencia=cobranca_data['mes_referencia'],
-                    ano_referencia=cobranca_data['ano_referencia'],
-                    descricao=cobranca_data['descricao']
-                )
-
-                # Integração com o Asaas
-                if contrato.inquilino and contrato.inquilino.asaas_id:
-                    try:
-                        resposta = gerar_cobranca(
-                            asaas_id=contrato.inquilino.asaas_id,
-                            valor=float(cobranca_data['valor']),
-                            vencimento=cobranca_data['data_vencimento'].strftime('%Y-%m-%d'),
-                            nome=contrato.inquilino.nome,
-                            descricao=cobranca_data['descricao']
-                        )
-
-                        if resposta and "id" in resposta:
-                            cobranca.asaas_payment_id = resposta["id"]
-                            cobranca.asaas_boleto_url = resposta.get("bankSlipUrl")
-                            cobranca.asaas_pix_copia_cola = resposta.get("pix", {}).get("payload")
-                            cobranca.asaas_pix_url = resposta.get("pix", {}).get("qrCodeUrl")
-                            cobranca.asaas_codigo_barras = resposta.get("identificationField")
-                            cobranca.save()
-                        else:
-                            messages.error(request, f"Falha ao enviar cobrança para Asaas: {resposta}")
-                    except Exception as e:
-                        messages.error(request, f"Erro ao integrar com o Asaas: {str(e)}")
-                else:
-                    messages.warning(request, f"Inquilino {contrato.inquilino.nome} sem ID do Asaas.")
-
-                cobrancas_geradas += 1
-
-        messages.success(request, f"Cobranças geradas com sucesso! Total: {cobrancas_geradas}")
-        return redirect('cadastro_cobrancas')
-
-    return redirect('cadastro_cobrancas')
-
-
 
 def editar_cobranca(request, pk):
     cobranca = get_object_or_404(Cobranca, id=pk)
@@ -1512,6 +1334,13 @@ def calcular_fator_acumulado(contrato, data_inicio, data_fim):
 
     return fator_acumulado, valor_projetado
 
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from datetime import datetime
+from decimal import Decimal
+from dateutil.relativedelta import relativedelta
+from .models import Contrato, IndiceInflacao
+
 def reajustar_contratos(request):
     form = ReajusteContratosForm(request.POST or None)
 
@@ -1521,13 +1350,17 @@ def reajustar_contratos(request):
         valor_manual = form.cleaned_data['valor_manual']
 
         for contrato in Contrato.objects.filter(data_inicio__lte=data_inicio):
-            # Identifica o ciclo correto
+            # Determina o período correto para o cálculo do reajuste
             if contrato.data_ultimo_reajuste:
-                data_base = contrato.data_ultimo_reajuste + relativedelta(months=1)
+                # Se já teve reajuste, usa a data do último como referência
+                data_base = contrato.data_ultimo_reajuste
             else:
+                # Se nunca teve reajuste, usa a data de início do contrato
                 data_base = contrato.data_inicio.replace(day=1)
-
-            data_fim = data_base + relativedelta(months=12)
+            
+            # O período vai do mês da data_base até 11 meses depois
+            # (total de 12 meses considerados, incluindo o mês inicial)
+            data_fim = data_base + relativedelta(months=11)
 
             fator_acumulado, valor_projetado = calcular_fator_acumulado(contrato, data_base, data_fim)
 
@@ -1548,10 +1381,12 @@ def reajustar_contratos(request):
     else:
         for contrato in Contrato.objects.all():
             if contrato.data_ultimo_reajuste:
-                data_base = contrato.data_ultimo_reajuste + relativedelta(months=1)
+                data_base = contrato.data_ultimo_reajuste
             else:
                 data_base = contrato.data_inicio.replace(day=1)
-            data_fim = data_base + relativedelta(months=12)
+                
+            # O período vai do mês da data_base até 11 meses depois
+            data_fim = data_base + relativedelta(months=11)
 
             fator_acumulado, valor_projetado = calcular_fator_acumulado(contrato, data_base, data_fim)
 
@@ -1567,12 +1402,50 @@ def reajustar_contratos(request):
         'contratos_com_indices': contratos_com_indices
     })
 
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
-from datetime import datetime
-from decimal import Decimal
-from dateutil.relativedelta import relativedelta
-from .models import Contrato, IndiceInflacao
+def calcular_fator_acumulado(contrato, data_base, data_fim):
+    """
+    Calcula o fator acumulado para um determinado período.
+    
+    Args:
+        contrato: Objeto Contrato
+        data_base: Data inicial para cálculo
+        data_fim: Data final para cálculo (inclusive)
+    """
+    indices = []
+    mes_atual = data_base
+    
+    # Coleta os índices mês a mês no período especificado (inclusive)
+    while mes_atual <= data_fim:
+        indice = IndiceInflacao.objects.filter(
+            tipo=contrato.fator_reajuste,
+            data_referencia__year=mes_atual.year,
+            data_referencia__month=mes_atual.month
+        ).first()
+        
+        if indice:
+            indices.append(indice)
+        
+        mes_atual += relativedelta(months=1)
+    
+    # Se não temos todos os índices necessários, retornamos None
+    if len(indices) < 12:
+        return None, None
+    
+    # Calcula o fator acumulado
+    fator_acumulado = Decimal('1.00')
+    for indice in indices:
+        fator_acumulado *= (1 + indice.valor / Decimal('100'))
+    
+    # Calcula o valor projetado
+    if contrato.tipo_pagamento == 'pacote':
+        valor_base = contrato.valor_pacote
+    else:
+        valor_base = contrato.valor_aluguel
+    valor_projetado = valor_base * fator_acumulado
+    if valor_projetado < valor_base:
+        valor_projetado = valor_base
+        
+    return fator_acumulado, valor_projetado
 
 def reajustar_contrato_individual(request, contrato_id):
     contrato = get_object_or_404(Contrato, id=contrato_id)
@@ -1588,12 +1461,13 @@ def reajustar_contrato_individual(request, contrato_id):
 
         data_inicio = datetime.strptime(data_inicio_str, "%Y-%m-%d").date().replace(day=1)
 
-        if contrato.data_ultimo_reajuste and contrato.data_ultimo_reajuste >= contrato.data_inicio:
-            base_reajuste = contrato.data_ultimo_reajuste + relativedelta(months=1)
+        # Determina o período para o cálculo do reajuste
+        if contrato.data_ultimo_reajuste:
+            base_reajuste = contrato.data_ultimo_reajuste
         else:
             base_reajuste = contrato.data_inicio.replace(day=1)
 
-        # Coleta dos índices de inflação dos últimos 12 meses
+        # Coleta dos índices de inflação - 12 meses consecutivos incluindo o mês base
         indices = []
         for i in range(12):
             mes = base_reajuste + relativedelta(months=i)
@@ -1615,9 +1489,13 @@ def reajustar_contrato_individual(request, contrato_id):
             fator_acumulado *= (1 + indice.valor / Decimal('100'))
 
         # Aplica o reajuste automático inicialmente
-        novo_valor = contrato.valor_aluguel * fator_acumulado
-        if novo_valor < contrato.valor_aluguel:
-            novo_valor = contrato.valor_aluguel
+        if contrato.tipo_pagamento == 'pacote':
+            valor_base = contrato.valor_pacote
+        else:
+            valor_base = contrato.valor_aluguel
+        novo_valor = valor_base * fator_acumulado
+        if novo_valor < valor_base:
+            novo_valor = valor_base
 
         # Se informado, substitui pelo valor manual
         if valor_manual:
@@ -1643,13 +1521,14 @@ def reajustar_contrato_individual(request, contrato_id):
         # Atualiza o contrato com o novo valor
         contrato.valor_aluguel = novo_valor
         contrato.data_ultimo_reajuste = data_inicio
+        # Define a próxima data base (próximo reajuste será em 12 meses)
         contrato.data_base = data_inicio + relativedelta(months=12)
 
-        # Histórico de reajuste
-        from django.utils import timezone
-        hoje = timezone.now().date().isoformat()
+        # Histórico de reajuste - usando a data base escolhida para o reajuste
         historico = contrato.historico_aluguel or {}
-        historico[hoje] = float(novo_valor)
+        # Usa a data de reajuste informada, não a data atual
+        data_registro = data_inicio.isoformat()
+        historico[data_registro] = float(novo_valor)
         contrato.historico_aluguel = historico
 
         contrato.save()
@@ -1659,11 +1538,12 @@ def reajustar_contrato_individual(request, contrato_id):
 
     # GET request: mostra dados para reajuste
     if contrato.data_ultimo_reajuste:
-        base_reajuste = contrato.data_ultimo_reajuste + relativedelta(months=1)
+        base_reajuste = contrato.data_ultimo_reajuste
     else:
         base_reajuste = contrato.data_inicio.replace(day=1)
 
     indices = []
+    # Coleta os índices de 12 meses consecutivos
     for i in range(12):
         mes = base_reajuste + relativedelta(months=i)
         indice = IndiceInflacao.objects.filter(
@@ -1672,22 +1552,35 @@ def reajustar_contrato_individual(request, contrato_id):
             data_referencia__month=mes.month
         ).first()
         if indice:
-            indices.append(indice)
+            indices.append({
+                'mes': mes.strftime('%m/%Y'),
+                'valor': indice.valor,
+                'indice': indice
+            })
 
     fator_acumulado = Decimal('1.00')
-    for indice in indices:
-        fator_acumulado *= (1 + indice.valor / Decimal('100'))
+    for item in indices:
+        fator_acumulado *= (1 + item['indice'].valor / Decimal('100'))
 
-    valor_projetado = contrato.valor_aluguel * fator_acumulado
-    if valor_projetado < contrato.valor_aluguel:
-        valor_projetado = contrato.valor_aluguel
+
+    if contrato.tipo_pagamento == 'pacote':
+        valor_base = contrato.valor_pacote
+    else:
+        valor_base = contrato.valor_aluguel
+
+    valor_projetado = valor_base * fator_acumulado
+    if valor_projetado < valor_base:
+        valor_projetado = valor_base
 
     return render(request, 'imoveis/reajustar_contrato_individual.html', {
         'contrato': contrato,
         'indices': indices,
         'data_inicio': base_reajuste,
+        'proxima_data_reajuste': base_reajuste + relativedelta(months=12),
         'valor_manual': request.GET.get('valor_manual', ''),
         'fator_acumulado': fator_acumulado,
+        'fator_percentual': (fator_acumulado - Decimal('1.00')) * Decimal('100'),
+        'valor_atual': contrato.valor_aluguel,
         'valor_projetado': valor_projetado
     })
 
@@ -1698,6 +1591,11 @@ from datetime import date
 from sisimob.models import Cobranca
 from sisimob.services.notificacao import gerar_mensagem_cobranca
 from sisimob.utils.data import dia_util_anterior
+from collections import defaultdict
+
+from collections import defaultdict
+from django.shortcuts import render
+from datetime import date
 
 def visualizar_mensagens_cobranca(request):
     hoje = date.today()
@@ -1710,39 +1608,647 @@ def visualizar_mensagens_cobranca(request):
     for dias_uteis, flag in lembretes:
         for cobranca in cobrancas:
             vencimento = cobranca.data_vencimento
-            data_lembrete = calcular_dia_util_anterior(vencimento, dias_uteis)
+            data_lembrete = dia_util_anterior(vencimento, dias_uteis)
             if data_lembrete != hoje:
                 continue
 
             contrato = cobranca.contrato
-            inquilino = contrato.inquilino if contrato else None
-            if not inquilino or not inquilino.celular:
-                continue
+            for inquilino in contrato.inquilino.all():
+                if not inquilino.celular:
+                    continue
 
-            mensagens.append({
-                "id": cobranca.id,
-                "nome": inquilino.nome,
-                "telefone": inquilino.celular,
-                "mensagem": gerar_mensagem_cobranca(cobranca),
-                "dias_uteis": dias_uteis,
-                "vencimento": cobranca.data_vencimento,
-            })
+                mensagens.append({
+                    "id": cobranca.id,
+                    "nome": inquilino.nome,
+                    "telefone": inquilino.celular,
+                    "mensagem": gerar_mensagem_cobranca(cobranca),
+                    "dias_uteis": dias_uteis,
+                    "vencimento": cobranca.data_vencimento,
+                })
 
-    return render(request, 'cobrancas/visualizar_mensagens.html', {"mensagens": mensagens})
+
+    # Agrupar as mensagens pela data do lembrete
+    mensagens_agrupadas = defaultdict(list)
+    for mensagem in mensagens:
+        data_lembrete = mensagem.get('data_lembrete', 'Sem data')  # Valor padrão
+        mensagens_agrupadas[data_lembrete].append(mensagem)
+
+    # Organizar as mensagens por data do lembrete (ignorando as que não têm data real)
+    mensagens_agrupadas = dict(sorted(mensagens_agrupadas.items(), key=lambda x: x[0] if isinstance(x[0], (str, datetime.date)) else ''))
+
+    return render(request, 'cobrancas/visualizar_mensagens.html', {"mensagens_agrupadas": mensagens_agrupadas})
+
 
 from datetime import datetime, date
 
-def teste_historico(request):
-    contrato_id = request.GET.get('id')
-    contrato = Contrato.objects.get(id=contrato_id)
+
+
+from datetime import date, timedelta
+from decimal import Decimal
+from dateutil.relativedelta import relativedelta
+import locale
+from calendar import month_name
+import logging
+from django.shortcuts import render
+from django.contrib import messages
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from .models import Contrato, Despesa, Cobranca
+from sisimob.utils.cobrancas_asaas import gerar_cobranca
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+# Configure locale for currency formatting
+try:
+    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+except:
+    try:
+        locale.setlocale(locale.LC_ALL, 'Portuguese_Brazil.1252')
+    except:
+        # Fallback if locale configuration fails
+        pass
+
+def obter_valor_historico(historico, data_referencia):
+    """
+    Obtém o valor do aluguel para uma data de referência específica
+    baseado no histórico de valores
+    """
+    if not historico:
+        return None
+        
+    # Converte as datas string para objetos date
+    historico_ordenado = []
+    for data_str, valor in historico.items():
+        try:
+            partes = data_str.split('-')
+            if len(partes) == 3:
+                data = date(int(partes[0]), int(partes[1]), int(partes[2]))
+                historico_ordenado.append((data, Decimal(str(valor))))
+        except Exception as e:
+            logger.error(f"Erro ao processar data do histórico: {data_str}, erro: {str(e)}")
+            
+    # Ordena por data
+    historico_ordenado.sort(key=lambda x: x[0])
     
-    data_cobranca = request.GET.get('data')  # formato: YYYY-MM-DD
-    data_cobranca = datetime.strptime(data_cobranca, '%Y-%m-%d').date()
+    # Encontra o valor mais recente antes da data de referência
+    valor_atual = None
+    for data, valor in historico_ordenado:
+        if data <= data_referencia:
+            valor_atual = valor
+        else:
+            break
+            
+    return valor_atual
 
-    valor = obter_valor_historico(contrato.historico_aluguel, data_cobranca)
+def gerar_cobrancas_view(request):
+    if request.method == "POST":
+        try:
+            # Log the POST data for debugging
+            logger.info(f"POST data received: {request.POST}")
+            
+            mes_referencia = int(request.POST.get("mes_referencia"))
+            ano_referencia = int(request.POST.get("ano_referencia"))
+            data_referencia = date(ano_referencia, mes_referencia, 1)
+            processar_asaas = request.POST.get("processar_asaas") == "true"
+            contrato_id = request.POST.get("contrato_id")
+            
+            logger.info(f"Parameters: mes={mes_referencia}, ano={ano_referencia}, processar_asaas={processar_asaas}, contrato_id={contrato_id}")
+            
+            # Para refletir a cobrança de janeiro referente a dezembro, ajustamos para o mês anterior
+            data_referencia_cobranca = date(ano_referencia, mes_referencia, 1) - timedelta(days=1)
+            mes_anterior = data_referencia_cobranca.month
+            ano_anterior = data_referencia_cobranca.year
+            
+            # Debug filter parameters
+            logger.info(f"Filtering contratos with: ativo=True, data_inicio<={data_referencia}, data_fim>={data_referencia}")
+            
+            # Filtro adicional por ID de contrato se fornecido
+            contratos_query = Contrato.objects.filter(
+                ativo=True,
+                data_inicio__lte=data_referencia
+            ).filter(
+                Q(data_fim__isnull=True) | Q(data_fim__gte=data_referencia) | Q(data_fim__lt=data_referencia)
+            )
+            
+            if contrato_id:
+                contratos_query = contratos_query.filter(id=contrato_id)
+            
+            contratos = contratos_query.all()
+            
+            logger.info(f"Found {contratos.count()} active contratos")
+            
+            # Debug: Log basic info about each contrato
+            for i, contrato in enumerate(contratos):
+                logger.info(f"Contrato {i+1}: ID={contrato.id}")
+                inquilinos = [inq.nome for inq in contrato.inquilino.all()]
+                proprietarios = [prop.nome for prop in contrato.proprietario.all()]
+                logger.info(f"Inquilinos: {inquilinos}, Proprietarios: {proprietarios}")
+            
+            cobrancas_preview = []
+            cobrancas_asaas_results = []
+            
+            for i, contrato in enumerate(contratos):
+                logger.info(f"Processing contrato {i+1}/{contratos.count()}: ID={contrato.id}")
+                
+                # Inicialize historico com um dicionário vazio se não existir
+                historico = {}
+                if hasattr(contrato, 'historico_aluguel') and contrato.historico_aluguel:
+                    historico = contrato.historico_aluguel
+                    logger.info(f"Contrato has historico_aluguel: {historico}")
+                
+                # Tenta obter o valor histórico ou usa o valor padrão
+                try:
+                    valor_fixo = obter_valor_historico(historico, data_referencia)
+                    if valor_fixo is None:
+                        valor_fixo = contrato.valor_aluguel or contrato.valor_pacote or Decimal('0')
+                        logger.info(f"Using default value: {valor_fixo}")
+                    else:
+                        logger.info(f"Using historical value: {valor_fixo}")
+                except Exception as e:
+                    logger.error(f"Erro ao obter valor histórico para contrato {contrato.id}: {str(e)}")
+                    valor_fixo = contrato.valor_aluguel or contrato.valor_pacote or Decimal('0')
+                    logger.info(f"Error getting historical value, using default: {valor_fixo}")
+                
+                # Garante que valor_fixo seja um Decimal
+                if not isinstance(valor_fixo, Decimal):
+                    valor_fixo = Decimal(str(valor_fixo))
+                
+                # Busca despesas ativas para o contrato
+                logger.info(f"Searching for despesas with contrato={contrato.id}, data_inicio<={data_referencia}")
+                despesas = Despesa.objects.filter(
+                    contrato=contrato,
+                    data_inicio__lte=data_referencia
+                )
+                logger.info(f"Found {despesas.count()} despesas")
+                
+                despesas_ativas = []
+                for despesa in despesas:
+                    if despesa.is_recorrente:
+                        despesas_ativas.append(despesa)
+                        logger.info(f"Including recurrent despesa: {despesa.id}, {despesa.descricao}")
+                    elif despesa.numero_parcelas is None:
+                        despesas_ativas.append(despesa)
+                        logger.info(f"Including despesa without parcelas: {despesa.id}, {despesa.descricao}")
+                    else:
+                        data_fim_despesa = despesa.data_inicio + relativedelta(months=despesa.numero_parcelas - 1)
+                        if data_fim_despesa >= data_referencia:
+                            despesas_ativas.append(despesa)
+                            logger.info(f"Including active installment despesa: {despesa.id}, {despesa.descricao}")
+                        else:
+                            logger.info(f"Excluding expired installment despesa: {despesa.id}, {despesa.descricao}")
+                
+                logger.info(f"Total active despesas: {len(despesas_ativas)}")
+                
+                despesas_repassadas = Decimal('0')
+                despesas_deduzidas = Decimal('0')
+                
+                descricao_itens = []
+                
+                # Adiciona item de aluguel
+                try:
+                    mes_nome = month_name[mes_anterior]
+                    if not isinstance(mes_nome, str):
+                        mes_nome = mes_nome.capitalize()
+                    else:
+                        mes_nome = mes_nome.capitalize()
+                except Exception as e:
+                    logger.error(f"Error getting month name: {str(e)}")
+                    # Fallback para caso o month_name falhe
+                    mes_nome = f"Mês {mes_anterior}"
+                
+                try:
+                    valor_formatado = locale.currency(valor_fixo, grouping=True)
+                except Exception as e:
+                    logger.error(f"Error formatting currency: {str(e)}")
+                    # Fallback se a formatação de moeda falhar
+                    valor_formatado = f"R$ {valor_fixo:.2f}"
+                
+                descricao_itens.append(f"Aluguel ({mes_nome}/{ano_anterior}) - {valor_formatado}")
+                
+                # Processa despesas
+                for despesa in despesas_ativas:
+    
+                    try:
+                        valor_parcela = Decimal(str(despesa.calcular_valor_parcela()))
+                        logger.info(f"Despesa {despesa.id} value: {valor_parcela}, paga por: {despesa.paga}")
+                    except Exception as e:
+                        logger.error(f"Erro ao calcular valor da parcela para despesa {despesa.id}: {str(e)}")
+                        valor_parcela = Decimal('0')
+                    
+                    try:
+                        valor_formatado = locale.currency(valor_parcela, grouping=True)
+                    except:
+                        valor_formatado = f"R$ {valor_parcela:.2f}"
+                    
+                    # Verifique se a despesa deve ser paga pelo proprietário
+                    is_despesa_proprietario = despesa.paga == 'proprietario'
+                    is_despesa_imobiliaria = despesa.paga == 'imobiliaria'
+                    
+                    # Se for despesa do proprietário OU tipo='deduzida', então deduz do valor total
+                    if is_despesa_proprietario:
+                        despesas_deduzidas += valor_parcela
+                        descricao_itens.append(f"{despesa.descricao} (proprietário) - {valor_formatado}")
+                        logger.info(f"Added deducted expense: {despesa.descricao}, value: {valor_parcela}, paga por: {despesa.paga}")
+                    elif is_despesa_imobiliaria:
+                        despesas_deduzidas += valor_parcela
+                        descricao_itens.append(f"{despesa.descricao} (imobiliaria) - {valor_formatado}")
+                        logger.info(f"Added deducted expense: {despesa.descricao}, value: {valor_parcela}, paga por: {despesa.paga}")
+                    else:
+                        # Despesas pagas pelo inquilino ou imobiliária são repassadas
+                        despesas_repassadas += valor_parcela
+                        if despesa.descricao.lower() == "iptu" or despesa.tipo == 'iptu':
+                            mes_inicial_iptu = despesa.data_inicio.month
+                            ano_inicial_iptu = despesa.data_inicio.year
+                            numero_parcela = (ano_referencia - ano_inicial_iptu) * 12 + (mes_referencia - mes_inicial_iptu) + 1
+                            descricao_itens.append(f"IPTU ({numero_parcela}/{despesa.numero_parcelas}) - {valor_formatado}")
+                            logger.info(f"Added IPTU expense: parcela {numero_parcela}/{despesa.numero_parcelas}, value: {valor_parcela}")
+                        elif despesa.is_recorrente:
+                            try:
+                                mes_nome = month_name[mes_anterior]
+                                if not isinstance(mes_nome, str):
+                                    mes_nome = mes_nome.capitalize()
+                                else:
+                                    mes_nome = mes_nome.capitalize()
+                            except:
+                                mes_nome = f"Mês {mes_anterior}"
+                            
+                            # Adiciona quem paga nas despesas recorrentes (exceto proprietário que já é tratado acima)
+                            paga_display = f"({despesa.get_paga_display()})" if despesa.paga != 'inquilino' else ""
+                            descricao_itens.append(f"{despesa.descricao} {paga_display} ({mes_nome}/{ano_anterior}) - {valor_formatado}")
+                            logger.info(f"Added recurrent expense: {despesa.descricao}, value: {valor_parcela}, paga por: {despesa.paga}")
+                        else:
+                            # Adiciona quem paga nas despesas não recorrentes (exceto proprietário que já é tratado acima)
+                            paga_display = f"({despesa.get_paga_display()})" if despesa.paga != 'inquilino' else ""
+                            descricao_itens.append(f"{despesa.descricao} {paga_display} - {valor_formatado}")
+                            logger.info(f"Added regular expense: {despesa.descricao}, value: {valor_parcela}, paga por: {despesa.paga}")
+                
+                # Calcula valor total
+                valor_total = valor_fixo + despesas_repassadas - despesas_deduzidas
+                logger.info(f"Total value: {valor_total} = {valor_fixo} + {despesas_repassadas} - {despesas_deduzidas}")
+                
+                # Determina data de vencimento
+                dia_vencimento = contrato.dia_pagamento
+                try:
+                    data_vencimento = data_referencia.replace(day=dia_vencimento)
+                    logger.info(f"Due date set to: {data_vencimento}")
+                except ValueError as e:
+                    logger.error(f"Error setting due date: {str(e)}")
+                    # Trata casos onde o dia é maior que o último dia do mês
+                    proximo_mes = data_referencia.replace(day=28) + timedelta(days=4)
+                    ultimo_dia_mes = (proximo_mes - timedelta(days=proximo_mes.day)).day
+                    data_vencimento = data_referencia.replace(day=ultimo_dia_mes)
+                    logger.info(f"Due date adjusted to end of month: {data_vencimento}")
+                
+                # Junta os itens em uma descrição
+                descricao = ", ".join(descricao_itens)
+                logger.info(f"Description: {descricao[:50]}...")
+                
+                # Cria objeto de cobrança para preview
+                cobranca_data = {
+                    'contrato': contrato,
+                    'valor': valor_total,
+                    'data_vencimento': data_vencimento,
+                    'descricao': descricao,
+                    'despesas_repassadas': despesas_repassadas,
+                    'despesas_deduzidas': despesas_deduzidas,
+                    'mes_referencia': mes_referencia,
+                    'ano_referencia': ano_referencia
+                }
+                
+                cobrancas_preview.append(cobranca_data)
+                logger.info(f"Added charge to preview list")
+                
+                # Processa no Asaas se necessário
+                if processar_asaas:
+                    logger.info("Processing in Asaas...")
+                    
+                    # Verificar se há inquilinos associados
+                    if not contrato.inquilino.exists():
+                        logger.error(f"Contrato {contrato.id} não tem inquilinos associados")
+                        cobranca_data['asaas_status'] = "Erro"
+                        cobranca_data['asaas_erro'] = "Contrato sem inquilinos associados"
+                        cobrancas_asaas_results.append(cobranca_data)
+                        continue
+                    
+                    # Obter inquilinos com ID Asaas cadastrado
+                    inquilinos_validos = contrato.inquilino.filter(asaas_id__isnull=False).exclude(asaas_id='')
+                    
+                    if not inquilinos_validos.exists():
+                        logger.error(f"Contrato {contrato.id} não tem inquilinos com ID Asaas válido")
+                        cobranca_data['asaas_status'] = "Erro"
+                        cobranca_data['asaas_erro'] = "Nenhum inquilino com ID Asaas válido"
+                        cobrancas_asaas_results.append(cobranca_data)
+                        continue
+                    
+                    # Usar o primeiro inquilino válido para a cobrança
+                    inquilino = inquilinos_validos.first()
+                    
+                    # Verificar se já existe cobrança para este contrato/mês/ano
+                    cobranca_existente = Cobranca.objects.filter(
+                        contrato=contrato,
+                        mes_referencia=mes_referencia,
+                        ano_referencia=ano_referencia
+                    ).first()
+                    
+                    if cobranca_existente:
+                        logger.warning(f"Charge already exists for contrato {contrato.id}, {mes_referencia}/{ano_referencia}: ID={cobranca_existente.id}")
+                        cobranca_data['asaas_status'] = "Erro"
+                        cobranca_data['asaas_erro'] = "Cobrança já existe para este período"
+                        cobrancas_asaas_results.append(cobranca_data)
+                        continue
+                    
+                    try:
+                        # Formata a data de vencimento para o formato do Asaas (YYYY-MM-DD)
+                        data_vencimento_str = data_vencimento.strftime('%Y-%m-%d')
+                        logger.info(f"Asaas due date: {data_vencimento_str}")
+                        
+                        # Chama a função de geração de cobrança no Asaas usando os dados do inquilino
+                        logger.info(f"Calling Asaas API with: id={inquilino.asaas_id}, value={float(valor_total)}")
+                        resultado_asaas = gerar_cobranca(
+                            asaas_id=inquilino.asaas_id,
+                            valor=float(valor_total),
+                            vencimento=data_vencimento_str,
+                            nome=inquilino.nome,  # Usar o nome do inquilino
+                            descricao=descricao[:255]  # Limita a descrição a 255 caracteres
+                        )
+                        
+                        logger.info(f"Asaas API response: {resultado_asaas}")
+                        
+                        # Processa a resposta e salva a cobrança
+                        nova_cobranca, sucesso, erro_msg = processar_resposta_asaas(
+                            resultado_asaas=resultado_asaas,
+                            contrato=contrato,
+                            inquilino=inquilino,
+                            valor_total=valor_total,
+                            data_vencimento=data_vencimento,
+                            descricao=descricao,
+                            mes_referencia=mes_referencia,
+                            ano_referencia=ano_referencia
+                        )
+                        
+                        # Atualiza os dados para a resposta
+                        cobranca_data['asaas_result'] = resultado_asaas
+                        
+                        if sucesso:
+                            cobranca_data['asaas_id'] = nova_cobranca.asaas_id
+                            cobranca_data['asaas_status'] = "Sucesso"
+                            logger.info(f"Successfully saved charge with Asaas ID: {nova_cobranca.asaas_id}")
+                        else:
+                            cobranca_data['asaas_status'] = "Erro"
+                            cobranca_data['asaas_erro'] = erro_msg
+                            logger.error(f"Error processing Asaas response: {erro_msg}")
 
-    return JsonResponse({
-        'valor': valor,
-        'data_cobranca': data_cobranca.isoformat(),
-        'historico': contrato.historico_aluguel,
-    })
+                    except Exception as e:
+                        logger.error(f"Erro ao gerar cobrança no Asaas: {str(e)}")
+                        # Salva a cobrança com erro
+                        nova_cobranca = Cobranca(
+                            contrato=contrato,
+                            valor=valor_total,
+                            data_vencimento=data_vencimento,
+                            descricao=descricao,
+                            mes_referencia=mes_referencia,
+                            ano_referencia=ano_referencia,
+                            status="ERROR"
+                        )
+                        nova_cobranca.save()
+                        
+                        cobranca_data['asaas_status'] = "Erro"
+                        cobranca_data['asaas_erro'] = f"Exceção: {str(e)}"
+                    
+                    cobrancas_asaas_results.append(cobranca_data)
+                    logger.info(f"Added charge to Asaas results list")
+            
+            # Log summary
+            logger.info(f"Preview charges: {len(cobrancas_preview)}, Asaas charges: {len(cobrancas_asaas_results)}")
+            
+            # Decide qual template renderizar com base no processamento do Asaas
+            if processar_asaas:
+                sucesso_count = sum(1 for c in cobrancas_asaas_results if c.get('asaas_status') == "Sucesso")
+                erro_count = sum(1 for c in cobrancas_asaas_results if c.get('asaas_status') == "Erro")
+                
+                logger.info(f"Charges summary - Success: {sucesso_count}, Error: {erro_count}")
+                
+                messages.success(request, f"Geradas {len(cobrancas_asaas_results)} cobranças no Asaas para {mes_referencia}/{ano_referencia}. Sucesso: {sucesso_count}, Erro: {erro_count}")
+                context = {
+                    'cobrancas_processadas': cobrancas_asaas_results,
+                    'mes_referencia': mes_referencia,
+                    'ano_referencia': ano_referencia,
+                    'sucesso': sucesso_count,
+                    'erro': erro_count
+                }
+                return render(request, 'imoveis/cobrancas_processadas.html', context)
+            else:
+                # Mostra apenas o preview das cobranças
+                context = {
+                    'cobrancas_preview': cobrancas_preview,
+                    'mes_referencia': mes_referencia,
+                    'ano_referencia': ano_referencia
+                }
+                logger.info(f"Rendering preview with {len(cobrancas_preview)} charges")
+                return render(request, 'imoveis/preview_cobrancas.html', context)
+                
+        except Exception as e:
+            logger.error(f"Erro geral na geração de cobranças: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
+            messages.error(request, f"Erro ao processar cobranças: {str(e)}")
+            return HttpResponseRedirect(reverse('cadastro_cobrancas'))
+
+    # Requisição GET
+    logger.info("GET request for cadastro_cobrancas page")
+    hoje = date.today()
+    meses = [{"numero": i, "nome": date(hoje.year, i, 1).strftime("%B")} for i in range(1, 13)]
+
+    mes_selecionado = request.GET.get("mes", hoje.month)
+    ano_selecionado = request.GET.get("ano", hoje.year)
+    
+    # Obter todos os contratos ativos para o dropdown
+    contratos = Contrato.objects.filter(ativo=True)
+
+    context = {
+        "meses": meses,
+        "mes_atual": int(mes_selecionado),
+        "ano_atual": int(ano_selecionado),
+        "contratos": contratos,
+    }
+
+    return render(request, "imoveis/cadastro_cobrancas.html", context)
+
+
+
+def confirmar_cobrancas_view(request):
+
+    cobrancas_data = request.session.get('cobrancas_preview', [])
+    cobrancas_geradas = 0
+
+    if not cobrancas_data:
+        messages.warning(request, "Nenhuma cobrança encontrada para confirmação.")
+        return redirect('cadastro_cobrancas')
+
+    for cobranca_data in cobrancas_data:
+        contrato_id = cobranca_data.get('contrato_id')
+        contrato = get_object_or_404(Contrato, id=contrato_id)
+
+        # Verifica se já existe cobrança para esse período
+        if Cobranca.objects.filter(
+            contrato=contrato,
+            mes_referencia=cobranca_data['mes_referencia'],
+            ano_referencia=cobranca_data['ano_referencia']
+        ).exists():
+            messages.warning(
+                request,
+                f"Cobrança já existe para o contrato ID {contrato.id} no período {cobranca_data['mes_referencia']}/{cobranca_data['ano_referencia']}."
+            )
+            continue
+
+        data_cobranca = datetime(
+            year=int(cobranca_data['ano_referencia']),
+            month=int(cobranca_data['mes_referencia']),
+            day=1
+        )
+
+        valor_base_reajustado = obter_valor_historico(
+            contrato.historico_reajustes_json,
+            data_cobranca,
+            valor_base=float(contrato.valor_base_aluguel)
+        )
+
+        inquilinos_validos = contrato.inquilino.filter(asaas_id__isnull=False).exclude(asaas_id='')
+        if not inquilinos_validos.exists():
+            messages.warning(request, f"Contrato {contrato.id} sem inquilinos com ID Asaas.")
+            continue
+
+        inquilino = inquilinos_validos.first()
+
+        try:
+            resposta = gerar_cobranca(
+                asaas_id=inquilino.asaas_id,
+                valor=float(valor_base_reajustado),
+                vencimento=cobranca_data['data_vencimento'].strftime('%Y-%m-%d'),
+                nome=inquilino.nome,
+                descricao=cobranca_data['descricao']
+            )
+
+            if resposta and isinstance(resposta, dict) and "id" in resposta:
+                pix_data = resposta.get("pixTransaction") or resposta.get("pix", {})
+
+                Cobranca.objects.create(
+                    contrato=contrato,
+                    valor=valor_base_reajustado,
+                    data_vencimento=cobranca_data['data_vencimento'],
+                    mes_referencia=cobranca_data['mes_referencia'],
+                    ano_referencia=cobranca_data['ano_referencia'],
+                    descricao=cobranca_data['descricao'],
+                    inquilino=inquilino,
+
+                    # Campos do Asaas
+                    asaas_id=resposta.get("id"),
+                    asaas_payment_id=resposta.get("id"),  # ou outro campo se necessário
+                    asaas_boleto_url=resposta.get("bankSlipUrl"),
+                    asaas_pix_url=pix_data.get("qrCodeUrl"),
+                    asaas_pix_copia_cola=pix_data.get("payload"),
+                    asaas_codigo_barras=resposta.get("identificationField"),
+                    asaas_invoice_url=resposta.get("invoiceUrl"),
+                    asaas_invoice_number=resposta.get("invoiceNumber"),
+                    asaas_status=resposta.get("status", "PENDING"),
+                    asaas_status_asaas=resposta.get("status"),
+                    asaas_url_fatura=resposta.get("invoiceUrl"),
+                    asaas_pix_qr_code_base64=pix_data.get("base64Image"),
+                )
+                cobrancas_geradas += 1
+            else:
+                error_msg = resposta.get("erro", "Resposta inválida da API do Asaas")
+                messages.error(request, f"Falha ao integrar cobrança do contrato {contrato.id}: {error_msg}")
+        except Exception as e:
+            messages.error(
+                request,
+                f"Erro ao integrar cobrança do contrato {contrato.id} com o Asaas: {str(e)}"
+            )
+
+    if cobrancas_geradas > 0:
+        messages.success(request, f"Cobranças geradas com sucesso! Total: {cobrancas_geradas}")
+    else:
+        messages.warning(request, "Nenhuma cobrança foi gerada.")
+
+    return redirect('cadastro_cobrancas')
+
+def processar_resposta_asaas(resultado_asaas, contrato, inquilino, valor_total, data_vencimento, descricao, mes_referencia, ano_referencia):
+    """
+    Processa a resposta da API do Asaas e salva a cobrança no banco de dados
+    """
+    logger.info(f"Processando resposta do Asaas: {resultado_asaas}")
+    
+    # Verifica se a resposta é válida e contém um ID
+    if resultado_asaas and isinstance(resultado_asaas, dict) and "id" in resultado_asaas:
+        # Extrai dados de PIX (que podem estar em diferentes locais dependendo da resposta)
+        pix_data = resultado_asaas.get("pixTransaction", {}) or {}
+        
+        # Se não houver dados de PIX na resposta inicial, pode ser necessário fazer uma solicitação adicional
+        # para obter os dados completos do PIX se a cobrança for do tipo BOLETO_PIX
+        if not pix_data and resultado_asaas.get("billingType") in ["BOLETO", "UNDEFINED"] and resultado_asaas.get("id"):
+            try:
+                # Faz uma solicitação adicional para obter os dados do QR code PIX
+                payment_id = resultado_asaas["id"]
+                pix_url = f"https://www.asaas.com/api/v3/payments/{payment_id}/pixQrCode"
+                pix_headers = {
+                    'access_token': settings.ASAAS_API_KEY,
+                    'Content-Type': 'application/json'
+                }
+                pix_response = requests.get(pix_url, headers=pix_headers)
+                if pix_response.status_code == 200:
+                    pix_data = pix_response.json()
+                    logger.info(f"Dados PIX obtidos: {pix_data}")
+            except Exception as e:
+                logger.error(f"Erro ao obter QR code PIX: {str(e)}")
+        
+        # Cria uma nova cobrança com todos os campos necessários
+        nova_cobranca = Cobranca(
+            contrato=contrato,
+            valor=valor_total,
+            data_vencimento=data_vencimento,
+            descricao=descricao,
+            mes_referencia=mes_referencia,
+            ano_referencia=ano_referencia,
+            inquilino=inquilino,
+            
+            # Campos do Asaas
+            asaas_id=resultado_asaas.get("id"),
+            asaas_payment_id=resultado_asaas.get("id"),
+            asaas_boleto_url=resultado_asaas.get("bankSlipUrl"),
+            asaas_pix_url=pix_data.get("qrCodeUrl") or pix_data.get("encodedImage"),
+            asaas_pix_copia_cola=pix_data.get("payload") or pix_data.get("copy"),
+            asaas_pix_qr_code_base64=pix_data.get("base64Image") or pix_data.get("encodedImage"),
+            asaas_codigo_barras=resultado_asaas.get("identificationField") or resultado_asaas.get("nossoNumero"),
+            asaas_invoice_url=resultado_asaas.get("invoiceUrl"),
+            asaas_invoice_number=resultado_asaas.get("invoiceNumber"),
+            asaas_status=resultado_asaas.get("status", "PENDING"),
+            asaas_status_asaas=resultado_asaas.get("status"),
+            asaas_url_fatura=resultado_asaas.get("invoiceUrl"),
+        )
+        
+        # Salva a cobrança
+        nova_cobranca.save()
+        logger.info(f"Cobrança salva com sucesso. ID: {nova_cobranca.id}, Asaas ID: {nova_cobranca.asaas_id}")
+        
+        return nova_cobranca, True, None
+    else:
+        # Adiciona informação de erro
+        erro_msg = "Erro desconhecido na integração com Asaas"
+        if resultado_asaas and isinstance(resultado_asaas, dict):
+            erro_msg = resultado_asaas.get('erro', erro_msg)
+        
+        # Salva a cobrança com erro
+        nova_cobranca = Cobranca(
+            contrato=contrato,
+            valor=valor_total,
+            data_vencimento=data_vencimento,
+            descricao=descricao,
+            mes_referencia=mes_referencia,
+            ano_referencia=ano_referencia,
+            inquilino=inquilino,
+            status="ERROR"
+        )
+        nova_cobranca.save()
+        
+        return nova_cobranca, False, erro_msg

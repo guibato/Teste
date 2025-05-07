@@ -2,10 +2,10 @@ from django.db import models
 from django.utils import timezone
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
-from sisimob.utils.integracao_asaas import cadastrar_cliente_no_asaas  # Certifique-se que esse caminho está correto
+from sisimob.utils.integracao_asaas import cadastrar_cliente_no_asaas, atualizar_cliente_no_asaas  # Certifique-se que esse caminho está correto
 from django.conf import settings
 from sisimob.utils.cobrancas_asaas import gerar_cobranca
-
+from django.core.exceptions import ValidationError
 
 class Cliente(models.Model):
     TIPO_CLIENTE_CHOICES = [
@@ -13,6 +13,7 @@ class Cliente(models.Model):
         ('Inquilino', 'Inquilino(a)'),
         ('Anuente', 'Anuente'),
         ('Fiador(a)', 'Fiador(a)'),
+        ('Representante Legal', 'Representante Legal'),
     ]
     MODALIDADE_PIX_CHOICES = [
         ('cpf', 'CPF'),
@@ -31,53 +32,98 @@ class Cliente(models.Model):
         ('comunhao_parcial', 'Comunhão Parcial de Bens'),
         ('separacao_total', 'Separação Total de Bens'),
     ]
-    asaas_id = models.CharField(max_length=50, null=True, blank=True, verbose_name="ID Asaas")
+    TIPO_PESSOA_CHOICES = [
+        ('F', 'Pessoa Física'),
+        ('J', 'Pessoa Jurídica'),
+    ]
+
+    tipo_pessoa = models.CharField(max_length=1, choices=TIPO_PESSOA_CHOICES, default='F', verbose_name='Tipo de Pessoa')
     tipo = models.CharField(max_length=20, choices=TIPO_CLIENTE_CHOICES, verbose_name="Tipo")
+
     nome = models.CharField(max_length=100, verbose_name="Nome")
-    nacionalidade = models.CharField(max_length=100, null=True, blank=True, verbose_name="Nacionalidade")
-    profissao = models.CharField(max_length=100, null=True, blank=True, verbose_name="Profissão")
-    estado_civil = models.CharField(max_length=20, choices=ESTADO_CIVIL_CHOICES, null=True, blank=True)
-    regime_casamento = models.CharField(max_length=20, choices=REGIME_CASAMENTO_CHOICES, null=True, blank=True)
-    anuente = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Anuente")
+    razao_social = models.CharField(max_length=255, null=True, blank=True, verbose_name="Razão Social")
+    nome_fantasia = models.CharField(max_length=255, null=True, blank=True, verbose_name="Nome Fantasia")
+    cnpj = models.CharField(max_length=18, null=True, blank=True, verbose_name="CNPJ")
+
+    representante_legal = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        limit_choices_to={
+            'tipo_pessoa': 'F',
+            'tipo': 'Representante Legal',
+        },
+        related_name="clientes_representados",
+        verbose_name="Representante Legal"
+    )
+
     CPF = models.CharField(max_length=14, null=True, blank=True, verbose_name="CPF")
     rg_rne = models.CharField(max_length=20, null=True, blank=True, unique=True, verbose_name="RG/RNE")
-    telefone = models.CharField(max_length=15, null=True, blank=True, verbose_name="Telefone")
-    celular = models.CharField(max_length=15, null=True, blank=True, verbose_name="Celular")
-    email = models.EmailField(null=True, blank=True, verbose_name="E-mail")
-    pix_modalidade = models.CharField(max_length=20, choices=MODALIDADE_PIX_CHOICES, null=True, blank=True, verbose_name="Modalidade PIX")
-    chave_pix = models.CharField(max_length=100, null=True, blank=True, verbose_name="Chave PIX")
-    banco = models.CharField(max_length=100, null=True, blank=True, verbose_name="Banco")
-    agencia = models.CharField(max_length=100, null=True, blank=True, verbose_name="Agência")
-    conta_corrente = models.CharField(max_length=100, null=True, blank=True, verbose_name="Conta Corrente")
-    poupanca = models.CharField(max_length=100, null=True, blank=True, verbose_name="Poupança")
-    cep = models.CharField(max_length=10, verbose_name="CEP")
-    endereco = models.CharField(max_length=255, verbose_name="Endereço")
-    numero = models.CharField(max_length=10, verbose_name="Número")
-    complemento = models.CharField(max_length=100, null=True, blank=True, verbose_name="Complemento")
-    bairro = models.CharField(max_length=100, null=True, blank=True, verbose_name="Bairro")
-    cidade = models.CharField(max_length=100, verbose_name="Cidade")
-    estado = models.CharField(max_length=2, verbose_name="Estado")
-    documentos = models.FileField(upload_to='clientes/documentos/', null=True, blank=True, verbose_name="Documentos")
+
+    nacionalidade = models.CharField(max_length=100, null=True, blank=True)
+    profissao = models.CharField(max_length=100, null=True, blank=True)
+    estado_civil = models.CharField(max_length=20, choices=ESTADO_CIVIL_CHOICES, null=True, blank=True)
+    regime_casamento = models.CharField(max_length=30, choices=REGIME_CASAMENTO_CHOICES, null=True, blank=True)
+    anuente = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='anuentes', verbose_name="Anuente")
+
+    telefone = models.CharField(max_length=15, null=True, blank=True)
+    celular = models.CharField(max_length=15, null=True, blank=True)
+    email = models.EmailField(null=True, blank=True)
+
+    pix_modalidade = models.CharField(max_length=20, choices=MODALIDADE_PIX_CHOICES, null=True, blank=True)
+    chave_pix = models.CharField(max_length=100, null=True, blank=True)
+
+    banco = models.CharField(max_length=100, null=True, blank=True)
+    agencia = models.CharField(max_length=100, null=True, blank=True)
+    conta_corrente = models.CharField(max_length=100, null=True, blank=True)
+    poupanca = models.CharField(max_length=100, null=True, blank=True)
+
+    cep = models.CharField(max_length=10)
+    endereco = models.CharField(max_length=255)
+    numero = models.CharField(max_length=10)
+    complemento = models.CharField(max_length=100, null=True, blank=True)
+    bairro = models.CharField(max_length=100, null=True, blank=True)
+    cidade = models.CharField(max_length=100)
+    estado = models.CharField(max_length=2)
+    documento = models.CharField(max_length=100, null=True, blank=True)
+
+    asaas_id = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
+        if self.tipo_pessoa == 'J' and self.razao_social:
+            return self.razao_social
         return self.nome
 
     def clean(self):
-        super().clean()
         if self.rg_rne and Cliente.objects.filter(rg_rne=self.rg_rne).exclude(pk=self.pk).exists():
             raise ValidationError({'rg_rne': 'Este RG/RNE já está cadastrado.'})
-        
+
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)  # Salva o cliente no banco
-
-        # Chama a API do Asaas para cadastrar o cliente
-        resposta = cadastrar_cliente_no_asaas(self)
-
-        if resposta:  # Garante que resposta não seja None
-            self.asaas_id = resposta  # Agora estamos atribuindo corretamente o ID
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        
+        if self.asaas_id:
+            atualizado = atualizar_cliente_no_asaas(self)
+            if not atualizado:
+                print(f"Erro ao atualizar cliente {self.nome} no Asaas")
         else:
-            print(f"Erro ao cadastrar cliente {self.nome} no Asaas")
+            resposta = cadastrar_cliente_no_asaas(self)
+            if resposta:
+                self.asaas_id = resposta
+                super().save(update_fields=['asaas_id'])
+            else:
+                print(f"Erro ao cadastrar cliente {self.nome} no Asaas")
 
+    @property
+    def primeiro_nome(self):
+        return self.nome.split()[0] if self.nome else ''
+
+    @property
+    def nome_exibicao(self):
+        if self.tipo_pessoa == 'J':
+            return self.nome_fantasia or self.razao_social or self.nome
+        return self.nome
 
 class Imovel(models.Model):
     cep = models.CharField(max_length=10, verbose_name="CEP")
@@ -113,7 +159,7 @@ class Imovel(models.Model):
 
 class Contrato(models.Model):
     class Meta:
-        ordering = ['-data_inicio']
+        ordering = ['-ativo', 'dia_pagamento', '-data_inicio']
 
     CONTRATO_CHOICES = [
         ('residencial', 'Residencial'),
@@ -145,9 +191,10 @@ class Contrato(models.Model):
     id = models.AutoField(primary_key=True)
     tipo = models.CharField(max_length=20, choices=CONTRATO_CHOICES, null=True, blank=True, verbose_name="Tipo")
     ativo = models.BooleanField(default=True, verbose_name="Ativo")
+    clausula_12meses = models.BooleanField(default=False, verbose_name="12 meses?")
     tipo_contrato = models.CharField(max_length=20, choices=CONTRATO_CHOICES, null=True, blank=True, verbose_name="Tipo de Contrato")
-    proprietario = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name="contratos_proprietario", verbose_name="Proprietário")
-    inquilino = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name="contratos_inquilino", verbose_name="Inquilino")
+    proprietario = models.ManyToManyField(Cliente, related_name="contratos_proprietario", verbose_name="Proprietários")
+    inquilino = models.ManyToManyField(Cliente, related_name="contratos_inquilino", verbose_name="Inquilinos")
     imovel = models.ForeignKey(Imovel, on_delete=models.CASCADE, related_name="contratos_imovel", verbose_name="Imóvel")
     data_inicio = models.DateField(verbose_name="Início")
     data_fim = models.DateField(verbose_name="Fim")
@@ -183,15 +230,6 @@ class Contrato(models.Model):
 
     def __str__(self):
         return f"Contrato {self.id} - {self.imovel.endereco}"
-
-    def save(self, *args, **kwargs):
-        if not self.historico_aluguel or str(self.data_inicio) not in self.historico_aluguel:
-            if self.historico_aluguel:
-                ultima_data = sorted(self.historico_aluguel.keys())[-1]
-                self.historico_aluguel[str(self.data_inicio)] = self.historico_aluguel[ultima_data]
-            else:
-                self.historico_aluguel[str(self.data_inicio)] = float(self.valor_aluguel)
-        super().save(*args, **kwargs)
 
     def valor_taxa_administracao(self):
         if self.tipo_taxa == 'percentual':
@@ -279,6 +317,15 @@ class Contrato(models.Model):
             valor_total = self.valor_pacote
         return max(valor_total, Decimal('0.00'))  # Garante que o valor não seja negativo
     
+    @property
+    def valor_base_aluguel(self):
+        """
+        Retorna o valor base usado para cálculos: valor do aluguel ou pacote, dependendo do tipo de contrato.
+        """
+        if self.tipo_pagamento == 'pacote':
+            return self.valor_pacote or Decimal('0.00') 
+        return self.valor_aluguel or Decimal('0.00')
+    
     def save(self, *args, **kwargs):
         if not self.historico_aluguel or str(self.data_inicio) not in self.historico_aluguel:
             ultimo_valor = list(self.historico_aluguel.values())[-1] if self.historico_aluguel else self.valor_aluguel
@@ -319,13 +366,24 @@ class Cobranca(models.Model):
     
     data_pagamento = models.DateField(null=True, blank=True, verbose_name="Data de Pagamento")
     data_repasse = models.DateField(null=True, blank=True, verbose_name="Data de Repasse")
-    asaas_payment_id = models.CharField(max_length=100, null=True, blank=True)
+    descricao = models.TextField(null=True, blank=True)
+    inquilino = models.ForeignKey("Cliente", on_delete=models.SET_NULL, null=True, blank=True)
+
+    # Campos da Integração com Asaas
+    asaas_id = models.CharField(max_length=100, blank=True, null=True)  # ID da cobrança no Asaas (ex: pay_xxxxxxxx)
+    asaas_payment_id = models.CharField(max_length=100, blank=True, null=True)  # Outro ID possível (opcional)
     asaas_boleto_url = models.URLField(null=True, blank=True)
     asaas_pix_copia_cola = models.TextField(null=True, blank=True)
     asaas_pix_url = models.URLField(null=True, blank=True)
+    asaas_pix_qr_code_base64 = models.TextField(null=True, blank=True)
     asaas_codigo_barras = models.CharField(max_length=150, null=True, blank=True)
-    inquilino = models.ForeignKey("Cliente", on_delete=models.SET_NULL, null=True, blank=True)
-    descricao = models.TextField(null=True, blank=True)
+    asaas_invoice_url = models.URLField(null=True, blank=True)  # Link para visualizar a fatura
+    asaas_invoice_number = models.CharField(max_length=100, null=True, blank=True)  # Número da fatura
+    asaas_url_fatura = models.URLField(null=True, blank=True)  # Cópia adicional do link da fatura
+    asaas_status = models.CharField(max_length=30, null=True, blank=True, default="PENDING")  # Status atualizado
+    asaas_status_asaas = models.CharField(max_length=30, null=True, blank=True)  # Status original da API
+
+    # Lembretes
     lembrete_10_enviado = models.BooleanField(default=False)
     lembrete_3_enviado = models.BooleanField(default=False)
     lembrete_0_enviado = models.BooleanField(default=False)
@@ -406,18 +464,8 @@ class Cobranca(models.Model):
         return valor_boleto - self.valor_administracao - self.total_despesas_repassadas
     
     def save(self, *args, **kwargs):
-        # Se a cobrança ainda não foi gerada no Asaas, cria ela
-        if not self.asaas_payment_id and self.inquilino and self.inquilino.asaas_id:
-            resposta = gerar_cobranca(self.inquilino.asaas_id, self.valor, self.data_vencimento, self.inquilino.nome)
-            
-            if "erro" not in resposta:
-                self.asaas_payment_id = resposta["id"]
-                self.asaas_boleto_url = resposta.get("bankSlipUrl")
-                self.asaas_pix_copia_cola = resposta.get("pix", {}).get("payload")
-                self.asaas_pix_url = resposta.get("pix", {}).get("qrCodeUrl")
-                self.asaas_codigo_barras = resposta.get("identificationField")
+        super().save(*args, **kwargs)
 
-        super().save(*args, **kwargs)  # Salva a cobrança no banco de dados
 
 class IndiceInflacao(models.Model):
     tipo = models.CharField(max_length=50, verbose_name="Nome do Índice")

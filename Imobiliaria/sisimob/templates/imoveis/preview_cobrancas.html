@@ -2,53 +2,63 @@
 {% load static %}
 
 {% block content %}
-<div class="container mx-auto p-4">
-    <h2 class="text-2xl font-bold mb-4">Pré-visualização das Cobranças</h2>
-    <form method="post" action="{% url 'confirmar_cobrancas' %}">
-        {% csrf_token %}
-        <table class="table-auto w-full mb-4">
-            <thead>
-                <tr>
-                    <th>Contrato</th>
-                    
-                    <th>Vencimento</th>
-                    <th>Descrição</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for cobranca in cobrancas_preview %}
-                <tr>
-                    <td>{{ cobranca.contrato.imovel }}</td>
-                    
-                    <td>{{ cobranca.data_vencimento|date:"d/m/Y" }}</td>
-                    <td>{{ cobranca.descricao }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" class="text-center text-gray-500 py-4">Nenhuma cobrança gerada para o período selecionado.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-            
-        </table>
-        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Confirmar Cobranças</button>
-    </form>
+<div class="max-w-7xl mx-auto p-6">
+    <h2 class="text-2xl font-bold text-gray-100 mb-4">
+        📅 Preview de Cobranças — {{ mes_referencia }}/{{ ano_referencia }}
+    </h2>
+
+    {% if cobrancas_preview %}
+        <div class="bg-blue-100 text-blue-800 p-4 rounded-lg shadow mb-6">
+            <p><strong>{{ cobrancas_preview|length }}</strong> cobranças encontradas para o período selecionado.</p>
+            <p>Revise os dados abaixo antes de gerar as cobranças no Asaas.</p>
+        </div>
+
+        <div class="overflow-x-auto shadow-md">
+            <table class="min-w-full text-sm text-left text-gray-200">
+                <thead class="bg-blue-100 text-gray-800 uppercase text-xs font-semibold">
+                    <tr>
+                        <th class="px-4 py-3 text-left">Cliente</th>
+                        <th class="px-4 py-3 text-left">Imóvel</th>
+                        <th class="px-4 py-3 text-right">Valor Total</th>
+                        <th class="px-4 py-3 text-center">Vencimento</th>
+                        <th class="px-4 py-3 text-left">Descrição</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-200">
+                    {% for cobranca in cobrancas_preview %}
+                    <tr class="border-t border-gray-200 hover:bg-gray-600">
+                        <td class="px-4 py-2">{{ cobranca.contrato.cliente.nome }}</td>
+                        <td class="px-4 py-2">{{ cobranca.contrato.imovel.identificacao }}</td>
+                        <td class="px-4 py-2 text-right">R$ {{ cobranca.valor|floatformat:2 }}</td>
+                        <td class="px-4 py-2 text-center">{{ cobranca.data_vencimento|date:"d/m/Y" }}</td>
+                        <td class="px-4 py-2 text-sm text-gray-200">{{ cobranca.descricao }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <form method="post" action="" class="mt-6 flex justify-between items-center">
+            {% csrf_token %}
+            <input type="hidden" name="mes_referencia" value="{{ mes_referencia }}">
+            <input type="hidden" name="ano_referencia" value="{{ ano_referencia }}">
+            <input type="hidden" name="processar_asaas" value="true">
+
+            <a href="{% url 'cadastro_cobrancas' %}" class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition">
+                ← Voltar
+            </a>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                💳 Gerar Cobranças no Asaas
+            </button>
+        </form>
+
+    {% else %}
+        <div class="bg-yellow-100 text-yellow-800 p-4 rounded-lg shadow mb-6">
+            Nenhuma cobrança encontrada para o período selecionado.
+        </div>
+        <a href="{% url 'cadastro_cobrancas' %}" class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition">
+            ← Voltar
+        </a>
+    {% endif %}
 </div>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        function formatCurrency(value) {
-            const numericValue = Number(value);
-            return isNaN(numericValue) ? 'R$ 0,00' : numericValue.toLocaleString('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-            });
-        }
-
-        document.querySelectorAll('.currency').forEach(element => {
-            const rawValue = element.getAttribute('data-value');
-            element.textContent = formatCurrency(rawValue);
-        });
-    });
-</script>
-
 {% endblock %}

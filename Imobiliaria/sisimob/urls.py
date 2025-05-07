@@ -39,7 +39,6 @@ urlpatterns = [
     path('marcar-como-repassada/<int:pk>/', views.marcar_como_repassada, name='marcar_como_repassada'),
     path('atualizar-datas/<int:pk>/', views.atualizar_datas_cobranca, name='atualizar_datas_cobranca'),
     path("gerar-cobrancas/", views.gerar_cobrancas_view, name="cadastro_cobrancas"),
-    path("cobrancas/", views.lista_cobrancas, name="lista_cobrancas"),
     path('lancar-despesa/<int:id>/', views.lancar_despesa, name='lancar_despesa'),
     path('editar-despesa/<int:id>/', views.editar_despesa, name='editar_despesa'),
     path('excluir-despesa/<int:id>/', views.excluir_despesa, name='excluir_despesa'),
@@ -51,7 +50,7 @@ urlpatterns = [
     path('reajustar-contrato/<int:contrato_id>/', views.reajustar_contrato_individual, name='reajustar_contrato_individual'),
     path('mensagens-cobranca/', views.visualizar_mensagens_cobranca, name='visualizar_mensagens'),
     path('confirmar-cobrancas/', views.confirmar_cobrancas_view, name='confirmar_cobrancas'),
-    path('teste-historico/', views.teste_historico, name='confirmar_cobrancas'),
+    
 ]
 
 if settings.DEBUG:

@@ -13,9 +13,9 @@ def gerar_mensagem_cobranca(cobranca):
     hora = agora.hour
 
     contrato = cobranca.contrato
-    inquilino = contrato.inquilino
-    nome = inquilino.primeiro_nome if inquilino and inquilino.primeiro_nome else "Cliente"
+    nome = cobranca.contrato.inquilino.first().primeiro_nome if cobranca.contrato.inquilino.exists() else "Cliente"
 
+    
     # Saudação
     if hora < 12:
         saudacao = "Bom dia"

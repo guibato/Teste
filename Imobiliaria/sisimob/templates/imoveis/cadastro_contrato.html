@@ -26,14 +26,26 @@
                 <h3 class="text-xl font-semibold text-gray-100 mb-4 border-b border-gray-600 pb-2">Informações Básicas</h3>
             </div>
             
-            <div class="mb-4">
-                <label for="ativo" class="block text-gray-300 text-sm font-medium mb-2">
-                    Ativo?
-                </label>
-                <div class="relative">
-                    {{ form.ativo }}
+            <div class="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div>
+                    <label for="ativo" class="block text-gray-300 text-sm font-medium mb-2">
+                        Ativo?
+                    </label>
+                    <div class="relative">
+                        {{ form.ativo }}
+                    </div>
+                </div>
+            
+                <div>
+                    <label for="clausula_12meses" class="block text-gray-300 text-sm font-medium mb-2">
+                        12 Meses?
+                    </label>
+                    <div class="relative">
+                        {{ form.clausula_12meses }}
+                    </div>
                 </div>
             </div>
+            
             
             <div class="mb-4">
                 <label for="tipo_contrato" class="block text-gray-300 text-sm font-medium mb-2">
@@ -116,14 +128,7 @@
                 </div>
             </div>
 
-            <div class="mb-4">
-                <label for="clausula_12meses" class="block text-gray-300 text-sm font-medium mb-2">
-                    Cláusula de 12 Meses?
-                </label>
-                <div class="relative">
-                    {{ form.clausula_12meses }}
-                </div>
-            </div>
+            
             
             <!-- Informações de Pagamento -->
             <div class="col-span-full mb-4 mt-4">
@@ -374,10 +379,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const despesaFields = document.querySelectorAll('.despesas-field');
         const pacoteField = document.querySelector('.pacote-field');
         
-        if (tipoPagamento.value === 'Pacote') {
+        if (tipoPagamento.value === 'pacote') {
             despesaFields.forEach(field => field.style.display = 'none');
             pacoteField.style.display = 'block';
-        } else if (tipoPagamento.value === 'Despesas_Separadas') {
+        } else if (tipoPagamento.value === 'despesas_separadas') {
             despesaFields.forEach(field => field.style.display = 'block');
             pacoteField.style.display = 'none';
         } else {
@@ -576,4 +581,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+<style>
+    .select2-container--default .select2-selection--multiple {
+      border-radius: 0.5rem;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+    }
+  </style>
+  
 {% endblock %}

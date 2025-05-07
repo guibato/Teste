@@ -2,6 +2,8 @@ from django import forms
 from .models import Cliente, Imovel, Contrato, Cobranca, Despesa
 from decimal import Decimal
 from datetime import datetime
+from django_select2.forms import Select2MultipleWidget
+
 
 class ImovelForm(forms.ModelForm):
     class Meta:
@@ -38,50 +40,38 @@ class ClienteForm(forms.ModelForm):
     class Meta:
         model = Cliente
         fields = '__all__'
-        labels = {
-            'tipo': 'Tipo',
-            'nome': 'Nome',
-            'nacionalidade': 'Nacionalidade',
-            'profissao': 'Profissão',
-            'estado_civil': 'Estado Civil',
-            'regime_casamento': 'Regime de Casamento',
-            'anuente': 'Anuente',
-            'CPF': 'CPF',
-            'rg_rne': 'RG/RNE',
-            'telefone': 'Telefone',
-            'codigo_internacional_celular': 'Código Internacional (Celular)',
-            'celular': 'Celular',
-            'email': 'E-mail',
-            'pix_modalidade': 'Modalidade PIX',
-            'chave_pix': 'Chave PIX',
-            'banco': 'Banco',
-            'agencia': 'Agência',
-            'conta_corrente': 'Conta Corrente',
-            'poupanca': 'Poupança',
-            'cep': 'CEP',
-            'endereco': 'Endereço',
-            'numero': 'Número',
-            'complemento': 'Complemento',
-            'bairro': 'Bairro',
-            'cidade': 'Cidade',
-            'estado': 'Estado',
-            'documento': 'Documento',
-        }
         widgets = {
-            'tipo': forms.Select(attrs={'onchange': 'toggleFields()', 'class': 'form-control'}),
-            'anuente': forms.Select(attrs={'class': 'form-control'}),
-            'estado_civil': forms.Select(attrs={'onchange': 'toggleRegimeCasamento()', 'class': 'form-control'}),
-            'pix_modalidade': forms.Select(attrs={'class': 'form-control'}),
-            'nacionalidade': forms.TextInput(attrs={'class': 'form-control'}),
-            'profissao': forms.TextInput(attrs={'class': 'form-control'}),
-            'documentos': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+            'nome_completo': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
+            'email': forms.EmailInput(attrs={'class': 'w-full p-2 border rounded'}),
+            'telefone': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
+            'tipo_pessoa': forms.Select(attrs={'class': 'w-full p-2 border rounded'}),
+            'CPF': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
+            'rg_rne': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
+            'estado_civil': forms.Select(attrs={'class': 'w-full p-2 border rounded'}),
+            'regime_casamento': forms.Select(attrs={'class': 'w-full p-2 border rounded'}),
+            'anuente': forms.Select(attrs={'class': 'w-full p-2 border rounded'}),
+            'razao_social': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
+            'nome_fantasia': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
+            'cnpj': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
+            'representante_legal': forms.Select(attrs={'class': 'w-full p-2 border rounded'}),
         }
 
-    def clean_rg_rne(self):
-        rg_rne = self.cleaned_data.get('rg_rne')
-        if rg_rne and Cliente.objects.filter(rg_rne=rg_rne).exclude(pk=self.instance.pk).exists():
-            raise forms.ValidationError('Este RG/RNE já está cadastrado.')
-        return rg_rne
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        tipo_pessoa = self.initial.get('tipo_pessoa') or self.data.get('tipo_pessoa')
+
+        if tipo_pessoa == 'F':
+            self.fields['razao_social'].widget = forms.HiddenInput()
+            self.fields['nome_fantasia'].widget = forms.HiddenInput()
+            self.fields['cnpj'].widget = forms.HiddenInput()
+            self.fields['representante_legal'].widget = forms.HiddenInput()
+        elif tipo_pessoa == 'J':
+            self.fields['CPF'].widget = forms.HiddenInput()
+            self.fields['rg_rne'].widget = forms.HiddenInput()
+            self.fields['estado_civil'].widget = forms.HiddenInput()
+            self.fields['regime_casamento'].widget = forms.HiddenInput()
+            self.fields['anuente'].widget = forms.HiddenInput()
 
 class ContratoForm(forms.ModelForm):
     class Meta:
@@ -125,6 +115,8 @@ class ContratoForm(forms.ModelForm):
             'valor_iptu': forms.NumberInput(attrs={'step': '0.01', 'class': 'form-control'}),
             'tipo_pagamento': forms.Select(attrs={'onchange': 'toggleAluguelFields()', 'class': 'form-control'}),
             'documentos': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+            'proprietario': Select2MultipleWidget,
+            'inquilino': Select2MultipleWidget,
         }
 
     def __init__(self, *args, **kwargs):

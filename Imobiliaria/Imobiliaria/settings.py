@@ -6,6 +6,10 @@ ASAAS_API_KEY = '$aact_hmlg_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjlmM
 ASAAS_API_URL = 'https://sandbox.asaas.com/api/v3'  # URL base da API
 ASAAS_SANDBOX = True  # Defina como True para ambiente de teste
 
+ZAPI_INSTANCE_ID = '3B230F028AA15052093F12A6A64DB285'
+ZAPI_TOKEN = 'D1EF2C21320C6E36DACCB18C'
+ZAPI_CLIENT_TOKEN = "F60efe793a1ab48d39ef6b31d14d7df00S"
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 MEDIA_URL = '/media/'  # URL base para arquivos
@@ -38,6 +42,7 @@ INSTALLED_APPS = [
     'sisimob',
     'imobiliaria',
     'django.contrib.humanize',
+    'django_select2',
 ]
 
 MIDDLEWARE = [
@@ -86,3 +91,5 @@ STATICFILES_DIRS = [
     "C:/Users/guilh/OneDrive/Pessoal/Documentos/GitHub/Teste/imobiliaria/sisimob/static",
     
 ]
+
+USE_TZ = True

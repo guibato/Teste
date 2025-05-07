@@ -1,58 +1,58 @@
 {% extends 'imoveis/base.html' %}
-{% block content %}
-<div class="max-w-full mx-auto p-6 bg-gray-800 rounded-lg shadow-lg">
-    <h2 class="text-3xl font-bold text-gray-100 mb-8 border-b border-gray-700 pb-4">
-        {{ titulo|default:"Cadastro de Cliente" }}
-    </h2>
+{% load static %}
 
-    <div class="bg-gray-700 rounded-lg p-6 shadow-inner">
-        <form method="post" class="grid grid-cols-1 md:grid-cols-4 gap-6" enctype="multipart/form-data">
+{% block content %}
+<div class="container mx-auto p-4">
+    <div class="bg-gray text-white p-6 rounded-lg mb-6">
+        <h2 class="text-2xl font-bold mb-2">{{ titulo|default:"Cadastro de Imóvel" }}</h2>
+    </div>
+
+    <div class="bg-gray-700 p-6 rounded-lg border border-gray-700 shadow-md">
+        <form method="post" id="imovel-form" enctype="multipart/form-data">
             {% csrf_token %}
             
             {% if form.non_field_errors %}
-            <div class="col-span-full bg-red-600 text-white p-4 rounded-lg mb-4">
+            <div class="bg-red-600 text-white p-4 rounded-lg mb-4">
                 {% for error in form.non_field_errors %}
                     <p>{{ error }}</p>
                 {% endfor %}
             </div>
             {% endif %}
             
-            {% for field in form %}
-            {% if field.name != 'asaas_id' %}
-            <div class="{% if field.name == 'observacoes' %}col-span-full{% endif %} transition-all">
-                <label class="block text-gray-300 text-sm font-medium mb-2" for="{{ field.id_for_label }}">
-                    {{ field.label }}
-                    {% if field.field.required %}
-                        <span class="text-red-500">*</span>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {% for field in form %}
+                <div class="flex flex-col {% if field.name == 'observacoes' or field.name == 'descricao' %}md:col-span-2{% endif %}">
+                    <label for="{{ field.id_for_label }}" class="font-medium">
+                        {{ field.label }}
+                        {% if field.field.required %}
+                            <span class="text-red-500">*</span>
+                        {% endif %}
+                    </label>
+                    
+                    <div class="relative">
+                        {{ field }}
+                        {% if field.name == 'cep' %}
+                            <div class="absolute right-3 top-3 text-gray-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if field.errors %}
+                    <span class="text-red-500 text-sm">{{ field.errors|striptags }}</span>
                     {% endif %}
-                </label>
-                
-                <div class="relative">
-                    {{ field }}
-                    {% if field.name == 'cep' %}
-                        <div class="absolute right-3 top-3 text-gray-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
+                    
+                    {% if field.help_text %}
+                    <p class="text-gray-400 text-xs mt-1">{{ field.help_text }}</p>
                     {% endif %}
                 </div>
-                
-                {% if field.errors %}
-                <p class="text-red-500 text-xs italic mt-1">{{ field.errors|join:", " }}</p>
-                {% endif %}
-                
-                {% if field.help_text %}
-                <p class="text-gray-400 text-xs mt-1">{{ field.help_text }}</p>
-                {% endif %}
+                {% endfor %}
             </div>
-            {% endif %}
-            {% endfor %}
             
-            <div class="col-span-full mt-6">
-                <button type="submit" class="w-full bg-blue-600 text-white font-medium py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50">
-                    Cadastrar
-                </button>
+            <div class="mt-6 text-center">
+                <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">Cadastrar</button>
             </div>
         </form>
     </div>
@@ -175,84 +175,57 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-});
+    
+    // Máscara para o campo IPTU
+    const iptuInput = document.querySelector('.iptu-mask');
+    if (iptuInput) {
+        // Adiciona um evento de input para formatar o valor
+        iptuInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, ''); // Remove caracteres não numéricos
+            if (value.length > 12) value = value.slice(0, 12); // Limita a 12 dígitos
+            // Aplica a máscara xxx.xxx.xxxx-x
+            if (value.length > 10) {
+                value = value.slice(0, 3) + '.' + value.slice(3, 6) + '.' + value.slice(6, 10) + '-' + value.slice(10, 12);
+            } else if (value.length > 6) {
+                value = value.slice(0, 3) + '.' + value.slice(3, 6) + '.' + value.slice(6);
+            } else if (value.length > 3) {
+                value = value.slice(0, 3) + '.' + value.slice(3);
+            }
+            e.target.value = value;
+        });
 
-function toggleFields() {
-    const tipo = document.querySelector('select[name="tipo"]').value;
-    const anuenteField = document.querySelector('select[name="Anuente"]');
-
-    if (!anuenteField) return;
-
-    // Desabilita o campo "anuente" se o tipo for "Anuente" com efeito visual
-    if (tipo === 'Anuente') {
-        anuenteField.disabled = true;
-        anuenteField.parentElement.parentElement.classList.add('opacity-50');
-    } else {
-        anuenteField.disabled = false;
-        anuenteField.parentElement.parentElement.classList.remove('opacity-50');
+        // Remove a máscara antes de enviar o formulário
+        const form = document.getElementById('imovel-form');
+        if (form) {
+            form.addEventListener('submit', function() {
+                let value = iptuInput.value.replace(/\D/g, ''); // Remove todos os caracteres não numéricos
+                iptuInput.value = value; // Atualiza o valor do campo com apenas números
+            });
+        }
     }
-}
 
-document.addEventListener('DOMContentLoaded', () => {
+    function toggleFields() {
+        const tipo = document.querySelector('select[name="tipo"]');
+        const anuenteField = document.querySelector('select[name="Anuente"]');
+
+        if (!tipo || !anuenteField) return;
+
+        // Desabilita o campo "anuente" se o tipo for "Anuente" com efeito visual
+        if (tipo.value === 'Anuente') {
+            anuenteField.disabled = true;
+            anuenteField.parentElement.parentElement.classList.add('opacity-50');
+        } else {
+            anuenteField.disabled = false;
+            anuenteField.parentElement.parentElement.classList.remove('opacity-50');
+        }
+    }
+
     toggleFields();
     
     const tipoSelect = document.querySelector('select[name="tipo"]');
     if (tipoSelect) {
         tipoSelect.addEventListener('change', toggleFields);
     }
-});
-</script>
-
-<!-- jQuery UI para autocomplete -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
-<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
-
-<script>
-$(document).ready(function() {
-    // Customização do tema do jQuery UI para combinar com o tema escuro
-    $('<style>')
-        .prop('type', 'text/css')
-        .html(`
-            .ui-autocomplete {
-                background: #2d3748 !important;
-                border: 1px solid #4a5568 !important;
-                color: #e2e8f0 !important;
-                border-radius: 0.5rem !important;
-                padding: 0.5rem !important;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
-            }
-            .ui-menu-item {
-                padding: 0 !important;
-            }
-            .ui-menu .ui-menu-item-wrapper {
-                padding: 0.5rem 1rem !important;
-                border-radius: 0.25rem !important;
-            }
-            .ui-menu .ui-menu-item-wrapper.ui-state-active {
-                background: #4299e1 !important;
-                border: none !important;
-                color: white !important;
-                margin: 0 !important;
-            }
-        `)
-        .appendTo('head');
-
-    $('.autocomplete').each(function() {
-        const model = $(this).data('model');
-        const field = $(this).data('field');
-        const url = `/autocomplete/${model}/${field}/`;
-        
-        $(this).autocomplete({
-            source: url,
-            minLength: 2,
-            delay: 300,
-            autoFocus: true,
-            classes: {
-                "ui-autocomplete": "custom-autocomplete"
-            }
-        });
-    });
 });
 </script>
 {% endblock %}

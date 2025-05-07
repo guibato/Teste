@@ -30,10 +30,10 @@
             <thead class="bg-gray">
                 <tr>
                     <th class="px-4 py-2">ID</th>
-                    <th class="px-4 py-2">Proprietário</th>
                     <th class="px-4 py-2">Inquilino</th>
                     <th class="px-4 py-2">Imóvel</th>
                     <th class="px-4 py-2">Data de Início</th>
+                    <th class="px-4 py-2">Dia de Pagamento</th>
                     <th class="px-4 py-2">Status</th>
                     <th class="px-4 py-2">Ações</th>
                 </tr>
@@ -42,12 +42,13 @@
                 {% for contrato in page_obj %}
                 <tr class="border-b hover:bg-gray-700 text-center">
                     <td class="px-4 py-2">{{ contrato.id }}</td>
-                    <td class="px-4 py-2">{{ contrato.proprietario.nome }}</td>
-                    <td class="px-4 py-2">{{ contrato.inquilino.nome }}</td>
+                    
+                    <td class="px-4 py-2">{{ contrato.inquilinos.nome }}</td>
                     <td class="px-4 py-2">{{ contrato.imovel }}</td>
                     <td class="px-4 py-2">{{ contrato.data_inicio|date:"d/m/Y" }}</td>
+                    <td class="px-4 py-2">{{ contrato.dia_pagamento }}</td>
                     <td class="px-4 py-2">
-                        {% if contrato.ativo %}
+                        {% if contrato.ativo %} 
                             Ativo
                         {% else %}
                             Inativo
