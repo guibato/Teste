@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import logout
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .forms import ClienteForm, ImovelForm, ContratoForm, GerarCobrancasForm, CobrancaForm, DespesaForm  # Importe DespesaForm aqui
-from .models import Cliente, Imovel, Contrato, Cobranca, Despesa, IndiceInflacao, MovimentoConta, LancamentoContaCorrente
+from .models import Cliente, Imovel, Contrato, Cobranca, Despesa, IndiceInflacao, MovimentoConta, LancamentoContaCorrente, LembreteEnviado
 from django.views.generic import ListView
 from django.db.models import Q
 from datetime import date, datetime
@@ -51,7 +51,7 @@ import requests
 
 class ContratoListView(ListView):
     model = Contrato
-    paginate_by = 10  # Número de itens por página
+    paginate_by = 30  # Número de itens por página
     queryset = Contrato.objects.all().order_by('-data_inicio')  # Ordenação explícita
 
 def autocomplete_field(request, model_name, field_name):
@@ -401,7 +401,7 @@ def editar_contrato(request, contrato_id):
 class ListarContratosView(ListView):
     model = Contrato
     template_name = 'imoveis/listar_contratos.html'
-    paginate_by = 20
+    paginate_by = 30
     context_object_name = 'page_obj'
 
     def get_queryset(self):
@@ -593,7 +593,7 @@ def atualizar_datas_cobranca(request, pk):
             except ValueError:
                 messages.error(request, "Formato de data inválido para repasse.")
 
-    return redirect('dashboard', contrato_id=cobranca.contrato.id)
+    return redirect('dashboard', id=cobranca.contrato.id)
 
 def gerar_extrato_rendimento(request, contrato_id):
     ano = request.GET.get('ano', str(date.today().year - 1))
@@ -956,7 +956,7 @@ def excluir_despesa(request, id):
 
     despesa.delete()  # Exclui a despesa
 
-    return redirect('dashboard', contrato_id=contrato_id)  # Redireciona corretamente
+    return redirect('dashboard', id=contrato_id)  # Redireciona corretamente
 
 def extrato(request):
     proprietarios = Cliente.objects.all().order_by('nome')
@@ -987,28 +987,66 @@ def extrato(request):
         proprietario = Cliente.objects.get(id=proprietario_id)
         contratos = Contrato.objects.filter(proprietario=proprietario)
         
+        # ===== DEBUG =====
+        print(f"Processando extrato para proprietário ID {proprietario_id}: {proprietario.nome}")
+        # ===== DEBUG =====
+        
         # Lista para imóveis do proprietário
         imoveis_dict = {}
         
+        # Primeiro, vamos coletar todos os imóveis do proprietário
         for contrato in contratos:
             imovel = contrato.imovel
             if imovel.id not in imoveis_dict:
-                # Use getattr para acessar atributos com segurança
-                situacao = getattr(imovel, 'situacao', None) or getattr(imovel, 'status', 'desconhecido')
-                status_display = getattr(imovel, 'get_situacao_display', 
-                                 lambda: getattr(imovel, 'get_status_display', 
-                                 lambda: 'Desconhecido'))()
+                # Verificar se há contratos ativos para este imóvel
+                contratos_ativos = Contrato.objects.filter(
+                    imovel=imovel,
+                    data_inicio__lte=hoje.date(),
+                    ativo=True
+                ).exists()
+                
+                # Determinar o status com base nos contratos
+                if contratos_ativos:
+                    status = 'alugado'
+                    status_display = 'Alugado'
+                else:
+                    status = 'disponivel'
+                    status_display = 'Disponível'
+                
+                # Criar endereço completo
+                endereco_completo = ""
+                if hasattr(imovel, 'endereco_completo'):
+                    if callable(imovel.endereco_completo):
+                        endereco_completo = imovel.endereco_completo()
+                    else:
+                        endereco_completo = imovel.endereco_completo
+                else:
+                    # Criar um endereço completo manualmente
+                    partes = []
+                    if hasattr(imovel, 'endereco') and imovel.endereco:
+                        partes.append(imovel.endereco)
+                    if hasattr(imovel, 'numero') and imovel.numero:
+                        partes.append(imovel.numero)
+                    if hasattr(imovel, 'complemento') and imovel.complemento:
+                        partes.append(imovel.complemento)
+                    endereco_completo = ', '.join(partes)
                 
                 imoveis_dict[imovel.id] = {
                     'id': imovel.id,
+                    'obj': imovel,
                     'endereco': getattr(imovel, 'endereco', ''),
-                    'status': situacao,
-                    'get_status_display': status_display,
+                    'endereco_completo': endereco_completo,
+                    'status': status,  # Status baseado em contratos
+                    'get_status_display': status_display,  # Display do status
                     'receitas': 0,
                     'despesas': 0,
-                    'repasses': 0,  # Adicionado campo para repasses
+                    'repasses': 0,
                     'saldo': 0
                 }
+                
+                # ===== DEBUG =====
+                print(f"Imóvel inicializado - ID: {imovel.id}, Endereço: {endereco_completo}")
+                # ===== DEBUG =====
 
         lancamentos = []
 
@@ -1020,11 +1058,22 @@ def extrato(request):
         ).select_related('contrato__imovel', 'contrato')
 
         total_cobrancas_pagas = cobrancas.count()
+        
+        # ===== DEBUG =====
+        print(f"Total de cobranças pagas encontradas: {total_cobrancas_pagas}")
+        # ===== DEBUG =====
 
         for cobranca in cobrancas:
             imovel = cobranca.contrato.imovel
             data = cobranca.data_pagamento
             mes_ano = f"{cobranca.mes_referencia}/{cobranca.ano_referencia}"
+            
+            # ===== DEBUG =====
+            print(f"\n----- PROCESSANDO COBRANÇA -----")
+            print(f"Imóvel ID: {imovel.id}, Endereço: {getattr(imovel, 'endereco', 'N/A')}")
+            print(f"Referência: {mes_ano}, Data pagamento: {data}")
+            print(f"Valor total da cobrança: {cobranca.valor}")
+            # ===== DEBUG =====
             
             # Usar o valor do aluguel do contrato, não da cobrança
             contrato = cobranca.contrato
@@ -1037,10 +1086,29 @@ def extrato(request):
             valor_cobranca_total = cobranca.valor
             valor_encargos = valor_cobranca_total - valor_aluguel_contrato
             
+            # ===== DEBUG =====
+            print(f"Componentes do valor:")
+            print(f"- Valor do aluguel no contrato: {valor_aluguel_contrato}")
+            print(f"- Taxa de administração: {valor_admin}")
+            print(f"- Valor cobrança total: {valor_cobranca_total}")
+            print(f"- Valor calculado de encargos: {valor_encargos}")
+            
+            if hasattr(cobranca, 'valor_iptu'):
+                print(f"- IPTU explícito na cobrança: {cobranca.valor_iptu}")
+            
+            receitas_antes = imoveis_dict[imovel.id]['receitas'] if imovel.id in imoveis_dict else 0
+            # ===== DEBUG =====
+            
             # Atualizar receitas do imóvel
             if imovel.id in imoveis_dict:
                 imoveis_dict[imovel.id]['receitas'] += valor_aluguel_contrato
                 imoveis_dict[imovel.id]['despesas'] += valor_admin
+            
+            # ===== DEBUG =====
+            receitas_depois = imoveis_dict[imovel.id]['receitas'] if imovel.id in imoveis_dict else 0
+            print(f"Receitas do imóvel antes: {receitas_antes}, depois: {receitas_depois}")
+            print(f"Incremento nas receitas: {receitas_depois - receitas_antes}")
+            # ===== DEBUG =====
             
             # Adicionar lançamento para o valor do aluguel puro
             lancamentos.append({
@@ -1052,8 +1120,29 @@ def extrato(request):
                 'imovel': imovel,
             })
             
-            # Se houver encargos adicionais na cobrança, adicionar como um lançamento separado
+            # ===== DEBUG =====
+            print(f"Adicionado lançamento: Aluguel {mes_ano} - valor: {valor_aluguel_contrato}")
+            # ===== DEBUG =====
             
+            # Se houver encargos adicionais na cobrança, adicionar como um lançamento separado
+            if valor_encargos > 0:
+                # ===== DEBUG =====
+                print(f"Encargos encontrados no valor de {valor_encargos}. Verifique se isso inclui IPTU.")
+                
+                # VERIFICAR: O código original não adiciona estes encargos às receitas nem como lançamentos!
+                # Isso pode ser parte do problema.
+                
+                # ===== DEBUG =====
+                # Verificar todos os atributos da cobrança que possam estar relacionados ao IPTU
+                print("Atributos da cobrança relacionados ao IPTU:")
+                for attr_name in dir(cobranca):
+                    if 'iptu' in attr_name.lower() and not attr_name.startswith('__'):
+                        valor_attr = getattr(cobranca, attr_name)
+                        print(f"- {attr_name}: {valor_attr}")
+                # ===== DEBUG =====
+                
+                # AQUI É IMPORTANTE: Verificar se o IPTU está sendo adicionado às receitas em outro lugar
+                # ou se há algum atributo específico para IPTU na cobrança que não está sendo processado corretamente
             
             # Adicionar lançamento para a taxa de administração
             lancamentos.append({
@@ -1064,32 +1153,71 @@ def extrato(request):
                 'valor': valor_admin,
                 'imovel': imovel,
             })
+            
+            # ===== DEBUG =====
+            print(f"Adicionado lançamento: Taxa de Administração {mes_ano} - valor: {valor_admin}")
+            print("----- FIM DO PROCESSAMENTO DA COBRANÇA -----\n")
+            # ===== DEBUG =====
 
-                # DESPESAS
+        # DESPESAS
         despesas = Despesa.objects.filter(
             contrato__proprietario=proprietario,
             data_inicio__lte=data_final,
         ).select_related('contrato__imovel')
 
         total_despesas_pagas = despesas.count()
+        
+        # ===== DEBUG =====
+        print(f"Total de despesas encontradas: {total_despesas_pagas}")
+        # ===== DEBUG =====
 
         for despesa in despesas:
             imovel = despesa.contrato.imovel
             qtd_parcelas = despesa.numero_parcelas or 1
             valor_parcela = despesa.valor_total / qtd_parcelas
+            
+            # ===== DEBUG =====
+            print(f"\n----- PROCESSANDO DESPESA -----")
+            print(f"Despesa: {despesa.descricao}, Imóvel ID: {imovel.id if imovel else 'N/A'}")
+            print(f"Valor total: {despesa.valor_total}, Parcelas: {qtd_parcelas}, Valor parcela: {valor_parcela}")
+            # ===== DEBUG =====
 
-            for parcela in range(qtd_parcelas):  # ✅ Agora está dentro do loop da despesa
+            for parcela in range(qtd_parcelas):
                 data_parcela = despesa.data_inicio + timezone.timedelta(days=parcela * 30)
-                if data_inicial <= data_parcela <= data_final:
+                
+                # Verificar se a data da parcela está no período E se já passou (não é uma data futura)
+                hoje = timezone.now().date()
+                
+                # MODIFICAÇÃO AQUI: Verificar se a data da parcela já passou ou é hoje
+                if data_inicial <= data_parcela <= data_final and data_parcela <= hoje:
                     responsavel = getattr(despesa, 'paga', 'proprietario')
                     tipo_lancamento = 'RECEITA' if responsavel == 'inquilino' else 'DESPESA'
                     tipo_display = 'Receita' if tipo_lancamento == 'RECEITA' else 'Despesa'
+                    
+                    # ===== DEBUG =====
+                    print(f"Parcela {parcela+1}/{qtd_parcelas}: Data {data_parcela}, Responsável: {responsavel}")
+                    
+                    receitas_antes = imoveis_dict[imovel.id]['receitas'] if imovel and imovel.id in imoveis_dict else 0
+                    despesas_antes = imoveis_dict[imovel.id]['despesas'] if imovel and imovel.id in imoveis_dict else 0
+                    # ===== DEBUG =====
 
-                    if imovel.id in imoveis_dict:
+                    if imovel and imovel.id in imoveis_dict:
                         if tipo_lancamento == 'RECEITA':
                             imoveis_dict[imovel.id]['receitas'] += valor_parcela
                         else:
                             imoveis_dict[imovel.id]['despesas'] += valor_parcela
+                    
+                    # ===== DEBUG =====
+                    receitas_depois = imoveis_dict[imovel.id]['receitas'] if imovel and imovel.id in imoveis_dict else 0
+                    despesas_depois = imoveis_dict[imovel.id]['despesas'] if imovel and imovel.id in imoveis_dict else 0
+                    
+                    if tipo_lancamento == 'RECEITA':
+                        print(f"Receitas do imóvel antes: {receitas_antes}, depois: {receitas_depois}")
+                        print(f"Incremento nas receitas: {receitas_depois - receitas_antes}")
+                    else:
+                        print(f"Despesas do imóvel antes: {despesas_antes}, depois: {despesas_depois}")
+                        print(f"Incremento nas despesas: {despesas_depois - despesas_antes}")
+                    # ===== DEBUG =====
 
                     lancamentos.append({
                         'data': data_parcela,
@@ -1099,23 +1227,49 @@ def extrato(request):
                         'valor': valor_parcela,
                         'imovel': imovel,
                     })
+                # OUTRA OPÇÃO: Adicionar um comentário para marcar parcelas futuras sem contabilizá-las
+                elif data_inicial <= data_parcela <= data_final and data_parcela > hoje:
+                    # ===== DEBUG =====
+                    print(f"Parcela {parcela+1}/{qtd_parcelas}: Data {data_parcela} - IGNORADA (data futura)")
+                    # ===== DEBUG =====
+            
+            # ===== DEBUG =====
+            print("----- FIM DO PROCESSAMENTO DA DESPESA -----\n")
+            # ===== DEBUG =====
+        
+    
 
-
-
-        # ✅ REPASSES (fora do loop de despesas)
+        # REPASSES (fora do loop de despesas)
         repasses = Cobranca.objects.filter(
             contrato__proprietario=proprietario,
             data_repasse__range=(data_inicial, data_final)
         ).select_related('contrato__imovel')
 
         total_repasses = repasses.count()
+        
+        # ===== DEBUG =====
+        print(f"Total de repasses encontrados: {total_repasses}")
+        # ===== DEBUG =====
 
         for repasse in repasses:
             imovel = repasse.contrato.imovel
             valor_liquido = repasse.valor_liquido
+            
+            # ===== DEBUG =====
+            print(f"\n----- PROCESSANDO REPASSE -----")
+            print(f"Repasse para imóvel ID: {imovel.id if imovel else 'N/A'}")
+            print(f"Valor líquido: {valor_liquido}")
+            
+            repasses_antes = imoveis_dict[imovel.id]['repasses'] if imovel and imovel.id in imoveis_dict else 0
+            # ===== DEBUG =====
 
             if imovel and imovel.id in imoveis_dict:
                 imoveis_dict[imovel.id]['repasses'] += valor_liquido
+            
+            # ===== DEBUG =====
+            repasses_depois = imoveis_dict[imovel.id]['repasses'] if imovel and imovel.id in imoveis_dict else 0
+            print(f"Repasses do imóvel antes: {repasses_antes}, depois: {repasses_depois}")
+            # ===== DEBUG =====
 
             lancamentos.append({
                 'data': repasse.data_repasse,
@@ -1125,15 +1279,29 @@ def extrato(request):
                 'valor': valor_liquido,
                 'imovel': imovel,
             })
+            
+            # ===== DEBUG =====
+            print("----- FIM DO PROCESSAMENTO DO REPASSE -----\n")
+            # ===== DEBUG =====
 
-        # 🔄 Atualizar saldo por imóvel
+        # Atualizar saldo por imóvel
         for imovel_id, imovel_info in imoveis_dict.items():
             imovel_info['saldo'] = imovel_info['receitas'] - imovel_info['despesas'] - imovel_info['repasses']
+            
+            # ===== DEBUG =====
+            print(f"\n----- RESUMO DO IMÓVEL ID: {imovel_id} -----")
+            print(f"Endereço: {imovel_info['endereco_completo']}")
+            print(f"Total de receitas: {imovel_info['receitas']}")
+            print(f"Total de despesas: {imovel_info['despesas']}")
+            print(f"Total de repasses: {imovel_info['repasses']}")
+            print(f"Saldo: {imovel_info['saldo']}")
+            print("----- FIM DO RESUMO DO IMÓVEL -----\n")
+            # ===== DEBUG =====
 
-        # 📅 Ordenar lançamentos por data
+        # Ordenar lançamentos por data
         lancamentos.sort(key=lambda x: x['data'])
 
-        # 📊 Calcular saldo acumulado
+        # Calcular saldo acumulado
         saldo = 0
         lancamentos_com_saldo = []
 
@@ -1149,13 +1317,21 @@ def extrato(request):
             lancamento_com_saldo['saldo'] = saldo
             lancamentos_com_saldo.append(lancamento_com_saldo)
 
-        # 📦 Totais finais
+        # Totais finais
         total_receitas = sum(l['valor'] for l in lancamentos if l['tipo'] == 'RECEITA')
         total_despesas = sum(l['valor'] for l in lancamentos if l['tipo'] == 'DESPESA')
         total_repasses_valor = sum(l['valor'] for l in lancamentos if l['tipo'] == 'REPASSE')
+        
+        # ===== DEBUG =====
+        print("\n----- RESUMO GERAL -----")
+        print(f"Total de receitas: {total_receitas}")
+        print(f"Total de despesas: {total_despesas}")
+        print(f"Total de repasses: {total_repasses_valor}")
+        print(f"Saldo final: {total_receitas - total_despesas - total_repasses_valor}")
+        print("----- FIM DO RESUMO GERAL -----\n")
+        # ===== DEBUG =====
 
         imoveis = list(imoveis_dict.values())
-
         context.update({
             'lancamentos': lancamentos_com_saldo,
             'saldo': total_receitas - total_despesas - total_repasses_valor,
@@ -1169,6 +1345,7 @@ def extrato(request):
         })
     return render(request, 'imoveis/extrato.html', context)
 
+from datetime import datetime, date
 
 def montar_extrato_do_proprietario(proprietario, data_inicial=None, data_final=None):
     extrato = []
@@ -1182,26 +1359,23 @@ def montar_extrato_do_proprietario(proprietario, data_inicial=None, data_final=N
 
     for contrato in contratos:
         cobrancas = Cobranca.objects.filter(contrato=contrato)
-
         if data_inicial:
             cobrancas = cobrancas.filter(data__gte=data_inicial)
         if data_final:
             cobrancas = cobrancas.filter(data__lte=data_final)
 
-        
-    
-    for cobranca in cobrancas:
-        data_ref = date(cobranca.ano_referencia, cobranca.mes_referencia, 1)
+        for cobranca in cobrancas:
+            data_ref = date(cobranca.ano_referencia, cobranca.mes_referencia, 1)
+            despesas = Despesa.objects.filter(contrato=cobranca.contrato)
 
-        # Lógica de despesas associadas ao contrato
-        despesas = Despesa.objects.filter(contrato=cobranca.contrato)
+            for despesa in despesas:
+                # Verifica se a parcela está ativa para o mês/ano de referência
+                if not despesa.parcela_atual_ativa(data_ref):
+                    continue
 
-        for despesa in despesas:
-            if despesa.parcela_atual_ativa(data_ref):
                 valor_parcela = despesa.calcular_valor_parcela()
 
                 if despesa.paga == 'inquilino':
-                    # Receita para o proprietário
                     extrato.append({
                         'data': data_ref,
                         'descricao': f"Repasse despesa: {despesa.descricao or despesa.get_tipo_display()}",
@@ -1209,24 +1383,17 @@ def montar_extrato_do_proprietario(proprietario, data_inicial=None, data_final=N
                         'valor': valor_parcela,
                     })
                 elif despesa.paga == 'proprietario':
-                    # Despesa do proprietário
                     extrato.append({
                         'data': data_ref,
                         'descricao': f"Despesa: {despesa.descricao or despesa.get_tipo_display()}",
                         'tipo': 'Débito',
                         'valor': valor_parcela,
                     })
-                elif despesa.paga == 'inquilino':
-                    extrato.append({
-                        "data": cobranca.data,
-                        "descricao": f"Despesa: {despesa.descricao or despesa.get_tipo_display()}",
-                        "tipo": "Crédito",
-                        "valor": valor_parcela,
-                    })
 
-    # Ordenar por data
     extrato.sort(key=lambda x: x["data"])
     return extrato
+
+
 
 
 def gerar_extrato_pdf(request, pk):
@@ -1637,6 +1804,45 @@ def visualizar_mensagens_cobranca(request):
     mensagens_agrupadas = dict(sorted(mensagens_agrupadas.items(), key=lambda x: x[0] if isinstance(x[0], (str, datetime.date)) else ''))
 
     return render(request, 'cobrancas/visualizar_mensagens.html', {"mensagens_agrupadas": mensagens_agrupadas})
+
+def enviar_mensagens_cobranca(request):
+    if request.method != "POST":
+        return redirect('visualizar_mensagens_cobranca')
+
+    hoje = date.today()
+    lembretes = [(10, '10_dias'), (3, '3_dias'), (0, 'vencimento')]
+    cobrancas = Cobranca.objects.filter(status='pendente')
+    total_enviadas = 0
+
+    for dias_uteis, tipo_lembrete in lembretes:
+        for cobranca in cobrancas:
+            if LembreteEnviado.objects.filter(cobranca=cobranca, tipo=tipo_lembrete).exists():
+                continue
+
+            vencimento = cobranca.data_vencimento
+            data_lembrete = dia_util_anterior(vencimento, dias_uteis)
+            if data_lembrete != hoje:
+                continue
+
+            contrato = cobranca.contrato
+            for inquilino in contrato.inquilino.all():
+                if not inquilino.celular:
+                    continue
+
+                mensagem = gerar_mensagem_cobranca(cobranca)
+                numero = inquilino.celular
+                resposta = enviar_mensagem(numero, mensagem)
+
+                if resposta.get("status") == "success":
+                    LembreteEnviado.objects.create(cobranca=cobranca, tipo=tipo_lembrete)
+                    total_enviadas += 1
+
+    if total_enviadas > 0:
+        messages.success(request, f"{total_enviadas} mensagens enviadas com sucesso!")
+    else:
+        messages.warning(request, "Nenhuma mensagem foi enviada.")
+
+    return redirect('visualizar_mensagens_cobranca')
 
 
 from datetime import datetime, date
@@ -2174,6 +2380,7 @@ def confirmar_cobrancas_view(request):
     return redirect('cadastro_cobrancas')
 
 def processar_resposta_asaas(resultado_asaas, contrato, inquilino, valor_total, data_vencimento, descricao, mes_referencia, ano_referencia):
+
     """
     Processa a resposta da API do Asaas e salva a cobrança no banco de dados
     """
@@ -2252,3 +2459,328 @@ def processar_resposta_asaas(resultado_asaas, contrato, inquilino, valor_total, 
         nova_cobranca.save()
         
         return nova_cobranca, False, erro_msg
+    
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db.models import Q, Sum, F, Value, Case, When, DecimalField, CharField
+from django.db.models.functions import Coalesce
+from django.utils import timezone
+from django.http import JsonResponse
+from decimal import Decimal
+
+from .forms import CobrancaFiltroForm, PagamentoForm, RepasseForm
+from sisimob.models import Cobranca, MovimentoConta, Cliente
+
+
+
+def painel_financeiro(request):
+    """
+    View principal para gestão financeira centralizada
+    """
+    
+    # Inicializa formulário de filtro com os dados da request ou vazio
+    filtro_form = CobrancaFiltroForm(request.GET or None)
+    
+    # Inicia com todas as cobranças
+    cobrancas = Cobranca.objects.all().select_related(
+        'contrato', 
+        'contrato__imovel', 
+        'inquilino'
+    ).prefetch_related(
+        'contrato__proprietario'
+    ).order_by('data_vencimento', 'status')
+    
+    # Aplica filtros se o formulário for válido
+    if filtro_form.is_valid():
+        data = filtro_form.cleaned_data
+        
+        # Filtro por status
+        if data.get('status'):
+            cobrancas = cobrancas.filter(status=data['status'])
+            
+        # Filtro por status de repasse
+        if data.get('status_repasse'):
+            cobrancas = cobrancas.filter(status_repasse=data['status_repasse'])
+            
+        # Filtro por período
+        if data.get('data_inicio') and data.get('data_fim'):
+            cobrancas = cobrancas.filter(
+                data_vencimento__range=[data['data_inicio'], data['data_fim']]
+            )
+        elif data.get('data_inicio'):
+            cobrancas = cobrancas.filter(data_vencimento__gte=data['data_inicio'])
+        elif data.get('data_fim'):
+            cobrancas = cobrancas.filter(data_vencimento__lte=data['data_fim'])
+            
+        # Filtro por proprietário
+        if data.get('proprietario'):
+            cobrancas = cobrancas.filter(contrato__proprietario=data['proprietario'])
+            
+        # Filtro por inquilino
+        if data.get('inquilino'):
+            cobrancas = cobrancas.filter(inquilino=data['inquilino'])
+            
+        # Filtro por imóvel/contrato
+        if data.get('contrato'):
+            cobrancas = cobrancas.filter(contrato=data['contrato'])
+    
+    # Formulários para ações em lote
+    pagamento_form = PagamentoForm()
+    repasse_form = RepasseForm()
+    
+    # Resumo dos valores
+    resumo = {
+        'total_receber': cobrancas.filter(status='pendente').aggregate(
+            valor=Coalesce(Sum('valor'), Decimal('0'))
+        )['valor'],
+        'total_recebido': cobrancas.filter(status='paga').aggregate(
+            valor=Coalesce(Sum('valor'), Decimal('0'))
+        )['valor'],
+        'total_repassar': cobrancas.filter(
+            status='paga', 
+            status_repasse='pendente'
+        ).aggregate(valor=Coalesce(Sum('valor'), Decimal('0')))['valor'],
+        'total_atrasado': cobrancas.filter(
+            status='atrasada'
+        ).aggregate(valor=Coalesce(Sum('valor'), Decimal('0')))['valor'],
+    }
+    
+    contexto = {
+        'cobrancas': cobrancas,
+        'filtro_form': filtro_form,
+        'pagamento_form': pagamento_form,
+        'repasse_form': repasse_form,
+        'resumo': resumo,
+        'hoje': timezone.now().date(),
+    }
+    
+    return render(request, 'financeiro/painel_financeiro.html', contexto)
+
+
+
+def registrar_pagamento(request, cobranca_id):
+    """
+    Registra o pagamento de uma cobrança específica
+    """
+    cobranca = get_object_or_404(Cobranca, id=cobranca_id)
+    
+    if request.method == 'POST':
+        form = PagamentoForm(request.POST)
+        
+        if form.is_valid():
+            # Atualiza a cobrança
+            cobranca.status = 'paga'
+            cobranca.data_pagamento = form.cleaned_data['data_pagamento']
+            cobranca.save()
+            
+            # Registra o movimento na conta do proprietário
+            for proprietario in cobranca.contrato.proprietario.all():
+                MovimentoConta.objects.create(
+                    proprietario=proprietario,
+                    contrato=cobranca.contrato,
+                    tipo='credito',
+                    descricao=f"Pagamento de aluguel - {cobranca.mes_referencia}/{cobranca.ano_referencia}",
+                    valor=cobranca.valor,
+                    data_referencia=cobranca.data_vencimento
+                )
+            
+            messages.success(
+                request, 
+                f"Pagamento da cobrança #{cobranca_id} registrado com sucesso!"
+            )
+        else:
+            messages.error(request, "Erro ao registrar pagamento. Verifique os dados.")
+    
+    return redirect('painel_financeiro')
+
+
+
+def registrar_repasse(request, cobranca_id):
+    """
+    Registra o repasse de uma cobrança específica para o proprietário
+    """
+    cobranca = get_object_or_404(Cobranca, id=cobranca_id)
+    
+    # Valida se o pagamento foi recebido antes de repassar
+    if cobranca.status != 'paga':
+        messages.error(
+            request, 
+            "Não é possível repassar uma cobrança que não foi paga."
+        )
+        return redirect('painel_financeiro')
+    
+    if request.method == 'POST':
+        form = RepasseForm(request.POST)
+        
+        if form.is_valid():
+            # Atualiza a cobrança
+            cobranca.status_repasse = 'repassado'
+            cobranca.data_repasse = form.cleaned_data['data_repasse']
+            cobranca.save()
+            
+            # Valor descontando a taxa de administração
+            valor_liquido = cobranca.valor_liquido
+            
+            # Registra o movimento na conta do proprietário
+            for proprietario in cobranca.contrato.proprietario.all():
+                MovimentoConta.objects.create(
+                    proprietario=proprietario,
+                    contrato=cobranca.contrato,
+                    tipo='repasse',
+                    descricao=f"Repasse de aluguel - {cobranca.mes_referencia}/{cobranca.ano_referencia}",
+                    valor=valor_liquido,
+                    data_referencia=cobranca.data_repasse
+                )
+            
+            messages.success(
+                request, 
+                f"Repasse da cobrança #{cobranca_id} registrado com sucesso!"
+            )
+        else:
+            messages.error(request, "Erro ao registrar repasse. Verifique os dados.")
+    
+    return redirect('painel_financeiro')
+
+
+def cancelar_cobranca(request, cobranca_id):
+    """
+    Cancela uma cobrança específica
+    """
+    cobranca = get_object_or_404(Cobranca, id=cobranca_id)
+    
+    if request.method == 'POST':
+        cobranca.status = 'cancelada'
+        cobranca.status_repasse = 'cancelado'
+        cobranca.save()
+        
+        messages.success(
+            request, 
+            f"Cobrança #{cobranca_id} cancelada com sucesso!"
+        )
+    
+    return redirect('painel_financeiro')
+
+
+
+def acao_em_lote(request):
+    """
+    Processa ações em lote para múltiplas cobranças
+    """
+    if request.method == 'POST':
+        acao = request.POST.get('acao')
+        ids = request.POST.getlist('cobrancas_selecionadas')
+        
+        if not ids:
+            messages.warning(request, "Nenhuma cobrança selecionada.")
+            return redirect('painel_financeiro')
+        
+        cobrancas = Cobranca.objects.filter(id__in=ids)
+        
+        if acao == 'marcar_pago':
+            # Formulário de pagamento em lote
+            form = PagamentoForm(request.POST)
+            if form.is_valid():
+                data_pagamento = form.cleaned_data['data_pagamento']
+                
+                for cobranca in cobrancas:
+                    if cobranca.status != 'paga':
+                        cobranca.status = 'paga'
+                        cobranca.data_pagamento = data_pagamento
+                        cobranca.save()
+                        
+                        # Registra o movimento para cada proprietário
+                        for proprietario in cobranca.contrato.proprietario.all():
+                            MovimentoConta.objects.create(
+                                proprietario=proprietario,
+                                contrato=cobranca.contrato,
+                                tipo='credito',
+                                descricao=f"Pagamento de aluguel - {cobranca.mes_referencia}/{cobranca.ano_referencia}",
+                                valor=cobranca.valor,
+                                data_referencia=cobranca.data_vencimento
+                            )
+                
+                messages.success(request, f"{cobrancas.count()} cobranças marcadas como pagas.")
+            else:
+                messages.error(request, "Erro ao processar pagamentos em lote.")
+                
+        elif acao == 'fazer_repasse':
+            # Formulário de repasse em lote
+            form = RepasseForm(request.POST)
+            if form.is_valid():
+                data_repasse = form.cleaned_data['data_repasse']
+                
+                for cobranca in cobrancas:
+                    if cobranca.status == 'paga' and cobranca.status_repasse == 'pendente':
+                        cobranca.status_repasse = 'repassado'
+                        cobranca.data_repasse = data_repasse
+                        cobranca.save()
+                        
+                        valor_liquido = cobranca.valor_liquido
+                        
+                        # Registra o movimento para cada proprietário
+                        for proprietario in cobranca.contrato.proprietario.all():
+                            MovimentoConta.objects.create(
+                                proprietario=proprietario,
+                                contrato=cobranca.contrato,
+                                tipo='repasse',
+                                descricao=f"Repasse de aluguel - {cobranca.mes_referencia}/{cobranca.ano_referencia}",
+                                valor=valor_liquido,
+                                data_referencia=data_repasse
+                            )
+                
+                messages.success(request, f"{cobrancas.count()} repasses efetuados com sucesso.")
+            else:
+                messages.error(request, "Erro ao processar repasses em lote.")
+                
+        elif acao == 'cancelar':
+            count = 0
+            for cobranca in cobrancas:
+                if cobranca.status != 'cancelada':
+                    cobranca.status = 'cancelada'
+                    cobranca.status_repasse = 'cancelado'
+                    cobranca.save()
+                    count += 1
+            
+            messages.success(request, f"{count} cobranças canceladas com sucesso.")
+    
+    return redirect('painel_financeiro')
+
+
+
+def detalhes_cobranca(request, cobranca_id):
+    """
+    Retorna os detalhes de uma cobrança específica em formato JSON para uso em modal
+    """
+    cobranca = get_object_or_404(Cobranca, id=cobranca_id)
+    
+    dados = {
+        'id': cobranca.id,
+        'contrato_id': cobranca.contrato.id,
+        'endereco_imovel': str(cobranca.contrato.imovel),
+        'inquilino': ', '.join([str(inq) for inq in cobranca.contrato.inquilino.all()]),
+        'proprietario': ', '.join([str(prop) for prop in cobranca.contrato.proprietario.all()]),
+        'valor': float(cobranca.valor),
+        'valor_administracao': float(cobranca.valor_administracao),
+        'valor_liquido': float(cobranca.valor_liquido),
+        'mes_referencia': cobranca.mes_referencia,
+        'ano_referencia': cobranca.ano_referencia,
+        'data_vencimento': cobranca.data_vencimento.strftime('%d/%m/%Y'),
+        'status': cobranca.get_status_display(),
+        'status_asaas': cobranca.asaas_status or 'Não disponível',
+    }
+    
+    # Inclui dados de pagamento se já foi pago
+    if cobranca.status == 'paga':
+        dados.update({
+            'data_pagamento': cobranca.data_pagamento.strftime('%d/%m/%Y'),
+            'status_repasse': cobranca.get_status_repasse_display(),
+        })
+        
+        # Se já foi repassado, inclui a data
+        if cobranca.status_repasse == 'repassado':
+            dados['data_repasse'] = cobranca.data_repasse.strftime('%d/%m/%Y')
+    
+    return JsonResponse(dados)

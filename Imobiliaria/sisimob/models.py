@@ -6,6 +6,10 @@ from sisimob.utils.integracao_asaas import cadastrar_cliente_no_asaas, atualizar
 from django.conf import settings
 from sisimob.utils.cobrancas_asaas import gerar_cobranca
 from django.core.exceptions import ValidationError
+import datetime
+from datetime import date, timedelta
+
+
 
 class Cliente(models.Model):
     TIPO_CLIENTE_CHOICES = [
@@ -150,11 +154,20 @@ class Imovel(models.Model):
             partes.append(self.bairro)
         return ", ".join(partes)
     
+    
+    @property
     def endereco_completo(self):
-        partes = [self.endereco, self.numero]
+        partes = []
+        if self.endereco:
+            partes.append(self.endereco)
+        if self.numero:
+            partes.append(str(self.numero))  # Converte o número para string, caso seja um inteiro
         if self.complemento:
             partes.append(self.complemento)
-    
+
+        # Verifica se há mais de um item na lista, e formata com o " - " apenas quando necessário
+        if len(partes) > 1:
+            return f"{partes[0]}, {partes[1]} - {partes[2]}" if len(partes) > 2 else f"{partes[0]}, {partes[1]}"
         return ', '.join(partes)
 
 class Contrato(models.Model):
@@ -430,11 +443,35 @@ class Cobranca(models.Model):
                 total += despesa.valor
 
         return total
+    
+    @property
+    def despesas_inquilino(self):
+        """
+        Soma todas as despesas atribuídas ao inquilino, ativas no mês/ano da cobrança.
+        """
+        despesas = self.contrato.despesas.all()
+        total = Decimal("0.00")
+        data_referencia = date(self.ano_referencia, self.mes_referencia, 1)
+        for despesa in despesas:
+            if despesa.paga == 'inquilino' and despesa.parcela_atual_ativa(data_referencia):
+                total += despesa.calcular_valor_parcela()
+        return total
 
     @property
     def valor_liquido(self):
-        """Calcula o valor líquido: Aluguel - Administração + Despesas Repasse - Despesas Deduzidas"""
-        return self.valor - self.valor_administracao
+        valor_aluguel = self.contrato.valor_aluguel or Decimal("0.00")
+        valor_despesas_inquilino = self.despesas_inquilino or Decimal("0.00")
+        valor_administracao = self.valor_administracao or Decimal("0.00")
+
+        valor_bruto = valor_aluguel + valor_despesas_inquilino
+
+        despesas_proprietario = sum([
+            despesa.calcular_valor_parcela()
+            for despesa in self.contrato.despesas.all()
+            if despesa.paga == 'proprietario' and despesa.parcela_atual_ativa(date(self.ano_referencia, self.mes_referencia, 1))
+        ])
+
+        return valor_bruto - valor_administracao - despesas_proprietario
 
     @property
     def total_despesas_repassadas(self):
@@ -571,11 +608,20 @@ class Despesa(models.Model):
         return min(meses_passados, self.numero_parcelas)
 
     def parcela_atual_ativa(self, data_referencia=None):
-        """Verifica se a parcela para a data de referência ainda está ativa"""
+        """Verifica se a despesa tem parcela ativa na data de referência"""
+        if not self.data_inicio or not self.numero_parcelas:
+            return False
+
         if not data_referencia:
             data_referencia = date.today()
-        
-        return self.parcelas_pagas(data_referencia) < self.numero_parcelas
+
+        data_inicio = date(self.data_inicio.year, self.data_inicio.month, 1)
+        data_fim = data_inicio + relativedelta(months=self.numero_parcelas)
+
+        # data_referencia precisa estar no mesmo mês/ano do intervalo
+        data_referencia = date(data_referencia.year, data_referencia.month, 1)
+
+        return data_inicio <= data_referencia < data_fim
     
     def save(self, *args, **kwargs):
         """Sobrescreve o método save para aplicar regras de negócio na despesa"""
@@ -584,6 +630,7 @@ class Despesa(models.Model):
             self.is_recorrente = True
             
         super().save(*args, **kwargs)
+
 
 class MovimentoConta(models.Model):
     TIPO_MOVIMENTO = (
@@ -617,3 +664,20 @@ class LancamentoContaCorrente(models.Model):
     tipo = models.CharField(max_length=10, choices=TIPOS)
     descricao = models.CharField(max_length=255)
     valor = models.DecimalField(max_digits=10, decimal_places=2)
+
+class LembreteEnviado(models.Model):
+    TIPO_LEMBRETE_CHOICES = [
+        ('10_dias', '10 Dias Úteis'),
+        ('3_dias', '3 Dias Úteis'),
+        ('vencimento', 'No Dia do Vencimento'),
+    ]
+
+    cobranca = models.ForeignKey('Cobranca', on_delete=models.CASCADE, related_name='lembretes')
+    tipo = models.CharField(max_length=20, choices=TIPO_LEMBRETE_CHOICES)
+    data_envio = models.DateField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('cobranca', 'tipo')
+
+    def __str__(self):
+        return f"Lembrete {self.tipo} para cobrança {self.cobranca_id} enviado em {self.data_envio}"

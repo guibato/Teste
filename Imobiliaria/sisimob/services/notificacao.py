@@ -59,29 +59,47 @@ Aluguel : R$ {valor_aluguel_formatado}
     # Despesas individuais
     despesas_texto = []
     for despesa in contrato.despesas.all():
-        inicio = despesa.data_inicio
-        num_parcelas = despesa.numero_parcelas or 1
-        fim = inicio + relativedelta(months=num_parcelas) - relativedelta(days=1)
+        incluir_despesa = False
+        descricao = despesa.descricao or despesa.get_tipo_display()
 
-        if inicio <= vencimento <= fim:
+        if despesa.is_recorrente:
+            # Verifica se a despesa recorrente deve aparecer no mês de vencimento
+            delta_meses = (vencimento.year - despesa.data_inicio.year) * 12 + (vencimento.month - despesa.data_inicio.month)
+            if despesa.periodicidade == 'mensal' and delta_meses >= 0:
+                incluir_despesa = True
+            elif despesa.periodicidade == 'trimestral' and delta_meses % 3 == 0 and delta_meses >= 0:
+                incluir_despesa = True
+            elif despesa.periodicidade == 'semestral' and delta_meses % 6 == 0 and delta_meses >= 0:
+                incluir_despesa = True
+            elif despesa.periodicidade == 'anual' and delta_meses % 12 == 0 and delta_meses >= 0:
+                incluir_despesa = True
+        else:
+            # Despesas parceladas
+            inicio = despesa.data_inicio
+            num_parcelas = despesa.numero_parcelas or 1
+            fim = inicio + relativedelta(months=num_parcelas) - relativedelta(days=1)
+            if inicio <= vencimento <= fim:
+                incluir_despesa = True
+
+        if incluir_despesa:
             try:
-                valor_parcela = (despesa.valor_total.amount if hasattr(despesa.valor_total, 'amount') else despesa.valor_total or Decimal("0.00")) / num_parcelas
+                valor_parcela = despesa.calcular_valor_parcela()
             except ZeroDivisionError:
                 valor_parcela = Decimal("0.00")
 
-            # Formata o valor da parcela com locale
             valor_parcela_formatado = locale.currency(valor_parcela, grouping=True, symbol=None)
 
-            # Calcula qual a parcela atual (considerando mês e ano)
-            parcela_atual = (vencimento.year - inicio.year) * 12 + (vencimento.month - inicio.month) + 1
+            # Número da parcela apenas se não for recorrente
+            if not despesa.is_recorrente:
+                parcela_atual = (vencimento.year - despesa.data_inicio.year) * 12 + (vencimento.month - despesa.data_inicio.month) + 1
+                descricao += f" ({parcela_atual}/{despesa.numero_parcelas})"
 
-            # Formata com número da parcela
-            descricao = f"{despesa.descricao} ({parcela_atual}/{num_parcelas})"
             despesas_texto.append(f"{descricao} : R$ {valor_parcela_formatado}")
+
 
     # Adiciona despesas à mensagem, se houver
     if despesas_texto:
-        corpo += "\n" + "\n".join(despesas_texto)
+        corpo += "\n".join(despesas_texto)
 
     # Link do boleto
     if cobranca.asaas_boleto_url:

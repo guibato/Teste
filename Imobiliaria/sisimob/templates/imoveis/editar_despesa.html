@@ -90,7 +90,7 @@
 
         <!-- Botões de Ação -->
         <div class="col-span-full flex justify-end gap-4 mt-6">
-            <a href="{% url 'dashboard' contrato_id=despesa.contrato.id %}" class="px-6 py-2 bg-gray-700 text-gray-200 rounded-md hover:bg-gray-600 transition-colors">
+            <a href="{% url 'dashboard' id=despesa.contrato.id %}" class="px-6 py-2 bg-gray-700 text-gray-200 rounded-md hover:bg-gray-600 transition-colors">
                 Cancelar
             </a>
             <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">

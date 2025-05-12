@@ -3,6 +3,476 @@
 {% load static %}
 
 {% block extra_head %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<style>
+/* Estilo geral */
+:root {
+  --bg-primary: #f8fafc;
+  --bg-card: #ffffff;
+  --text-primary: #334155;
+  --text-secondary: #64748b;
+  --accent-blue: #3b82f6;
+  --accent-green: #22c55e;
+  --accent-red: #ef4444;
+  --accent-yellow: #eab308;
+  --border-color: #e2e8f0;
+  --hover-bg: #f1f5f9;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.dark-mode {
+  --bg-primary: #1e293b;
+  --bg-card: #0f172a;
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --border-color: #334155;
+  --hover-bg: #1e293b;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+}
+
+/* Cards e Tabelas */
+.dashboard-card {
+  background-color: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.dashboard-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.card-icon {
+  margin-right: 0.75rem;
+  color: var(--accent-blue);
+}
+
+.card-body {
+  padding: 0;
+}
+
+/* Tabela Estilizada */
+.modern-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.modern-table th {
+  background-color: rgba(0,0,0,0.03);
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.modern-table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.875rem;
+  transition: background-color 0.15s ease;
+}
+
+.modern-table tr:hover td {
+  background-color: var(--hover-bg);
+}
+
+.modern-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Badges */
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+}
+
+.status-badge i {
+  margin-right: 0.25rem;
+}
+
+.badge-green {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: var(--accent-green);
+}
+
+.badge-blue {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--accent-blue);
+}
+
+.badge-red {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--accent-red);
+}
+
+.badge-yellow {
+  background-color: rgba(234, 179, 8, 0.1);
+  color: var(--accent-yellow);
+}
+
+/* Valores */
+.valor {
+  font-family: 'Roboto Mono', monospace;
+  font-weight: 500;
+}
+
+.receita {
+  color: var(--accent-green);
+}
+
+.despesa {
+  color: var(--accent-red);
+}
+
+.repasse {
+  color: var(--accent-yellow);
+}
+
+/* Botões de filtro */
+.filter-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.filter-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all 0.15s ease;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.filter-btn i {
+  font-size: 0.75rem;
+}
+
+.btn-all {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--accent-blue);
+}
+
+.btn-all:hover {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
+.btn-receitas {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: var(--accent-green);
+}
+
+.btn-receitas:hover {
+  background-color: rgba(34, 197, 94, 0.2);
+}
+
+.btn-despesas {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--accent-red);
+}
+
+.btn-despesas:hover {
+  background-color: rgba(239, 68, 68, 0.2);
+}
+
+.btn-repasses {
+  background-color: rgba(234, 179, 8, 0.1);
+  color: var(--accent-yellow);
+}
+
+.btn-repasses:hover {
+  background-color: rgba(234, 179, 8, 0.2);
+}
+
+/* Paginação */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.page-btn {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.page-btn:hover {
+  background-color: var(--hover-bg);
+}
+
+.page-btn.active {
+  background-color: var(--accent-blue);
+  color: white;
+}
+
+.page-info {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* Pesquisa */
+.search-container {
+  position: relative;
+  width: 300px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  padding-left: 2.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  transition: all 0.15s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .filter-buttons {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+  
+  .modern-table {
+    display: block;
+    overflow-x: auto;
+  }
+  
+  .pagination-container {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .search-container {
+    width: 100%;
+  }
+}
+
+/* Modo de impressão */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .dashboard-card {
+    box-shadow: none;
+    border: 1px solid #ddd;
+    break-inside: avoid;
+  }
+  
+  .modern-table th {
+    background-color: #f8f8f8 !important;
+    color: #333 !important;
+    print-color-adjust: exact;
+  }
+  
+  .badge-green, .badge-blue, .badge-red, .badge-yellow {
+    border: 1px solid #ddd;
+    background-color: transparent !important;
+    color: #333 !important;
+    print-color-adjust: exact;
+  }
+  
+  .receita { color: #22c55e !important; }
+  .despesa { color: #ef4444 !important; }
+  .repasse { color: #eab308 !important; }
+}
+
+/* Tooltip */
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 0.75rem;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Scroll suave */
+.table-container {
+  max-height: 500px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+
+.table-container::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 3px;
+}
+
+/* Mensagens e alertas */
+.alert {
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.alert-info {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--accent-blue);
+  border-left: 4px solid var(--accent-blue);
+}
+
+.alert-success {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: var(--accent-green);
+  border-left: 4px solid var(--accent-green);
+}
+
+/* Animações */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease;
+}
+
+/* Sumário de valores */
+.value-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.summary-item {
+  background-color: var(--bg-card);
+  border-radius: 8px;
+  padding: 1rem;
+  flex: 1;
+  min-width: 200px;
+  box-shadow: var(--shadow);
+}
+
+.summary-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.summary-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+</style>
 <style>
     .dark-theme {
         --bg-primary: #1a202c;
@@ -251,138 +721,173 @@
         </div>
 
         <!-- Imóveis do Proprietário - Atualizado para incluir coluna de repasses -->
-        <div class="card p-6 mb-6">
-            <h3 class="text-lg font-semibold mb-4 flex items-center">
-                <i class="bi bi-house-door mr-2"></i>
-                Imóveis do Proprietário
-            </h3>
-            <div class="overflow-x-auto">
-                <table class="min-w-full table-dark">
-                    <thead>
-                        <tr>
-                            <th class="px-4 py-3 text-left">Imóvel</th>
-                            <th class="px-4 py-3 text-center">Status</th>
-                            <th class="px-4 py-3 text-right">Receitas</th>
-                            <th class="px-4 py-3 text-right">Despesas</th>
-                            <th class="px-4 py-3 text-right">Repasses</th>
-                            <th class="px-4 py-3 text-right">Saldo</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for imovel in imoveis %}
-                        <tr>
-                            <td class="px-4 py-3">
-                                <div class="font-medium">{{ imovel.endereco }}</div>
-                                <div class="text-sm text-gray-400">Cód: #{{ imovel.id }}</div>
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                <span class="badge {% if imovel.status == 'alugado' %}badge-green{% elif imovel.status == 'disponivel' %}badge-blue{% else %}badge-red{% endif %}">
-                                    {{ imovel.get_status_display }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 text-right receita">
-                                R$ {{ imovel.receitas|floatformat:2 }}
-                            </td>
-                            <td class="px-4 py-3 text-right despesa">
-                                R$ {{ imovel.despesas|floatformat:2 }}
-                            </td>
-                            <td class="px-4 py-3 text-right repasse">
-                                R$ {{ imovel.repasses|floatformat:2 }}
-                            </td>
-                            <td class="px-4 py-3 text-right {% if imovel.saldo >= 0 %}receita{% else %}despesa{% endif %}">
-                                R$ {{ imovel.saldo|floatformat:2 }}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="px-4 py-4 text-center text-gray-500">
-                                Nenhum imóvel encontrado para este proprietário.
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <div class="dashboard-card fade-in">
+  <div class="card-header">
+    <h3 class="card-title">
+      <i class="fas fa-building card-icon"></i>
+      Imóveis do Proprietário
+    </h3>
+    
+  </div>
+  
+  
+  
+  <div class="card-body">
+    <div class="table-container ">
+      <table class="modern-table w-full" id="table-imoveis">
+        <thead>
+          <tr>
+            <th>Imóvel</th>
+            <th class="text-center">Status</th>
+            <th class="text-center">Receitas</th>
+            <th class="text-center">Despesas</th>
+            <th class="text-center">Repasses</th>
+            <th class="text-center">Saldo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for imovel in imoveis %}
+          <tr>
+            <td class="text-center">
+              <div class="font-medium">{{ imovel.endereco_completo }}</div>
+              
+            </td>
+            <td class="text-center">
+              <span class="status-badge {% if imovel.status == 'alugado' %}badge-green{% elif imovel.status == 'disponivel' %}badge-blue{% else %}badge-red{% endif %}">
+                {% if imovel.status == 'alugado' %}
+                  <i class="fas fa-check-circle"></i>
+                {% elif imovel.status == 'disponivel' %}
+                  <i class="fas fa-home"></i>
+                {% else %}
+                  <i class="fas fa-exclamation-triangle"></i>
+                {% endif %}
+                {{ imovel.get_status_display }}
+              </span>
+            </td>
+            <td class="text-center">
+              <span class="valor receita">R$ {{ imovel.receitas|floatformat:2 }}</span>
+            </td>
+            <td class="text-center">
+              <span class="valor despesa">R$ {{ imovel.despesas|floatformat:2 }}</span>
+            </td>
+            <td class="text-center">
+              <span class="valor repasse">R$ {{ imovel.repasses|floatformat:2 }}</span>
+            </td>
+            <td class="text-center">
+              <span class="valor {% if imovel.saldo >= 0 %}receita{% else %}despesa{% endif %}">
+                R$ {{ imovel.saldo|floatformat:2 }}
+              </span>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-6 text-secondary">
+              <i class="fas fa-info-circle mr-2"></i>
+              Nenhum imóvel encontrado para este proprietário.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+
 
         <!-- Extrato Detalhado - Atualizado para incluir filtro de repasses -->
-        <div class="card p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold flex items-center">
-                    <i class="bi bi-receipt mr-2"></i>
-                    Extrato Detalhado
-                </h3>
-                <div class="flex space-x-2 no-print">
-                    <button id="btn-receitas" class="bg-green-700 hover:bg-green-800 text-white px-3 py-1 rounded text-sm">
-                        Receitas
-                    </button>
-                    <button id="btn-despesas" class="bg-red-700 hover:bg-red-800 text-white px-3 py-1 rounded text-sm">
-                        Despesas
-                    </button>
-                    <button id="btn-repasses" class="bg-yellow-700 hover:bg-yellow-800 text-white px-3 py-1 rounded text-sm">
-                        Repasses
-                    </button>
-                    <button id="btn-todos" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
-                        Todos
-                    </button>
+        <div class="dashboard-card fade-in">
+  <div class="card-header">
+    <h3 class="card-title">
+      <i class="fas fa-receipt card-icon"></i>
+      Extrato Detalhado
+    </h3>
+    <div class="filter-buttons no-print">
+      <button id="btn-todos" class="filter-btn btn-all">
+        <i class="fas fa-list"></i>
+        Todos
+      </button>
+      <button id="btn-receitas" class="filter-btn btn-receitas">
+        <i class="fas fa-arrow-down"></i>
+        Receitas
+      </button>
+      <button id="btn-despesas" class="filter-btn btn-despesas">
+        <i class="fas fa-arrow-up"></i>
+        Despesas
+      </button>
+      <button id="btn-repasses" class="filter-btn btn-repasses">
+        <i class="fas fa-exchange-alt"></i>
+        Repasses
+      </button>
+    </div>
+  </div>
+  
+  
+    
+    <div class="table-container">
+      <table class="modern-table w-full" id="table-extrato">
+        <thead>
+          <tr>
+            <th class="text-center">Data</th>
+            <th class="text-center">Imóvel</th>
+            <th class="text-center">Descrição</th>
+            <th class="text-center">Tipo</th>
+            <th class="text-center">Valor</th>
+            <th class="text-center">Saldo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for lancamento in lancamentos %}
+          <tr class="tipo-{{ lancamento.tipo|lower }} text-center">
+            <td>{{ lancamento.data|date:"d/m/Y" }}</td>
+            <td class="text-center">
+              {% if lancamento.imovel %}
+                <div class="tooltip">
+                  {{ lancamento.imovel.endereco_completo }}
+                  
                 </div>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="min-w-full table-dark" id="tabela-extrato">
-                    <thead>
-                        <tr>
-                            <th class="px-4 py-3 text-left">Data</th>
-                            <th class="px-4 py-3 text-left">Imóvel</th>
-                            <th class="px-4 py-3 text-left">Descrição</th>
-                            <th class="px-4 py-3 text-center">Tipo</th>
-                            <th class="px-4 py-3 text-right">Valor</th>
-                            <th class="px-4 py-3 text-right">Saldo (R$)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for lancamento in lancamentos %}
-                        <tr class="tipo-{{ lancamento.tipo|lower }}">
-                            <td class="px-4 py-3">{{ lancamento.data|date:"d/m/Y" }}</td>
-                            <td class="px-4 py-3">
-                                {% if lancamento.imovel %}
-                                    {{ lancamento.imovel.endereco|truncatechars:25 }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td class="px-4 py-3">{{ lancamento.descricao }}</td>
-                            <td class="px-4 py-3 text-center">
-                                <span class="badge 
-                                    {% if lancamento.tipo == 'RECEITA' %}badge-green
-                                    {% elif lancamento.tipo == 'DESPESA' %}badge-red
-                                    {% elif lancamento.tipo == 'REPASSE' %}badge-yellow
-                                    {% endif %}">
-                                    {{ lancamento.get_tipo_display }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 text-right 
-                                {% if lancamento.tipo == 'RECEITA' %}receita
-                                {% elif lancamento.tipo == 'DESPESA' %}despesa
-                                {% elif lancamento.tipo == 'REPASSE' %}repasse
-                                {% endif %}">
-                                R$ {{ lancamento.valor|floatformat:2 }}
-                            </td>
-                            <td class="px-4 py-3 text-right {% if lancamento.saldo >= 0 %}receita{% else %}despesa{% endif %}">
-                                R$ {{ lancamento.saldo|floatformat:2 }}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="px-4 py-4 text-center text-gray-500">
-                                Nenhum lançamento encontrado para o período selecionado.
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+              {% else %}
+                -
+              {% endif %}
+            </td>
+            <td class="text-center">{{ lancamento.descricao }} </td>
+            <td class="text-center">
+              <span class="status-badge {% if lancamento.tipo == 'RECEITA' %}badge-green{% elif lancamento.tipo == 'DESPESA' %}badge-red{% elif lancamento.tipo == 'REPASSE' %}badge-yellow{% endif %}">
+                {% if lancamento.tipo == 'RECEITA' %}
+                  <i class="fas fa-arrow-down"></i>
+                {% elif lancamento.tipo == 'DESPESA' %}
+                  <i class="fas fa-arrow-up"></i>
+                {% elif lancamento.tipo == 'REPASSE' %}
+                  <i class="fas fa-exchange-alt"></i>
+                {% endif %}
+                {{ lancamento.get_tipo_display }}
+              </span>
+            </td>
+            <td class="text-center">
+              <span class="valor {% if lancamento.tipo == 'RECEITA' %}receita{% elif lancamento.tipo == 'DESPESA' %}despesa{% elif lancamento.tipo == 'REPASSE' %}repasse{% endif %}">
+                R$ {{ lancamento.valor|floatformat:2 }}
+              </span>
+            </td>
+            <td class="text-center">
+              <span class="valor {% if lancamento.saldo >= 0 %}receita{% else %}despesa{% endif %}">
+                R$ {{ lancamento.saldo|floatformat:2 }}
+              </span>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-6 text-secondary">
+              <i class="fas fa-info-circle mr-2"></i>
+              Nenhum lançamento encontrado para o período selecionado.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  
+</div>
         {% if proprietario_selecionado %}
             <div class="mb-6 no-print">
                 <form method="get" action="{% url 'extrato_repasses_pdf' proprietario_selecionado %}" target="_blank">
@@ -477,5 +982,153 @@
             });
         }
     });
+</script>
+<script>
+  $(document).ready(function() {
+    // Funções de filtro para a tabela de extrato
+    $('#btn-todos').click(function() {
+      $('.tipo-receita, .tipo-despesa, .tipo-repasse').show();
+      highlightActiveFilter($(this));
+    });
+    
+    $('#btn-receitas').click(function() {
+      $('.tipo-despesa, .tipo-repasse').hide();
+      $('.tipo-receita').show();
+      highlightActiveFilter($(this));
+    });
+    
+    $('#btn-despesas').click(function() {
+      $('.tipo-receita, .tipo-repasse').hide();
+      $('.tipo-despesa').show();
+      highlightActiveFilter($(this));
+    });
+    
+    $('#btn-repasses').click(function() {
+      $('.tipo-receita, .tipo-despesa').hide();
+      $('.tipo-repasse').show();
+      highlightActiveFilter($(this));
+    });
+    
+    function highlightActiveFilter(button) {
+      $('.filter-btn').css('font-weight', 'normal');
+      button.css('font-weight', 'bold');
+    }
+    
+    // Função de pesquisa para imóveis
+    $('#search-imoveis').on('keyup', function() {
+      var value = $(this).val().toLowerCase();
+      $("#table-imoveis tbody tr").filter(function() {
+        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+      });
+      updatePagination('imoveis');
+    });
+    
+    // Função de pesquisa para extrato
+    $('#search-extrato').on('keyup', function() {
+      var value = $(this).val().toLowerCase();
+      $("#table-extrato tbody tr").filter(function() {
+        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+      });
+      updatePagination('extrato');
+    });
+    
+    // Paginação para tabela de imóveis
+    setupPagination('imoveis', 5);
+    setupPagination('extrato', 10);
+    
+    function setupPagination(tableId, rowsPerPage) {
+      var table = $(`#table-${tableId}`);
+      var rows = table.find('tbody tr');
+      var totalRows = rows.length;
+      var pageCount = Math.ceil(totalRows / rowsPerPage);
+      
+      var paginationContainer = $(`#${tableId}-pagination`);
+      paginationContainer.empty();
+      
+      // Adicionar botões de paginação
+      if (pageCount > 1) {
+        // Botão anterior
+        paginationContainer.append('<div class="page-btn prev"><i class="fas fa-chevron-left"></i></div>');
+        
+        // Números de página
+        for (var i = 1; i <= pageCount; i++) {
+          paginationContainer.append(`<div class="page-btn page-number" data-page="${i}">${i}</div>`);
+        }
+        
+        // Botão próximo
+        paginationContainer.append('<div class="page-btn next"><i class="fas fa-chevron-right"></i></div>');
+        
+        // Selecionar a primeira página
+        showPage(tableId, 1, rowsPerPage);
+        $(`.page-btn[data-page="1"]`).addClass('active');
+        
+        // Evento de clique nos botões de página
+        $(`.page-btn.page-number`).click(function() {
+          var page = $(this).data('page');
+          showPage(tableId, page, rowsPerPage);
+          $(`.page-btn.page-number`).removeClass('active');
+          $(this).addClass('active');
+        });
+        
+        // Botão anterior
+        $(`.page-btn.prev`).click(function() {
+          var currentPage = parseInt($(`.page-btn.page-number.active`).data('page'));
+          if (currentPage > 1) {
+            showPage(tableId, currentPage - 1, rowsPerPage);
+            $(`.page-btn.page-number`).removeClass('active');
+            $(`.page-btn.page-number[data-page="${currentPage - 1}"]`).addClass('active');
+          }
+        });
+        
+        // Botão próximo
+        $(`.page-btn.next`).click(function() {
+          var currentPage = parseInt($(`.page-btn.page-number.active`).data('page'));
+          if (currentPage < pageCount) {
+            showPage(tableId, currentPage + 1, rowsPerPage);
+            $(`.page-btn.page-number`).removeClass('active');
+            $(`.page-btn.page-number[data-page="${currentPage + 1}"]`).addClass('active');
+          }
+        });
+      }
+    }
+    
+    function showPage(tableId, page, rowsPerPage) {
+      var table = $(`#table-${tableId}`);
+      var rows = table.find('tbody tr:visible');
+      var start = (page - 1) * rowsPerPage;
+      var end = start + rowsPerPage;
+      
+      rows.hide();
+      rows.slice(start, end).show();
+      
+      // Atualizar contadores
+      $(`#${tableId}-start`).text(start + 1);
+      $(`#${tableId}-end`).text(Math.min(end, rows.length));
+      $(`#${tableId}-total`).text(rows.length);
+    }
+    
+    function updatePagination(tableId) {
+      // Atualizar a paginação quando os dados forem filtrados
+      var visibleRows = $(`#table-${tableId} tbody tr:visible`).length;
+      $(`#${tableId}-total`).text(visibleRows);
+      if (tableId === 'imoveis') {
+        setupPagination('imoveis', 5);
+      } else {
+        setupPagination('extrato', 10);
+      }
+    }
+    
+    // Modal para detalhes da transação (clique na linha)
+    $('#table-extrato tbody tr').click(function() {
+      // Aqui você pode implementar um modal ou expandir a linha para mostrar mais detalhes
+      // Por exemplo, mostrar um modal com os detalhes completos do lançamento
+      
+      // Toggle para destacar a linha selecionada
+      $(this).toggleClass('bg-blue-50');
+    });
+    
+    // Inicializar com todos os filtros ativos
+    $('#btn-todos').click();
+  });
 </script>
 {% endblock %}

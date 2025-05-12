@@ -1,0 +1,93 @@
+{% load humanize %}
+<div class="card shadow">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fas fa-list me-2"></i> Cobranças ({{ cobrancas.count }})
+        </h5>
+        <div>
+            <button class="btn btn-sm btn-outline-primary me-2" id="btnMarcarTodos">
+                <i class="fas fa-check-square me-1"></i> Marcar Todos
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" id="btnDesmarcarTodos">
+                <i class="fas fa-square me-1"></i> Desmarcar Todos
+            </button>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th width="5%"><input class="form-check-input" type="checkbox" id="checkTodos"></th>
+                        <th width="5%">ID</th>
+                        <th width="10%">Vencimento</th>
+                        <th width="10%">Referência</th>
+                        <th width="20%">Imóvel</th>
+                        <th width="15%">Inquilino</th>
+                        <th width="15%">Proprietário</th>
+                        <th width="10%">Valor</th>
+                        <th width="10%">Status</th>
+                        <th width="10%">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cobranca in cobrancas %}
+                    <tr class="{% if cobranca.status == 'atrasada' %}row-atrasada{% elif cobranca.data_vencimento == hoje %}row-hoje{% endif %}">
+                        <td>
+                            <input class="form-check-input checkbox-cobranca" type="checkbox" name="cobrancas_selecionadas" value="{{ cobranca.id }}" form="formAcaoLote">
+                        </td>
+                        <td>{{ cobranca.id }}</td>
+                        <td>{{ cobranca.data_vencimento|date:"d/m/Y" }}</td>
+                        <td>{{ cobranca.mes_referencia }}/{{ cobranca.ano_referencia }}</td>
+                        <td>{{ cobranca.contrato.imovel.endereco }}</td>
+                        <td>{{ cobranca.inquilino }}</td>
+                        <td>
+                            {% for proprietario in cobranca.contrato.proprietario.all %}
+                                {{ proprietario }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>R$ {{ cobranca.valor|floatformat:2|intcomma }}</td>
+                        <td>
+                            <span class="badge badge-{{ cobranca.status }}">{{ cobranca.get_status_display }}</span>
+                            {% if cobranca.status == 'paga' %}
+                            <br>
+                            <span class="badge badge-{{ cobranca.status_repasse }}">{{ cobranca.get_status_repasse_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-info btn-acao" data-action="detalhes" data-id="{{ cobranca.id }}" title="Detalhes">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                {% if cobranca.status == 'pendente' or cobranca.status == 'atrasada' %}
+                                <button type="button" class="btn btn-outline-success btn-acao" data-action="pagar" data-id="{{ cobranca.id }}" title="Registrar Pagamento">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-acao" data-action="cancelar" data-id="{{ cobranca.id }}" title="Cancelar Cobrança">
+                                    <i class="fas fa-ban"></i>
+                                </button>
+                                {% endif %}
+                                {% if cobranca.status == 'paga' and cobranca.status_repasse == 'pendente' %}
+                                <button type="button" class="btn btn-outline-primary btn-acao" data-action="repassar" data-id="{{ cobranca.id }}" title="Registrar Repasse">
+                                    <i class="fas fa-exchange-alt"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="text-center py-3">
+                            <p class="text-muted mb-0">Nenhuma cobrança encontrada com os filtros selecionados.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-light d-flex justify-content-between align-items-center">
+        <p class="mb-0 text-muted">Exibindo {{ cobrancas.count }} cobranças</p>
+        <!-- Paginação futura -->
+    </div>
+</div>

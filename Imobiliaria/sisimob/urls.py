@@ -49,7 +49,10 @@ urlpatterns = [
     path('reajustar-contratos/', views.reajustar_contratos, name='reajustar_contratos'),
     path('reajustar-contrato/<int:contrato_id>/', views.reajustar_contrato_individual, name='reajustar_contrato_individual'),
     path('mensagens-cobranca/', views.visualizar_mensagens_cobranca, name='visualizar_mensagens'),
+    path('mensagens-cobranca/enviar/', views.enviar_mensagens_cobranca, name='enviar_mensagens_cobranca'),
     path('confirmar-cobrancas/', views.confirmar_cobrancas_view, name='confirmar_cobrancas'),
+    path('painel/', views.painel_financeiro, name='painel_financeiro'),
+    path('acao-em-lote/', views.acao_em_lote, name='acao_em_lote'),
     
 ]
 

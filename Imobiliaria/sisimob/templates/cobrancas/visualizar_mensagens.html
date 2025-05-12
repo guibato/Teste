@@ -4,10 +4,16 @@
 <h2 class="text-xl font-bold mb-4">Mensagens de Cobrança Programadas para Hoje</h2>
 
 {% if mensagens_agrupadas %}
+    <form method="post" action="{% url 'enviar_mensagens_cobranca' %}">
+        {% csrf_token %}
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded mb-6 hover:bg-blue-700">
+            📤 Enviar todas as mensagens
+        </button>
+    </form>
+
     {% for data_lembrete, mensagens in mensagens_agrupadas.items %}
         <div class="mb-6">
             <h3 class="text-2xl font-semibold text-blue-600 mb-4">Mensagens para {{ data_lembrete|date:"d/m/Y" }}</h3>
-
             <ul class="space-y-4">
                 {% for m in mensagens %}
                     <li class="border p-4 rounded-md bg-grayshadow">

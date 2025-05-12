@@ -338,3 +338,87 @@ class ReajusteContratosForm(forms.Form):
             self.add_error('valor_manual', "O valor manual de reajuste não pode ser negativo.")
 
         return cleaned_data
+    
+
+from django import forms
+from django.utils import timezone
+from sisimob.models import Cobranca, Cliente, Contrato
+
+class CobrancaFiltroForm(forms.Form):
+    """
+    Formulário para filtrar cobranças no painel financeiro
+    """
+    STATUS_CHOICES = [('', '-- Todos os Status --')] + list(Cobranca.STATUS_CHOICES)
+    STATUS_REPASSE_CHOICES = [('', '-- Todos os Status --')] + list(Cobranca.STATUS_REPASSE_CHOICES)
+    
+    status = forms.ChoiceField(
+        choices=STATUS_CHOICES, 
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    
+    status_repasse = forms.ChoiceField(
+        choices=STATUS_REPASSE_CHOICES, 
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    
+    data_inicio = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+    
+    data_fim = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+    
+    proprietario = forms.ModelChoiceField(
+        queryset=Cliente.objects.filter(tipo='Proprietario'),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select select2'})
+    )
+    
+    inquilino = forms.ModelChoiceField(
+        queryset=Cliente.objects.filter(tipo='Inquilino'),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select select2'})
+    )
+    
+    contrato = forms.ModelChoiceField(
+        queryset=Contrato.objects.filter(ativo=True),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select select2'})
+    )
+
+
+class PagamentoForm(forms.Form):
+    """
+    Formulário para registrar pagamento de cobranças
+    """
+    data_pagamento = forms.DateField(
+        initial=timezone.now().date(),
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+    
+    observacao = forms.CharField(
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+
+
+class RepasseForm(forms.Form):
+    """
+    Formulário para registrar repasse aos proprietários
+    """
+    data_repasse = forms.DateField(
+        initial=timezone.now().date(),
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+    
+    observacao = forms.CharField(
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
