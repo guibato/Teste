@@ -47,6 +47,8 @@ from django.http import HttpResponse
 from .utils import obter_valor_historico
 from django.db.models import Q
 import requests
+ASAAS_API_KEY = os.getenv('ASAAS_API_KEY')
+
 
 
 class ContratoListView(ListView):
@@ -2399,7 +2401,7 @@ def processar_resposta_asaas(resultado_asaas, contrato, inquilino, valor_total, 
                 payment_id = resultado_asaas["id"]
                 pix_url = f"https://www.asaas.com/api/v3/payments/{payment_id}/pixQrCode"
                 pix_headers = {
-                    'access_token': settings.ASAAS_API_KEY,
+                    'access_token': ASAAS_API_KEY,
                     'Content-Type': 'application/json'
                 }
                 pix_response = requests.get(pix_url, headers=pix_headers)

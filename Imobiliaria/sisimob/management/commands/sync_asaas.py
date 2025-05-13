@@ -1,18 +1,26 @@
 import requests
+import os
 from django.core.management.base import BaseCommand
 from django.utils.timezone import make_aware
 from datetime import datetime
-from decimal import Decimal
-from sisimob.models import Cobranca  # ajuste conforme o nome do seu app
+from sisimob.models import Cobranca
+from dotenv import load_dotenv
 
-ASAAS_API_KEY = "$aact_prod_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjZiZGJhZGY3LTE4M2ItNGRmOC1iYmVkLWE3ZWUyMmQ1OGE4MDo6JGFhY2hfYTYxYTIxMGYtNDdmMy00MWQwLWEzNzgtNmIzYjcxMzk5ZmM3"
-ASAAS_BASE_URL = 'https://www.asaas.com/api/v3'  # ou sandbox: https://sandbox.asaas.com/api/v3
 
 class Command(BaseCommand):
     help = 'Sincroniza o status de pagamento das cobranças com o Asaas'
 
     def handle(self, *args, **kwargs):
         self.stdout.write("Iniciando sincronização com Asaas...")
+
+        # Carrega variáveis do .env
+        load_dotenv()
+        ASAAS_API_KEY = os.getenv('ASAAS_API_KEY')
+        ASAAS_PAYMENTS_URL = os.getenv('ASAAS_PAYMENTS_URL')
+
+        if not ASAAS_API_KEY or not ASAAS_PAYMENTS_URL:
+            self.stderr.write("Chave da API ou URL do Asaas não configuradas corretamente.")
+            return
 
         cobrancas = Cobranca.objects.exclude(asaas_id__isnull=True)
 
@@ -22,7 +30,7 @@ class Command(BaseCommand):
         }
 
         for cobranca in cobrancas:
-            url = f'{ASAAS_BASE_URL}/payments/{cobranca.asaas_id}'
+            url = f'{ASAAS_PAYMENTS_URL}/{cobranca.asaas_id}'
             response = requests.get(url, headers=headers)
 
             if response.status_code != 200:
@@ -52,4 +60,3 @@ class Command(BaseCommand):
                 self.stdout.write(f"Cobrança {cobranca.id} atualizada para {cobranca.status.upper()}")
 
         self.stdout.write("Sincronização concluída.")
-

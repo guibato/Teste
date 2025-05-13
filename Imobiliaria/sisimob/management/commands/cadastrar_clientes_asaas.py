@@ -3,7 +3,7 @@ from sisimob.models import Cliente
 from sisimob.utils.cobrancas_asaas import criar_cobranca_asaas
 import requests
 
-ASAAS_API_KEY = "$aact_hmlg_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjlmMjIzMzYzLTQyY2EtNGYwZS1hYmY4LWVhMGYyODU0YzQ0ZDo6JGFhY2hfMTJkOTc0YTAtZGExNC00MmExLTg1OWUtYTk3YzA3ZTYwMjgx"
+ASAAS_API_KEY = os.getenv('ASAAS_API_KEY')
 ASAAS_URL = "https://sandbox.asaas.com/api/v3/customers"
 
 def cadastrar_cliente_no_asaas(cliente):

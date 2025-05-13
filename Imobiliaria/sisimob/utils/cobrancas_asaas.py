@@ -1,9 +1,10 @@
 import requests
 import json
 import traceback
+import os
 
-ASAAS_API_KEY = "$aact_prod_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjZiZGJhZGY3LTE4M2ItNGRmOC1iYmVkLWE3ZWUyMmQ1OGE4MDo6JGFhY2hfYTYxYTIxMGYtNDdmMy00MWQwLWEzNzgtNmIzYjcxMzk5ZmM3"
-ASAAS_URL = "https://www.asaas.com/api/v3/payments"
+ASAAS_API_KEY = os.getenv('ASAAS_API_KEY')
+ASAAS_PAYMENTS_URL = os.getenv("ASAAS_PAYMENTS_URL")
 
 def gerar_cobranca(asaas_id, valor, vencimento, nome, descricao=None):
     """Cria uma cobrança no Asaas para um cliente existente com logs detalhados e retorno completo."""
@@ -45,11 +46,11 @@ def gerar_cobranca(asaas_id, valor, vencimento, nome, descricao=None):
         }
 
         print(f"🔑 Token API sendo usado: {ASAAS_API_KEY[:10]}...{ASAAS_API_KEY[-5:]}")
-        print(f"🌐 URL: {ASAAS_URL}")
+        print(f"🌐 URL: {ASAAS_PAYMENTS_URL}")
 
         try:
             print("⏳ Enviando requisição para o Asaas...")
-            response = requests.post(ASAAS_URL, json=dados_cobranca, headers=headers, timeout=30)
+            response = requests.post(ASAAS_PAYMENTS_URL, json=dados_cobranca, headers=headers, timeout=30)
             print(f"📊 Status code: {response.status_code}")
 
             try:

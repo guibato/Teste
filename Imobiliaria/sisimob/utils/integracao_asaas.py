@@ -1,9 +1,10 @@
 import requests
 import json
 import traceback
+import os
 
-ASAAS_API_KEY = "$aact_prod_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjZiZGJhZGY3LTE4M2ItNGRmOC1iYmVkLWE3ZWUyMmQ1OGE4MDo6JGFhY2hfYTYxYTIxMGYtNDdmMy00MWQwLWEzNzgtNmIzYjcxMzk5ZmM3"
-ASAAS_URL = "https://www.asaas.com/api/v3/customers"
+ASAAS_API_KEY = os.getenv('ASAAS_API_KEY')
+ASAAS_CUSTOMERS_URL = "https://api.asaas.com/v3/customers"
 
 def cadastrar_cliente_no_asaas(cliente):
     """ Envia os dados do Cliente para o Asaas e retorna o ID do Asaas. """
@@ -46,11 +47,11 @@ def cadastrar_cliente_no_asaas(cliente):
     }
     
     print(f"🔑 Token API sendo usado: {ASAAS_API_KEY[:10]}...{ASAAS_API_KEY[-5:]}")
-    print(f"🌐 URL: {ASAAS_URL}")
+    print(f"🌐 URL: {ASAAS_CUSTOMERS_URL}")
     
     try:
         print("⏳ Enviando requisição para o Asaas...")
-        response = requests.post(ASAAS_URL, json=dados_cliente, headers=headers, timeout=30)
+        response = requests.post(ASAAS_CUSTOMERS_URL, json=dados_cliente, headers=headers, timeout=30)
         print(f"📊 Status code: {response.status_code}")
         
         try:
