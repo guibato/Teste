@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'django_select2',
     
+    
 ]
 
 MIDDLEWARE = [

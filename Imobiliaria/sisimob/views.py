@@ -248,109 +248,87 @@ def sucesso(request):
     return render(request, 'sucesso.html', {'mensagem': 'Contrato cadastrado com sucesso!'})
 
 
-def dashboard(request, id):  # Mantenha o parâmetro como 'id'
-    contrato = get_object_or_404(Contrato, id=id)
-    aluguel_projetado = contrato.calcular_aluguel_projetado()
-    ano_filtro = request.GET.get('ano')
-    status_filtro = request.GET.get('status')
-    if ano_filtro:
-        cobrancas = cobrancas.filter(ano_referencia=ano_filtro)
-    if status_filtro:
-        cobrancas = cobrancas.filter(status=status_filtro)
-    total = contrato.calcular_valor_total()
-    historico_aluguel = contrato.historico_aluguel or {}
-    despesas = contrato.despesas.all().order_by('data_inicio')
-    despesa_form = DespesaForm()  # Inclua o DespesaForm no contexto
+def dashboard(request, id):
+    import logging
+    logger = logging.getLogger(__name__)
 
-    total_receitas = contrato.cobrancas.filter(status='paga').aggregate(
-        total=Sum('valor')
-    )['total'] or 0
-    
-    cobrancas = Cobranca.objects.filter(contrato_id=id)
+    try:
+        contrato = get_object_or_404(Contrato, id=id)
+        ano_filtro = request.GET.get('ano', str(date.today().year))
+        status_filtro = request.GET.get('status', '')
 
-    total_despesas = Decimal('0.00')
-    for cobranca in cobrancas:
-        # Verifica se a cobrança está paga para calcular as despesas
-        if cobranca.status == 'paga':
+        # Cobrancas relacionadas ao contrato
+        cobrancas = contrato.cobrancas.all().order_by('ano_referencia', 'mes_referencia')
+
+        if ano_filtro:
+            cobrancas = cobrancas.filter(ano_referencia=int(ano_filtro))
+        if status_filtro:
+            cobrancas = cobrancas.filter(status=status_filtro)
+
+        # Receita total (somente cobranças pagas)
+        total_receitas = contrato.cobrancas.filter(status='paga').aggregate(
+            total=Sum('valor')
+        )['total'] or Decimal('0.00')
+
+        # Despesas baseadas nas cobranças pagas (excluindo valor de administração)
+        total_despesas = Decimal('0.00')
+        for cobranca in contrato.cobrancas.filter(status='paga'):
             valor_liquido = cobranca.valor - cobranca.valor_administracao
             total_despesas += valor_liquido
-    
-    saldo = total_receitas - total_despesas
 
-    ano_filtro = request.GET.get('ano', str(date.today().year))
-    status_filtro = request.GET.get('status', '')
-    
-    cobrancas = contrato.cobrancas.all().order_by('ano_referencia', 'mes_referencia')
-    
-    if ano_filtro:
-        cobrancas = cobrancas.filter(ano_referencia=int(ano_filtro))
-    if status_filtro:
-        cobrancas = cobrancas.filter(status=status_filtro)
-    
-    # Gerar lista de anos disponíveis
-    anos_disponiveis = contrato.cobrancas.dates('data_vencimento', 'year').distinct()
+        saldo = total_receitas - total_despesas
 
-    if contrato.tipo_taxa == Contrato.valor_taxa_administracao_percentual and not contrato.valor_taxa_administracao_percentual:
-        contrato.valor_taxa_administracao_percentual = Decimal('0.00')
-        contrato.save()
-    elif contrato.tipo_taxa == Contrato.valor_taxa_administracao_fixo and not contrato.valor_taxa_administracao_fixo:
-        contrato.valor_taxa_administracao_fixo = Decimal('0.00')
-        contrato.save()
+        # Aluguel projetado
+        aluguel_projetado = contrato.calcular_aluguel_projetado()
 
-    
-    
-    
+        # Histórico de reajustes
+        historico_aluguel = contrato.historico_aluguel or {}
 
-    
+        # Anos disponíveis para filtro
+        anos_disponiveis = contrato.cobrancas.dates('data_vencimento', 'year').distinct()
 
-    context = {
-        'contrato': contrato,
-        'aluguel_projetado': aluguel_projetado,
-        'cobrancas': cobrancas,
-        'total': total,
-        'historico_aluguel': historico_aluguel,
-        'despesas': despesas,
-        'despesa_form': despesa_form,
-        'periodo': f"{date.today().year}",
-        'cobrancas': cobrancas,
-        'ano_selecionado': ano_filtro,
-        'status_selecionado': status_filtro,
-        'anos_disponiveis': anos_disponiveis,  # Adicione o DespesaForm ao contexto
-        'total_receitas': format_currency(total_receitas),
-        'total_despesas': format_currency(total_despesas),
-        'saldo': format_currency(saldo),
-        'aluguel_projetado': format_currency(aluguel_projetado),
-        'total_receitas': format_currency(total_receitas),
-        'total_despesas': format_currency(total_despesas),
-        'saldo': format_currency(saldo),
-        'aluguel_projetado': format_currency(aluguel_projetado),
-        'contrato.valor_caucao': format_currency(contrato.valor_caucao),
-        'contrato.valor_aluguel': format_currency(contrato.valor_aluguel),
-        'contrato.valor_taxa_administracao_fixo': format_currency(contrato.valor_taxa_administracao_fixo or 0),
-        'contrato.valor_taxa_administracao_percentual': format_currency(contrato.valor_taxa_administracao_percentual or 0),
-        'contrato': contrato,
-        'aluguel_projetado': format_currency(aluguel_projetado),
-        'cobrancas': cobrancas,
-        'despesas': despesas,
-        'total_receitas': format_currency(total_receitas),
-        'total_despesas': format_currency(total_despesas),
-        'saldo': format_currency(saldo),
-        'contrato_valor_caucao': format_currency(contrato.valor_caucao or 0),
-        'contrato_valor_aluguel': format_currency(contrato.valor_aluguel or 0),
-        'contrato_valor_taxa_administracao_fixo': format_currency(contrato.valor_taxa_administracao_fixo or 0),
-        'contrato_valor_taxa_administracao_percentual': format_currency(contrato.valor_taxa_administracao_percentual or 0),
-        'ano_selecionado': ano_filtro,
-        'status_selecionado': status_filtro,
-        'anos_disponiveis': contrato.cobrancas.dates('data_vencimento', 'year').distinct(),
-        
+        # Garantir que os campos de taxa estejam preenchidos para evitar erro
+        if contrato.tipo_taxa == 'percentual' and contrato.valor_taxa_administracao_percentual is None:
+            contrato.valor_taxa_administracao_percentual = Decimal('0.00')
+            contrato.save()
+        elif contrato.tipo_taxa == 'fixa' and contrato.valor_taxa_administracao_fixo is None:
+            contrato.valor_taxa_administracao_fixo = Decimal('0.00')
+            contrato.save()
 
+        # Formulário de despesa
+        despesa_form = DespesaForm()
 
-    }
+        context = {
+            'contrato': contrato,
+            'cobrancas': cobrancas,
+            'despesas': contrato.despesas.all().order_by('data_inicio'),
+            'despesa_form': despesa_form,
 
-    context['saldo'] = float(total_receitas) - float(total_despesas)
-    context['saldo_positivo'] = context['saldo'] >= 0
-    
-    return render(request, 'imoveis/dashboard.html', context)
+            'total_receitas': format_currency(total_receitas),
+            'total_despesas': format_currency(total_despesas),
+            'saldo_formatado': format_currency(saldo),
+            'saldo': float(saldo),
+            'saldo_positivo': saldo >= 0,
+
+            'aluguel_projetado': format_currency(aluguel_projetado),
+            'historico_aluguel': historico_aluguel,
+
+            'contrato_valor_aluguel': format_currency(contrato.valor_aluguel),
+            'contrato_valor_caucao': format_currency(contrato.valor_caucao or 0),
+            'contrato_valor_taxa_administracao_fixo': format_currency(contrato.valor_taxa_administracao_fixo or 0),
+            'contrato_valor_taxa_administracao_percentual': format_currency(contrato.valor_taxa_administracao_percentual or 0),
+
+            'ano_selecionado': ano_filtro,
+            'status_selecionado': status_filtro,
+            'anos_disponiveis': anos_disponiveis,
+        }
+
+        return render(request, 'imoveis/dashboard.html', context)
+
+    except Exception as e:
+        import traceback
+        logger.error("Erro ao carregar extrato", exc_info=True)
+        return HttpResponse("Erro interno", status=500)
 
 def listar_indices_inflacao(request):
     indices = IndiceInflacao.objects.all().order_by('data_referencia')
@@ -398,7 +376,6 @@ def editar_contrato(request, contrato_id):
         'titulo': 'Editar Contrato',
         'botao_acao': 'Salvar'
     })
-
 
 class ListarContratosView(ListView):
     model = Contrato
@@ -1394,9 +1371,6 @@ def montar_extrato_do_proprietario(proprietario, data_inicial=None, data_final=N
 
     extrato.sort(key=lambda x: x["data"])
     return extrato
-
-
-
 
 def gerar_extrato_pdf(request, pk):
     data_inicio = request.GET.get('data_inicio')

@@ -173,3 +173,4 @@ def atualizar_indices_inflacao():
         print(f"Erro ao inicializar atualização de índices: {e}")
         
     print("Índices atualizados com sucesso!")
+

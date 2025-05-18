@@ -402,20 +402,52 @@ class Cobranca(models.Model):
     lembrete_0_enviado = models.BooleanField(default=False)
 
 
+    
+
     @property
     def valor_administracao(self):
-        """Calcula o valor da taxa de administração baseado no valor do aluguel"""
         if not hasattr(self.contrato, 'tipo_taxa'):
             return Decimal('0.00')
-        
-        valor_aluguel = self.contrato.valor_aluguel  # Obter o valor do aluguel do contrato
-        
+
+        # Verifica se tem vencimento
+        data_referencia = self.data_vencimento or datetime.today().date()
+
+        # Recupera o valor do aluguel vigente na data
+        valor_aluguel = self.get_valor_aluguel_na_data(data_referencia)
+
         if self.contrato.tipo_taxa == 'percentual':
             percentual = self.contrato.valor_taxa_administracao_percentual or Decimal('0.00')
-            return (valor_aluguel * percentual) / 100  # Cálculo da taxa de administração como percentual do aluguel
+            return (valor_aluguel * percentual / 100).quantize(Decimal('0.01'))
+
         elif self.contrato.tipo_taxa == 'fixa':
-            return self.contrato.valor_taxa_administracao_fixo or Decimal('0.00')  # Taxa fixa
+            valor_fixo = self.contrato.valor_taxa_administracao_fixo
+            if hasattr(valor_fixo, 'amount'):
+                valor_fixo = valor_fixo.amount
+            return valor_fixo or Decimal('0.00')
+
         return Decimal('0.00')
+
+    def get_valor_aluguel_na_data(self, data: datetime.date) -> Decimal:
+        """Retorna o valor do aluguel vigente na data, baseado no histórico do contrato"""
+        historico = self.contrato.historico_aluguel or {}
+        
+        # Converte as chaves em datas e ordena
+        datas = sorted(
+            ((datetime.datetime.strptime(k, "%Y-%m-%d").date(), Decimal(str(v)))
+            for k, v in historico.items()),
+            key=lambda x: x[0]
+        )
+
+        valor_vigente = Decimal('0.00')
+        for data_inicio, valor in datas:
+            if data >= data_inicio:
+                valor_vigente = valor
+            else:
+                break
+
+        return valor_vigente
+
+
 
     @property
     def valor_boleto(self):
