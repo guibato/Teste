@@ -27,8 +27,8 @@ class Repasse(models.Model):
     ]
 
     proprietario = models.ForeignKey('sisimob.Cliente', on_delete=models.CASCADE, related_name='repasses_recebidos')
-    cobranca = models.ForeignKey('financeiro.Cobranca', on_delete=models.SET_NULL, null=True, blank=True, related_name='repasses')
-    contrato = models.ForeignKey('sisimob.Contrato', on_delete=models.CASCADE, related_name='repasses')
+    cobranca = models.ForeignKey('financeiro.Cobranca', on_delete=models.SET_NULL, null=True, blank=True, related_name='repasses_cobranca')
+    contrato = models.ForeignKey('sisimob.Contrato', on_delete=models.CASCADE, related_name='reprepasses_financeiroasses')
 
     valor = models.DecimalField(max_digits=10, decimal_places=2)
     valor_desconto = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))

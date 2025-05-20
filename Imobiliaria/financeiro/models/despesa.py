@@ -39,7 +39,7 @@ class Despesa(models.Model):
     ]
     PERIODICIDADE_CHOICES = list((key, key.capitalize()) for key in MESES_POR_PERIODICIDADE.keys())
 
-    contrato = models.ForeignKey('sisimob.Contrato', on_delete=models.CASCADE, related_name='despesas')
+    contrato = models.ForeignKey('sisimob.Contrato', on_delete=models.CASCADE, related_name='despesas_financeiro')
     tipo = models.ForeignKey(TipoDespesa, on_delete=models.PROTECT, related_name='despesas')
     descricao = models.CharField(max_length=255, null=True, blank=True)
     valor_total = models.DecimalField(max_digits=10, decimal_places=2)

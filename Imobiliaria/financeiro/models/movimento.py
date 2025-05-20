@@ -3,6 +3,11 @@ from django.db import models
 from decimal import Decimal
 
 
+# financeiro/models/movimento.py
+from django.db import models
+from decimal import Decimal
+
+
 class MovimentoConta(models.Model):
     """
     Modelo único para registrar movimentações na conta dos proprietários:
@@ -14,8 +19,8 @@ class MovimentoConta(models.Model):
         ('repasse', 'Repasse Efetuado'),
     ]
 
-    proprietario = models.ForeignKey('sisimob.Cliente', on_delete=models.CASCADE, related_name='movimentos')
-    contrato = models.ForeignKey('sisimob.Contrato', on_delete=models.SET_NULL, null=True, blank=True)
+    proprietario = models.ForeignKey('sisimob.Cliente', on_delete=models.CASCADE, related_name='movimentos_financeiro')
+    contrato = models.ForeignKey('sisimob.Contrato', on_delete=models.SET_NULL, null=True, blank=True, related_name='movimentos_financeiro')
     tipo = models.CharField(max_length=10, choices=TIPO_MOVIMENTO)
     descricao = models.CharField(max_length=255)
     valor = models.DecimalField(max_digits=10, decimal_places=2)
@@ -52,7 +57,7 @@ class SaldoProprietario(models.Model):
     """
     Saldo atual consolidado do proprietário com métodos seguros de movimentação.
     """
-    proprietario = models.OneToOneField('sisimob.Cliente', on_delete=models.CASCADE, related_name='saldo')
+    proprietario = models.OneToOneField('sisimob.Cliente', on_delete=models.CASCADE, related_name='saldo_financeiro')
     saldo_atual = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     ultima_atualizacao = models.DateTimeField(auto_now=True)
 
@@ -97,3 +102,4 @@ class SaldoProprietario(models.Model):
 
     def registrar_repasse(self, valor, descricao, contrato=None, data_referencia=None):
         return self.debitar(valor, descricao, contrato, data_referencia)
+

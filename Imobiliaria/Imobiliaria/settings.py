@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'imobiliaria',
     'django.contrib.humanize',
     'django_select2',
+    'financeiro',
     
     
 ]

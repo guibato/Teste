@@ -18,7 +18,7 @@ class Cobranca(models.Model):
         ('cancelada', 'Cancelada'),
     ]
 
-    contrato = models.ForeignKey('sisimob.Contrato', on_delete=models.CASCADE, related_name='cobrancas')
+    contrato = models.ForeignKey('sisimob.Contrato', on_delete=models.CASCADE, related_name='cobrancas_financeiro')
     inquilino = models.ForeignKey('sisimob.Cliente', on_delete=models.PROTECT, related_name='cobrancas_recebidas')
 
     mes_referencia = models.PositiveSmallIntegerField()
