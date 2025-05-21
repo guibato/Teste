@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block page_title %}Detalhes da Cobrança{% endblock %}
+{% block content %}
+<div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+    <h2 class="text-xl font-semibold mb-4">Cobrança: {{ cobranca.mes_referencia }}/{{ cobranca.ano_referencia }}</h2>
+    <p><strong>Contrato:</strong> {{ cobranca.contrato }}</p>
+    <p><strong>Inquilino:</strong> {{ cobranca.inquilino }}</p>
+    <p><strong>Valor Total:</strong> R$ {{ cobranca.valor_total }}</p>
+    <p><strong>Status:</strong> {{ cobranca.get_status_display }}</p>
+    <p><strong>Data de Vencimento:</strong> {{ cobranca.data_vencimento }}</p>
+    <div class="mt-4 space-x-3">
+        <a href="{% url 'registrar_pagamento' cobranca.pk %}" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded">Marcar como Paga</a>
+        <a href="{% url 'gerar_recibo_pagamento' cobranca.pk %}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded">Gerar Recibo</a>
+        <a href="{% url 'lembretes_por_cobranca' cobranca.pk %}" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded">Ver Lembretes</a>
+    </div>
+</div>
+{% endblock %}

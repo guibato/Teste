@@ -8,6 +8,7 @@ from sisimob.utils.cobrancas_asaas import gerar_cobranca
 from django.core.exceptions import ValidationError
 import datetime
 from datetime import date, timedelta
+from financeiro.models import ReajusteAluguel
 
 
 
@@ -344,6 +345,28 @@ class Contrato(models.Model):
             ultimo_valor = list(self.historico_aluguel.values())[-1] if self.historico_aluguel else self.valor_aluguel
             self.historico_aluguel[str(self.data_inicio)] = float(ultimo_valor)
         super().save(*args, **kwargs)
+
+    
+
+    def valor_aluguel_atual(self, referencia: date = None):
+        reajuste = ReajusteAluguel.obter_ultimo_reajuste(self, referencia)
+        if reajuste:
+            return reajuste.valor_reajustado
+        return self.valor_base
+# dentro do modelo Contrato
+
+    def get_data_vencimento(self, mes: int, ano: int):
+        """
+        Retorna a data de vencimento da cobrança com base no dia_pagamento do contrato.
+        Garante que a data gerada seja válida (não ultrapassa o fim do mês).
+        """
+        import calendar
+        from datetime import date
+
+        ultimo_dia = calendar.monthrange(ano, mes)[1]
+        dia = min(self.dia_pagamento, ultimo_dia)
+        return date(ano, mes, dia)
+
 
 class Cobranca(models.Model):
     STATUS_CHOICES = [

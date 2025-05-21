@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block page_title %}Cobranças{% endblock %}
+{% block content %}
+<a href="{% url 'criar_cobranca' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mb-4 inline-block">Nova Cobrança</a>
+<div class="overflow-x-auto">
+<table class="min-w-full bg-gray-800 rounded-lg overflow-hidden">
+    <thead class="bg-gray-700 text-gray-300">
+    <tr>
+        <th class="px-4 py-2 text-left">Contrato</th>
+        <th class="px-4 py-2">Referência</th>
+        <th class="px-4 py-2">Valor</th>
+        <th class="px-4 py-2">Status</th>
+        <th class="px-4 py-2">Ações</th>
+    </tr>
+    </thead>
+    <tbody class="text-white">
+    {% for c in cobrancas %}
+        <tr class="border-t border-gray-700">
+            <td class="px-4 py-2">{{ c.contrato }}</td>
+            <td class="text-center">{{ c.mes_referencia }}/{{ c.ano_referencia }}</td>
+            <td class="text-center">R$ {{ c.valor_total|floatformat:2 }}</td>
+            <td class="text-center">{{ c.get_status_display }}</td>
+            <td class="text-center">
+                <a href="{% url 'detalhe_cobranca' c.pk %}" class="text-blue-400 hover:underline mr-2">Detalhes</a>
+                <a href="{% url 'editar_cobranca' c.pk %}" class="text-yellow-400 hover:underline mr-2">Editar</a>
+                <a href="{% url 'excluir_cobranca' c.pk %}" class="text-red-400 hover:underline">Excluir</a>
+            </td>
+        </tr>
+    {% empty %}
+        <tr>
+            <td colspan="5" class="text-center py-4">Nenhuma cobrança cadastrada.</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endblock %}

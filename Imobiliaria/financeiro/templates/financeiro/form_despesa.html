@@ -1,0 +1,86 @@
+{% extends 'imoveis/base.html' %}
+{% load widget_tweaks %}
+
+
+{% block content %}
+<h2 class="text-3xl font-bold text-gray-100 mb-8 text-center">Lançar Nova Despesa</h2>
+
+<div class="max-w-4xl mx-auto p-6 bg-gray-800 rounded-lg shadow-lg">
+    <form method="post" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="col-span-full p-4 bg-red-900 text-red-200 rounded-lg">
+            {% for error in form.non_field_errors %}
+            {{ error }}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% for field in form.visible_fields %}
+        <div class="col-span-1">
+            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-200 mb-1">
+                {{ field.label }} {% if field.field.required %}<span class="text-red-400">*</span>{% endif %}
+            </label>
+            {{ field|add_class:"w-full px-3 py-2 bg-gray-900 text-white border border-gray-700 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm" }}
+            {% if field.help_text %}
+            <p class="text-gray-400 text-xs mt-1">{{ field.help_text }}</p>
+            {% endif %}
+            {% for error in field.errors %}
+            <p class="text-red-400 text-xs">{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endfor %}
+
+        <div class="col-span-full flex justify-end gap-4 mt-6">
+            {% if contrato %}
+    <a href="{% url 'dashboard' id=contrato.id %}" class="...">Cancelar</a>
+{% else %}
+    <a href="{% url 'painel_financeiro' %}" class="...">Cancelar</a>
+{% endif %}
+
+            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                Lançar Despesa
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const currencyInputs = document.querySelectorAll('.currency-input');
+
+        currencyInputs.forEach(input => {
+            input.addEventListener('input', function(event) {
+                let cleanedValue = event.target.value.replace(/[^\d,]/g, '');
+                let parts = cleanedValue.split(',');
+                let integerPart = parts[0];
+                let decimalPart = parts.length > 1 ? parts[1].substring(0, 2) : '';
+                integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                let formattedValue = integerPart;
+                if (decimalPart) {
+                    formattedValue += ',' + decimalPart;
+                }
+                event.target.value = 'R$ ' + formattedValue;
+            });
+
+            input.addEventListener('focus', function(event) {
+                event.target.value = event.target.value.replace('R$ ', '');
+            });
+
+            input.addEventListener('blur', function(event) {
+                let cleanedValue = event.target.value.replace(/[^\d,]/g, '');
+                let parts = cleanedValue.split(',');
+                let integerPart = parts[0];
+                let decimalPart = parts.length > 1 ? parts[1].substring(0, 2) : '';
+                integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                let formattedValue = integerPart;
+                if (decimalPart) {
+                    formattedValue += ',' + decimalPart;
+                }
+                event.target.value = 'R$ ' + formattedValue;
+            });
+        });
+    });
+</script>
+{% endblock %}

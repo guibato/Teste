@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block page_title %}Lembretes Enviados{% endblock %}
+{% block content %}
+<div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+    <h2 class="text-xl font-semibold mb-4">Lembretes da cobrança: {{ cobranca }}</h2>
+    <div class="overflow-x-auto">
+    <table class="min-w-full text-sm text-white">
+        <thead class="bg-gray-700">
+        <tr>
+            <th class="px-4 py-2">Data</th>
+            <th class="px-4 py-2">Tipo</th>
+            <th class="px-4 py-2">Dias Antes</th>
+            <th class="px-4 py-2">Status</th>
+            <th class="px-4 py-2">Observação</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for l in lembretes %}
+            <tr class="border-t border-gray-700">
+                <td class="px-4 py-2">{{ l.data_envio|date:"d/m/Y H:i" }}</td>
+                <td class="px-4 py-2">{{ l.get_tipo_display }}</td>
+                <td class="px-4 py-2 text-center">{{ l.dias_antes_vencimento }}</td>
+                <td class="px-4 py-2 text-center">{{ l.get_status_display }}</td>
+                <td class="px-4 py-2">{{ l.observacao }}</td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="5" class="text-center py-4">Nenhum lembrete registrado.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    <div class="mt-4">
+        <a href="{% url 'detalhe_cobranca' cobranca.pk %}" class="text-blue-400 hover:underline">&larr; Voltar para cobrança</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block page_title %}Lista de Despesas{% endblock %}
+{% block content %}
+<h2 class="text-2xl font-semibold mb-4">Despesas Registradas</h2>
+
+<a href="{% url 'cadastrar_despesa' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mb-4 inline-block">
+    + Nova Despesa
+</a>
+
+<div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-700 bg-gray-800 rounded">
+        <thead class="bg-gray-700">
+            <tr>
+                <th class="px-4 py-3 text-left">Contrato</th>
+                <th class="px-4 py-3 text-left">Tipo</th>
+                <th class="px-4 py-3 text-left">Valor</th>
+                <th class="px-4 py-3 text-left">Data Início</th>
+                <th class="px-4 py-3 text-left">Parcelas</th>
+                <th class="px-4 py-3 text-left">Ações</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-600">
+            {% for despesa in despesas %}
+            <tr class="hover:bg-gray-700">
+                <td class="px-4 py-2">{{ despesa.contrato }}</td>
+                <td class="px-4 py-2">{{ despesa.tipo }}</td>
+                <td class="px-4 py-2">R$ {{ despesa.valor_total|floatformat:2 }}</td>
+                <td class="px-4 py-2">{{ despesa.data_inicio }}</td>
+                <td class="px-4 py-2">{{ despesa.numero_parcelas }}</td>
+                <td class="px-4 py-2">
+                    <a href="{% url 'editar_despesa' despesa.pk %}" class="text-blue-400 hover:text-blue-600 mr-3">Editar</a>
+                    <a href="{% url 'excluir_despesa' despesa.pk %}" class="text-red-400 hover:text-red-600">Excluir</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center py-4 text-gray-400">Nenhuma despesa encontrada.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

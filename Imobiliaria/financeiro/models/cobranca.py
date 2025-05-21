@@ -95,7 +95,7 @@ class Cobranca(models.Model):
         data_referencia = datetime.date(self.ano_referencia, self.mes_referencia, 1)
         despesas = Despesa.objects.filter(
             contrato=self.contrato,
-            status='ativa',
+            is_ativa=True,
             paga_por='inquilino'
         )
         return [
