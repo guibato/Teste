@@ -1,0 +1,25 @@
+{% extends 'imoveis/base.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+<h2 class="text-2xl font-bold text-white mb-6 text-center">{{ titulo }}</h2>
+
+<div class="max-w-3xl mx-auto bg-gray-800 p-6 rounded-lg shadow">
+  <form method="post" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="col-span-1">
+      <label class="block text-sm font-medium text-white mb-1">{{ field.label }}</label>
+      {{ field|add_class:"w-full bg-gray-900 text-white border border-gray-600 rounded px-3 py-2 text-sm" }}
+      {% if field.help_text %}<p class="text-gray-400 text-xs mt-1">{{ field.help_text }}</p>{% endif %}
+      {% for error in field.errors %}
+        <p class="text-red-400 text-sm">{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endfor %}
+    <div class="col-span-full flex justify-end mt-4">
+      <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Salvar</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

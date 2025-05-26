@@ -225,8 +225,8 @@ class Contrato(models.Model):
         verbose_name="Tipo de Aluguel",
         default='despesas_separadas'
     )
-    valor_aluguel = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor do Aluguel", null=True, blank=True, default=Decimal('0.00'))
-    valor_pacote = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor do Pacote", null=True, blank=True, default=Decimal('0.00'))
+    
+    valor_base = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor Base", default=Decimal('0.00'))
     tipo_taxa = models.CharField(max_length=50, choices=TIPO_TAXA_CHOICES, verbose_name="Tipo de Taxa")
     valor_taxa_administracao_percentual = models.DecimalField(max_digits=5, decimal_places=2, verbose_name="Adm - %", null=True, blank=True, default=Decimal('0.00'))
     valor_taxa_administracao_fixo = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Adm - R$", null=True, blank=True, default=Decimal('0.00'))
@@ -239,18 +239,22 @@ class Contrato(models.Model):
     valor_seguro_incendio = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor do Seguro", null=True, blank=True, default=Decimal('0.00'))
     vencimento_seguro_incendio = models.DateField(verbose_name="Vencimento do Seguro", null=True, blank=True)
     documentos = models.FileField(upload_to='contratos/documentos/', null=True, blank=True, verbose_name="Documentos")
-    historico_aluguel = models.JSONField(default=dict, verbose_name="Histórico de Aluguel")
-    data_ultimo_reajuste = models.DateField(null=True, blank=True, verbose_name="Data do último reajuste")
+    
 
     def __str__(self):
-        return f"Contrato {self.id} - {self.imovel.endereco}"
+        endereco = self.imovel.endereco or ''
+        numero = self.imovel.numero or ''
+        complemento = f" - {self.imovel.complemento}" if self.imovel.complemento else ''
+        return f"{self.id} - {endereco}, {numero}{complemento}"
+
 
     def valor_taxa_administracao(self):
         if self.tipo_taxa == 'percentual':
-            return (self.valor_aluguel * self.valor_taxa_administracao_percentual) / 100
-        elif self.tipo_taxa == 'fixa':
+            return (self.valor_base * self.valor_taxa_administracao_percentual) / 100
+        elif self.tipo_taxa == 'fixo':
             return self.valor_taxa_administracao_fixo
         return Decimal('0.00')
+
     
     @property
     def taxa_administracao_display(self):
@@ -299,46 +303,19 @@ class Contrato(models.Model):
 
     @property
     def valor_repasse(self):
-        """
-        Calcula o valor do repasse ao proprietário:
-        - Desconta a taxa de administração do valor do aluguel.
-        - Soma as demais despesas (condomínio, IPTU, outros).
-        """
         if self.tipo_pagamento == 'despesas_separadas':
-            taxa_administracao = self.valor_taxa_administracao()
-            despesas_totais = sum(despesa.calcular_valor_parcela() for despesa in self.despesas.all())
-            repasse = (
-                self.valor_aluguel -
-                taxa_administracao +
-                despesas_totais
-            )
-            return max(repasse, Decimal('0.00'))  # Garante que o valor não seja negativo
-        else:
-            return self.valor_pacote
+            taxa_adm = self.valor_taxa_administracao()
+            despesas = sum(d.calcular_valor_parcela() for d in self.despesas.all())
+            return max(self.valor_base - taxa_adm + despesas, Decimal('0.00'))
+        return self.valor_base  # pacote
 
     def calcular_valor_total(self):
-        """
-        Calcula o valor total da cobrança para este contrato:
-        - Inclui o valor do aluguel (ou pacote).
-        - Adiciona as despesas separadas (condomínio, IPTU, outros).
-        - Não inclui a taxa de administração, pois ela é descontada no repasse.
-        """
         if self.tipo_pagamento == 'despesas_separadas':
-            valor_total = self.valor_aluguel
-            despesas_totais = sum(despesa.calcular_valor_parcela() for despesa in self.despesas.all())
-            valor_total += despesas_totais
-        else:
-            valor_total = self.valor_pacote
-        return max(valor_total, Decimal('0.00'))  # Garante que o valor não seja negativo
+            despesas = sum(d.calcular_valor_parcela() for d in self.despesas.all())
+            return max(self.valor_base + despesas, Decimal('0.00'))
+        return self.valor_base
     
-    @property
-    def valor_base_aluguel(self):
-        """
-        Retorna o valor base usado para cálculos: valor do aluguel ou pacote, dependendo do tipo de contrato.
-        """
-        if self.tipo_pagamento == 'pacote':
-            return self.valor_pacote or Decimal('0.00') 
-        return self.valor_aluguel or Decimal('0.00')
+    
     
     def save(self, *args, **kwargs):
         if not self.historico_aluguel or str(self.data_inicio) not in self.historico_aluguel:
@@ -353,7 +330,8 @@ class Contrato(models.Model):
         if reajuste:
             return reajuste.valor_reajustado
         return self.valor_base
-# dentro do modelo Contrato
+
+
 
     def get_data_vencimento(self, mes: int, ano: int):
         """
@@ -366,6 +344,22 @@ class Contrato(models.Model):
         ultimo_dia = calendar.monthrange(ano, mes)[1]
         dia = min(self.dia_pagamento, ultimo_dia)
         return date(ano, mes, dia)
+    
+    def esta_elegivel_para_reajuste(self, referencia=None):
+    
+        if not referencia:
+            referencia = date.today()
+
+        data_base = self.data_inicio.replace(day=1)
+        ultimo_reajuste = self.reajustes.order_by('-data_reajuste').first()
+        
+        if ultimo_reajuste:
+            data_base = ultimo_reajuste.data_reajuste.replace(day=1)
+
+        data_proximo_reajuste = data_base + relativedelta(months=12)
+        data_referencia = referencia.replace(day=1)
+
+        return data_referencia >= data_proximo_reajuste
 
 
 class Cobranca(models.Model):

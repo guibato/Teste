@@ -157,22 +157,41 @@
                             <i class="fas fa-chevron-down ml-auto text-sm text-gray-500"></i>
                         </div>
                         <ul id="financeiroSubMenu" class="pl-10 hidden">
-                            <li>
-                                <a href="{% url 'cadastro_cobrancas' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
-                                    <i class="fas fa-file-invoice-dollar mr-2"></i> Gerar Cobranças
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{% url 'extrato' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
-                                    <i class="fas fa-receipt mr-2"></i> Extrato
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{% url 'visualizar_mensagens' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
-                                    <i class="fas fa-envelope mr-2"></i> Mensagens de Cobranças
-                                </a>
-                            </li>
-                        </ul>
+    <li>
+        <a href="{% url 'cadastro_cobrancas' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
+            <i class="fas fa-file-invoice-dollar mr-2"></i> Gerar Cobranças
+        </a>
+    </li>
+    <li>
+        <a href="{% url 'extrato' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
+            <i class="fas fa-receipt mr-2"></i> Extrato
+        </a>
+    </li>
+    <li>
+        <a href="{% url 'visualizar_mensagens' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
+            <i class="fas fa-envelope mr-2"></i> Mensagens de Cobranças
+        </a>
+    </li>
+    <li>
+        <a href="{% url 'listar_tipos_despesa' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
+            <i class="fas fa-tags mr-2"></i> Tipos de Despesa
+        </a>
+    </li>
+    <li>
+    <a href="{% url 'listar_reajustes' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
+        <i class="fas fa-chart-line mr-2"></i> Reajustar Aluguéis
+    </a>
+</li>
+<li>
+    <form method="post" action="{% url 'atualizar_indices' %}" onsubmit="return confirm('Deseja atualizar os índices agora?');">
+        {% csrf_token %}
+        <button type="submit" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors w-full text-left">
+            <i class="fas fa-chart-line mr-2"></i> Atualizar Índices
+        </button>
+    </form>
+</li>
+</ul>
+
                     </div>
                 </li>
                 
@@ -358,50 +377,68 @@
             subMenu.classList.toggle('hidden');
         }
         
-        // Atualizar índices de inflação
-        document.addEventListener('DOMContentLoaded', function() {
-            const atualizarIndicesBtn = document.getElementById('atualizarIndices');
-            if (atualizarIndicesBtn) {
-                atualizarIndicesBtn.addEventListener('click', async () => {
-                    try {
-                        // Criar mensagem de status
-                        const mainContent = document.querySelector('main');
-                        const statusMsg = document.createElement('div');
-                        statusMsg.id = 'statusAtualizacao';
-                        statusMsg.className = 'fixed bottom-4 right-4 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center';
-                        statusMsg.innerHTML = '<i class="fas fa-sync fa-spin mr-3"></i> Atualização em andamento...';
-                        mainContent.appendChild(statusMsg);
-                        
-                        const response = await fetch("/atualizar-indices/", { method: "POST" });
-                        
-                        if (response.ok) {
-                            statusMsg.className = 'fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center';
-                            statusMsg.innerHTML = '<i class="fas fa-check-circle mr-3"></i> Atualização concluída com sucesso!';
-                        } else {
-                            throw new Error(`Erro na atualização (Status: ${response.status})`);
-                        }
-                        
-                        // Remover notificação após 3 segundos
-                        setTimeout(() => {
-                            statusMsg.remove();
-                        }, 3000);
-                        
-                    } catch (error) {
-                        const mainContent = document.querySelector('main');
-                        const statusMsg = document.getElementById('statusAtualizacao') || document.createElement('div');
-                        statusMsg.id = 'statusAtualizacao';
-                        statusMsg.className = 'fixed bottom-4 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center';
-                        statusMsg.innerHTML = '<i class="fas fa-exclamation-circle mr-3"></i> Erro ao atualizar os índices.';
-                        mainContent.appendChild(statusMsg);
-                        
-                        // Remover notificação após 3 segundos
-                        setTimeout(() => {
-                            statusMsg.remove();
-                        }, 3000);
-                    }
-                });
+        
+    </script>
+    
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const atualizarIndicesBtn = document.getElementById('atualizarIndices');
+    if (atualizarIndicesBtn) {
+        atualizarIndicesBtn.addEventListener('click', async () => {
+            try {
+                const mainContent = document.querySelector('main');
+                const statusMsg = document.createElement('div');
+                statusMsg.id = 'toastNotification';
+                statusMsg.className = 'fixed bottom-6 right-6 bg-blue-600 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-fade-in-out z-50';
+                statusMsg.innerHTML = `
+                    <i class="fas fa-sync fa-spin"></i>
+                    <span>Atualizando índices...</span>
+                `;
+                mainContent.appendChild(statusMsg);
+
+                const response = await fetch("/atualizar-indices/", { method: "POST" });
+                const data = await response.json();
+
+                if (response.ok && data.status === 'success') {
+                    statusMsg.className = 'fixed bottom-6 right-6 bg-green-600 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-fade-in-out z-50';
+                    statusMsg.innerHTML = `
+                        <i class="fas fa-check-circle"></i>
+                        <span>${data.message}</span>
+                    `;
+                } else {
+                    throw new Error(data.message || 'Erro desconhecido');
+                }
+
+                setTimeout(() => statusMsg.remove(), 4000);
+            } catch (error) {
+                const mainContent = document.querySelector('main');
+                const statusMsg = document.getElementById('toastNotification') || document.createElement('div');
+                statusMsg.id = 'toastNotification';
+                statusMsg.className = 'fixed bottom-6 right-6 bg-red-600 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-fade-in-out z-50';
+                statusMsg.innerHTML = `
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Erro: ${error.message}</span>
+                `;
+                mainContent.appendChild(statusMsg);
+                setTimeout(() => statusMsg.remove(), 5000);
             }
         });
-    </script>
+    }
+});
+</script>
+
+<!-- Estilo opcional para animação -->
+<style>
+@keyframes fade-in-out {
+  0% { opacity: 0; transform: translateY(20px); }
+  10% { opacity: 1; transform: translateY(0); }
+  90% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(20px); }
+}
+.animate-fade-in-out {
+  animation: fade-in-out 4s ease-in-out;
+}
+</style>
+
 </body>
 </html>

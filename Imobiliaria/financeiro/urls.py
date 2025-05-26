@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 
+
 urlpatterns = [
     path('cobrancas/', views.listar_cobrancas, name='listar_cobrancas'),
     path('cobrancas/nova/', views.criar_cobranca, name='criar_cobranca'),
@@ -16,4 +17,10 @@ urlpatterns = [
     path('despesas/', views.listar_despesas, name='listar_despesas'),
     path('despesas/editar/<int:pk>/', views.editar_despesa, name='editar_despesa'),
     path('despesas/excluir/<int:pk>/', views.excluir_despesa, name='excluir_despesa'),
+    path('tipos-despesa/', views.listar_tipos_despesa, name='listar_tipos_despesa'),
+    path('tipos-despesa/novo/', views.cadastrar_tipo_despesa, name='cadastrar_tipo_despesa'),
+    path('tipos-despesa/<int:pk>/editar/', views.editar_tipo_despesa, name='editar_tipo_despesa'),
+    path('reajustes/', views.listar_contratos_para_reajuste, name='listar_reajustes'),
+    path('reajuste/<int:contrato_id>/', views.reajustar_contrato, name='reajustar_contrato'),
+    path('atualizar-indices/', views.atualizar_indices_view, name='atualizar_indices'),
 ]

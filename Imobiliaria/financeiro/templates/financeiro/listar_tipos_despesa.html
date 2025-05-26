@@ -1,0 +1,33 @@
+{% extends 'imoveis/base.html' %}
+{% block content %}
+<h2 class="text-2xl font-bold text-white mb-6">Tipos de Despesas</h2>
+
+<a href="{% url 'cadastrar_tipo_despesa' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mb-4 inline-block">Novo Tipo</a>
+
+<div class="bg-gray-800 rounded-lg shadow p-4">
+  <table class="w-full text-white table-auto">
+    <thead class="bg-gray-700">
+      <tr>
+        <th class="px-4 py-2">Nome</th>
+        
+        
+        
+        <th class="px-4 py-2">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for tipo in tipos %}
+      <tr class="border-b border-gray-600  text-center">
+        <td class="px-4 py-2">{{ tipo.nome }}</td>
+        
+        <td class="px-4 py-2">
+          <a href="{% url 'editar_tipo_despesa' tipo.pk %}" class="text-blue-400 hover:underline">Editar</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="text-center text-gray-400 py-4">Nenhum tipo de despesa cadastrado.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -14,21 +14,16 @@ MESES_POR_PERIODICIDADE = {
 class TipoDespesa(models.Model):
     nome = models.CharField(max_length=50, unique=True)
     descricao = models.TextField(null=True, blank=True)
-    codigo = models.CharField(max_length=20, unique=True)
-    icone = models.CharField(max_length=50, null=True, blank=True)
-    cor = models.CharField(max_length=20, null=True, blank=True)
-    is_recorrente_padrao = models.BooleanField(default=False)
-    is_base_calculo_admin_padrao = models.BooleanField(default=False)
-    ordem_exibicao = models.PositiveSmallIntegerField(default=99)
     ativo = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = "Tipo de Despesa"
         verbose_name_plural = "Tipos de Despesas"
-        ordering = ['ordem_exibicao', 'nome']
+        ordering = ['nome']
 
     def __str__(self):
         return self.nome
+
 
 
 class Despesa(models.Model):

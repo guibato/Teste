@@ -157,22 +157,28 @@
                             <i class="fas fa-chevron-down ml-auto text-sm text-gray-500"></i>
                         </div>
                         <ul id="financeiroSubMenu" class="pl-10 hidden">
-                            <li>
-                                <a href="{% url 'cadastro_cobrancas' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
-                                    <i class="fas fa-file-invoice-dollar mr-2"></i> Gerar Cobranças
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{% url 'extrato' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
-                                    <i class="fas fa-receipt mr-2"></i> Extrato
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{% url 'visualizar_mensagens' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
-                                    <i class="fas fa-envelope mr-2"></i> Mensagens de Cobranças
-                                </a>
-                            </li>
-                        </ul>
+    <li>
+        <a href="{% url 'cadastro_cobrancas' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
+            <i class="fas fa-file-invoice-dollar mr-2"></i> Gerar Cobranças
+        </a>
+    </li>
+    <li>
+        <a href="{% url 'extrato' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
+            <i class="fas fa-receipt mr-2"></i> Extrato
+        </a>
+    </li>
+    <li>
+        <a href="{% url 'visualizar_mensagens' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
+            <i class="fas fa-envelope mr-2"></i> Mensagens de Cobranças
+        </a>
+    </li>
+    <li>
+        <a href="{% url 'listar_tipos_despesa' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
+            <i class="fas fa-tags mr-2"></i> Tipos de Despesa
+        </a>
+    </li>
+</ul>
+
                     </div>
                 </li>
                 

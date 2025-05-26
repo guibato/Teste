@@ -1,0 +1,59 @@
+{% extends 'imoveis/base.html' %}
+
+{% block content %}
+<h2 class="text-3xl font-bold text-gray-100 mb-8 text-center">Contratos Elegíveis para Reajuste</h2>
+
+<div class="bg-gray-800 shadow-md rounded-lg overflow-hidden">
+    <table class="min-w-full text-sm text-left text-gray-300">
+        <thead class="bg-gray-700 text-gray-300 uppercase text-xs">
+            <tr>
+                
+                <th scope="col" class="px-6 py-3">Contrato</th>
+                <th scope="col" class="px-6 py-3">Início do Contrato</th>
+                <th scope="col" class="px-6 py-3">Último Reajuste</th>
+                <th scope="col" class="px-6 py-3">Valor Atual</th>
+                <th scope="col" class="px-6 py-3">Sugestão de Reajuste</th>
+                <th scope="col" class="px-6 py-3">Ação</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in contratos %}
+            <tr class="border-b border-gray-700 hover:bg-gray-700">
+                
+                <td class="px-6 py-4">{{ item.contrato }}</td>
+                <td class="px-6 py-4">
+                    {{ item.contrato.data_inicio|date:"d/m/Y" }}
+                </td>
+                <td class="px-6 py-4">
+                    {% if item.ultimo_reajuste %}
+                        {{ item.ultimo_reajuste|date:"d/m/Y" }}
+                    {% else %}
+                        <span class="text-gray-400 italic">Nunca</span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4">R$ {{ item.valor_atual|floatformat:2 }}</td>
+
+                <td class="px-6 py-4 text-green-400 font-semibold">
+                    R$ {{ item.sugestao.valor_sugerido|floatformat:2 }}
+                    <div class="text-sm text-gray-400">
+                        {{ item.sugestao.fator_aplicado|floatformat:2 }}% ({{ item.sugestao.indice_utilizado }})
+                    </div>
+                </td>
+                <td class="px-6 py-4">
+                    <a href="{% url 'reajustar_contrato' item.contrato.id %}"
+                       class="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+                        Reajustar
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="px-6 py-6 text-center text-gray-400">
+                    Nenhum contrato disponível para reajuste no momento.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

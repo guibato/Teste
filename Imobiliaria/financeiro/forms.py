@@ -3,11 +3,12 @@ from django import forms
 from django.core.exceptions import ValidationError
 from datetime import date
 from decimal import Decimal
+from .models.despesa import TipoDespesa
 
 from .models import (
     Cobranca, Despesa, IndiceInflacao, Repasse,
     PoliticaRepasse, AgendamentoRepasse,
-    MovimentoConta, SaldoProprietario, LembreteEnviado
+    MovimentoConta, SaldoProprietario, LembreteEnviado, TipoDespesa, ReajusteAluguel
 )
 
 
@@ -58,10 +59,7 @@ class DespesaForm(forms.ModelForm):
             'comprovante', 'observacoes'
         ]
         widgets = {
-            'data_inicio': forms.SelectDateWidget(
-                years=range(2020, 2031),
-                empty_label=("Ano", "Mês", "Dia")
-            ),
+            'data_inicio': forms.DateInput(attrs={'type': 'date'}),
             'descricao': forms.TextInput(attrs={'class': 'form-input'}),
             'observacoes': forms.Textarea(attrs={'class': 'form-textarea', 'rows': 3}),
         }
@@ -152,3 +150,61 @@ class LembreteEnviadoForm(forms.ModelForm):
             'cobranca', 'tipo', 'dias_antes_vencimento',
             'status', 'observacao'
         ]
+
+class TipoDespesaForm(forms.ModelForm):
+    class Meta:
+        model = TipoDespesa
+        fields = [
+            'nome', 'descricao', 'ativo'
+        ]
+        widgets = {
+            'descricao': forms.Textarea(attrs={'rows': 1}),
+            
+        }
+
+class ReajusteAluguelForm(forms.ModelForm):
+    class Meta:
+        model = ReajusteAluguel
+        fields = [
+            'data_reajuste', 'fator_aplicado', 'indice_utilizado', 'observacao'
+        ]
+
+    def __init__(self, *args, contrato=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.contrato = contrato
+
+        if contrato:
+            ultimo_reajuste = contrato.reajustes.order_by('-data_reajuste').first()
+            valor_anterior = ultimo_reajuste.valor_reajustado if ultimo_reajuste else contrato.valor_base
+            self.initial['valor_anterior'] = valor_anterior
+
+            # Sugestão automática (exemplo com 6%)
+            sugestao = valor_anterior * Decimal('1.06')
+            self.initial['fator_aplicado'] = Decimal('6.00')
+            self.initial['valor_reajustado'] = sugestao.quantize(Decimal('0.01'))
+
+    valor_anterior = forms.DecimalField(label="Valor Anterior", disabled=True)
+    valor_reajustado = forms.DecimalField(label="Novo Valor Reajustado")
+
+    def clean_valor_reajustado(self):
+        valor = self.cleaned_data['valor_reajustado']
+        if valor <= 0:
+            raise forms.ValidationError("O valor reajustado deve ser maior que zero.")
+        return valor
+
+    def save(self, commit=True):
+        reajuste = super().save(commit=False)
+        reajuste.contrato = self.contrato
+        reajuste.valor_anterior = self.initial.get('valor_anterior')
+        if commit:
+            reajuste.save()
+        return reajuste
+
+class ReajusteAluguelForm(forms.ModelForm):
+    class Meta:
+        model = ReajusteAluguel
+        fields = ['valor_anterior', 'valor_reajustado', 'fator_aplicado', 'indice_utilizado', 'data_reajuste', 'observacao']
+        widgets = {
+            'data_reajuste': forms.DateInput(attrs={'type': 'date'}),
+            'observacao': forms.Textarea(attrs={'rows': 3}),
+        }

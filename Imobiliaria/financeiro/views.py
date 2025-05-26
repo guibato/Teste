@@ -5,8 +5,8 @@ from django.utils import timezone
 from django.http import HttpResponse
 from django.db.models import Sum
 from decimal import Decimal
-from .models import Cobranca, LembreteEnviado, MovimentoConta, Repasse, Despesa
-from .forms import CobrancaForm, DespesaForm
+from .models import Cobranca, LembreteEnviado, MovimentoConta, Repasse, Despesa, ReajusteAluguel
+from .forms import CobrancaForm, DespesaForm, TipoDespesaForm, ReajusteAluguelForm
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.utils import timezone
@@ -14,6 +14,11 @@ from django.views.decorators.http import require_http_methods
 from sisimob.models import Contrato
 from datetime import date
 from decimal import Decimal
+from .models.despesa import TipoDespesa
+import subprocess
+from django.contrib import messages
+from django.shortcuts import redirect
+
 
 @require_http_methods(["GET", "POST"])
 def gerar_cobrancas(request):
@@ -36,7 +41,7 @@ def gerar_cobrancas(request):
 
         for contrato in contratos_filtrados:
             if not Cobranca.objects.filter(contrato=contrato, mes_referencia=mes, ano_referencia=ano).exists():
-                valor_aluguel = contrato.valor_aluguel  # Supondo que você tem esse método no modelo Contrato
+                valor_aluguel = contrato.valor_base  # Supondo que você tem esse método no modelo Contrato
                 cobranca = Cobranca(
                     contrato=contrato,
                     inquilino=contrato.inquilino.first(),
@@ -239,3 +244,96 @@ def excluir_despesa(request, pk):
         'titulo': 'Confirmar Exclusão de Despesa'
     })
 
+def listar_tipos_despesa(request):
+    tipos = TipoDespesa.objects.all()
+    return render(request, 'financeiro/listar_tipos_despesa.html', {'tipos': tipos})
+
+def cadastrar_tipo_despesa(request):
+    form = TipoDespesaForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Tipo de despesa cadastrado com sucesso.")
+        return redirect('listar_tipos_despesa')
+    return render(request, 'financeiro/form_tipo_despesa.html', {'form': form, 'titulo': 'Cadastrar Tipo de Despesa'})
+
+def editar_tipo_despesa(request, pk):
+    tipo = get_object_or_404(TipoDespesa, pk=pk)
+    form = TipoDespesaForm(request.POST or None, instance=tipo)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Tipo de despesa atualizado com sucesso.")
+        return redirect('listar_tipos_despesa')
+    return render(request, 'financeiro/form_tipo_despesa.html', {'form': form, 'titulo': 'Editar Tipo de Despesa'})
+
+def listar_contratos_para_reajuste(request):
+    contratos = []
+    
+    for contrato in Contrato.objects.filter(ativo=True):
+        if contrato.esta_elegivel_para_reajuste():
+            sugestao = ReajusteAluguel.sugerir_reajuste(contrato)
+            if sugestao:
+                valor_atual = contrato.valor_aluguel_atual(sugestao["data_reajuste"])
+                ultimo_reajuste = contrato.reajustes.order_by('-data_reajuste').first()
+                contratos.append({
+                    "contrato": contrato,
+                    "sugestao": sugestao,
+                    "valor_atual": valor_atual,
+                    "ultimo_reajuste": ultimo_reajuste.data_reajuste if ultimo_reajuste else None,
+                })
+
+    return render(request, "financeiro/reajuste_lista.html", {
+        "contratos": contratos,
+        "titulo": "Contratos elegíveis para reajuste"
+    })
+
+def executar_atualizacao_indices(request):
+    try:
+        result = subprocess.run(
+            ["python", "manage.py", "atualizar_indices"],
+            capture_output=True, text=True, check=True
+        )
+        messages.success(request, f"Índices atualizados com sucesso:\n{result.stdout}")
+    except subprocess.CalledProcessError as e:
+        messages.error(request, f"Erro ao atualizar índices:\n{e.stderr}")
+
+    return redirect(request.META.get("HTTP_REFERER", "/"))
+
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
+from financeiro.utils.atualizar_indices import atualizar_indices_inflacao
+
+@require_POST
+def atualizar_indices_view(request):
+    try:
+        atualizar_indices_inflacao()
+        return JsonResponse({'status': 'success', 'message': 'Índices atualizados com sucesso'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': f'Erro ao atualizar índices: {str(e)}'}, status=500)
+
+def reajustar_contrato(request, contrato_id):
+    contrato = get_object_or_404(Contrato, id=contrato_id)
+
+    if request.method == 'POST':
+        form = ReajusteAluguelForm(request.POST)
+        if form.is_valid():
+            reajuste = form.save(commit=False)
+            reajuste.contrato = contrato
+            reajuste.save()
+            messages.success(request, "Reajuste aplicado com sucesso.")
+            return redirect('listar_reajustes')
+    else:
+        # Sugestão baseada nos índices (opcional)
+        sugestao = ReajusteAluguel.sugerir_reajuste(contrato)
+        form = ReajusteAluguelForm(initial={
+            'valor_anterior': sugestao['valor_anterior'] if sugestao else contrato.valor_base_aluguel,
+            'valor_reajustado': sugestao['valor_sugerido'] if sugestao else '',
+            'fator_aplicado': sugestao['fator_aplicado'] if sugestao else '',
+            'indice_utilizado': sugestao['indice_utilizado'] if sugestao else 'MANUAL',
+            'data_reajuste': sugestao['data_reajuste'] if sugestao else '',
+        })
+
+    return render(request, 'financeiro/reajuste_form.html', {
+        'form': form,
+        'contrato': contrato,
+        'titulo': 'Reajustar Contrato'
+    })
