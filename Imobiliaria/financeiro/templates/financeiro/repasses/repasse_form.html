@@ -1,0 +1,343 @@
+<!-- financeiro/templates/financeiro/repasses/repasse_form.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if object %}Editar Repasse{% else %}Novo Repasse{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-6">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">
+                        {% if object %}
+                            Editar Repasse #{{ object.id }}
+                        {% else %}
+                            Novo Repasse Manual
+                        {% endif %}
+                    </h1>
+                    <p class="mt-2 text-gray-600">
+                        {% if object %}
+                            Altere os dados do repasse conforme necessário
+                        {% else %}
+                            Crie um novo repasse manual para um proprietário
+                        {% endif %}
+                    </p>
+                </div>
+                <a href="{% url 'financeiro:repasse_list' %}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Voltar
+                </a>
+            </div>
+        </div>
+
+        <!-- Formulário -->
+        <div class="bg-white shadow rounded-lg">
+            <form method="post" class="p-6 space-y-6">
+                {% csrf_token %}
+                
+                <!-- Informações Básicas -->
+                <div class="border-b border-gray-200 pb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Informações Básicas</h3>
+                    
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <!-- Proprietário -->
+                        <div>
+                            <label for="{{ form.proprietario.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Proprietário *
+                            </label>
+                            {{ form.proprietario }}
+                            {% if form.proprietario.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.proprietario.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Contrato -->
+                        <div>
+                            <label for="{{ form.contrato.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Contrato *
+                            </label>
+                            {{ form.contrato }}
+                            {% if form.contrato.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.contrato.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Cobrança (opcional) -->
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.cobranca.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Cobrança Relacionada (opcional)
+                            </label>
+                            {{ form.cobranca }}
+                            {% if form.cobranca.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.cobranca.errors.0 }}</p>
+                            {% endif %}
+                            <p class="mt-1 text-sm text-gray-500">
+                                Selecione uma cobrança se este repasse estiver relacionado a um pagamento específico
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Valores -->
+                <div class="border-b border-gray-200 pb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Valores</h3>
+                    
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                        <!-- Valor Bruto -->
+                        <div>
+                            <label for="{{ form.valor.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Valor Bruto (R$) *
+                            </label>
+                            {{ form.valor }}
+                            {% if form.valor.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.valor.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Valor Desconto -->
+                        <div>
+                            <label for="{{ form.valor_desconto.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Descontos (R$)
+                            </label>
+                            {{ form.valor_desconto }}
+                            {% if form.valor_desconto.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.valor_desconto.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Taxa Administrativa -->
+                        <div>
+                            <label for="{{ form.valor_taxa_admin.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Taxa Administrativa (R$)
+                            </label>
+                            {{ form.valor_taxa_admin }}
+                            {% if form.valor_taxa_admin.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.valor_taxa_admin.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Valor Líquido (calculado) -->
+                    <div class="mt-4 p-4 bg-green-50 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-green-700">Valor Líquido a Repassar:</span>
+                            <span id="valor-liquido" class="text-lg font-bold text-green-800">R$ 0,00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Período e Datas -->
+                <div class="border-b border-gray-200 pb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Período e Datas</h3>
+                    
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                        <!-- Data Prevista -->
+                        <div>
+                            <label for="{{ form.data_prevista.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Data Prevista *
+                            </label>
+                            {{ form.data_prevista }}
+                            {% if form.data_prevista.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.data_prevista.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Mês de Referência -->
+                        <div>
+                            <label for="{{ form.mes_referencia.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Mês de Referência *
+                            </label>
+                            {{ form.mes_referencia }}
+                            {% if form.mes_referencia.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.mes_referencia.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Ano de Referência -->
+                        <div>
+                            <label for="{{ form.ano_referencia.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Ano de Referência *
+                            </label>
+                            {{ form.ano_referencia }}
+                            {% if form.ano_referencia.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.ano_referencia.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configurações Adicionais -->
+                <div class="border-b border-gray-200 pb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Configurações Adicionais</h3>
+                    
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <!-- Tipo -->
+                        <div>
+                            <label for="{{ form.tipo.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Tipo de Repasse
+                            </label>
+                            {{ form.tipo }}
+                            {% if form.tipo.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.tipo.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Método de Pagamento -->
+                        <div>
+                            <label for="{{ form.metodo_pagamento.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Método de Pagamento
+                            </label>
+                            {{ form.metodo_pagamento }}
+                            {% if form.metodo_pagamento.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.metodo_pagamento.errors.0 }}</p>
+                            {% endif %}
+                            <p class="mt-1 text-sm text-gray-500">
+                                Pode ser definido posteriormente ao processar o repasse
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Descrições -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Descrições</h3>
+                    
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <!-- Descrição -->
+                        <div>
+                            <label for="{{ form.descricao.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Descrição
+                            </label>
+                            {{ form.descricao }}
+                            {% if form.descricao.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.descricao.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Observações -->
+                        <div>
+                            <label for="{{ form.observacoes.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Observações
+                            </label>
+                            {{ form.observacoes }}
+                            {% if form.observacoes.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.observacoes.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botões de Ação -->
+                <div class="pt-6 border-t border-gray-200">
+                    <div class="flex items-center justify-end space-x-3">
+                        <a href="{% url 'financeiro:repasse_list' %}" 
+                           class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                            Cancelar
+                        </a>
+                        <button type="submit" 
+                                class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            {% if object %}
+                                Atualizar Repasse
+                            {% else %}
+                                Criar Repasse
+                            {% endif %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Elementos do formulário
+    const valorInput = document.getElementById('{{ form.valor.id_for_label }}');
+    const descontoInput = document.getElementById('{{ form.valor_desconto.id_for_label }}');
+    const taxaInput = document.getElementById('{{ form.valor_taxa_admin.id_for_label }}');
+    const valorLiquidoDisplay = document.getElementById('valor-liquido');
+    
+    // Função para calcular valor líquido
+    function calcularValorLiquido() {
+        const valor = parseFloat(valorInput.value) || 0;
+        const desconto = parseFloat(descontoInput.value) || 0;
+        const taxa = parseFloat(taxaInput.value) || 0;
+        
+        const valorLiquido = valor - desconto - taxa;
+        
+        valorLiquidoDisplay.textContent = new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        }).format(Math.max(0, valorLiquido));
+        
+        // Validação visual
+        if (valorLiquido < 0) {
+            valorLiquidoDisplay.parentElement.className = 'mt-4 p-4 bg-red-50 rounded-lg';
+            valorLiquidoDisplay.className = 'text-lg font-bold text-red-800';
+        } else {
+            valorLiquidoDisplay.parentElement.className = 'mt-4 p-4 bg-green-50 rounded-lg';
+            valorLiquidoDisplay.className = 'text-lg font-bold text-green-800';
+        }
+    }
+    
+    // Event listeners para recálculo automático
+    [valorInput, descontoInput, taxaInput].forEach(input => {
+        if (input) {
+            input.addEventListener('input', calcularValorLiquido);
+            input.addEventListener('blur', calcularValorLiquido);
+        }
+    });
+    
+    // Calcular valor inicial
+    calcularValorLiquido();
+    
+    // Auto-preencher ano de referência com ano atual
+    const anoInput = document.getElementById('{{ form.ano_referencia.id_for_label }}');
+    if (anoInput && !anoInput.value) {
+        anoInput.value = new Date().getFullYear();
+    }
+    
+    // Auto-preencher mês de referência com mês atual
+    const mesInput = document.getElementById('{{ form.mes_referencia.id_for_label }}');
+    if (mesInput && !mesInput.value) {
+        mesInput.value = new Date().getMonth() + 1;
+    }
+    
+    // Validação do formulário antes do envio
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const valor = parseFloat(valorInput.value) || 0;
+        const desconto = parseFloat(descontoInput.value) || 0;
+        const taxa = parseFloat(taxaInput.value) || 0;
+        
+        if (valor <= 0) {
+            e.preventDefault();
+            alert('O valor bruto deve ser maior que zero.');
+            valorInput.focus();
+            return false;
+        }
+        
+        if (desconto + taxa >= valor) {
+            e.preventDefault();
+            alert('A soma dos descontos não pode ser maior ou igual ao valor bruto.');
+            return false;
+        }
+        
+        if (!confirm('Tem certeza que deseja salvar este repasse?')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

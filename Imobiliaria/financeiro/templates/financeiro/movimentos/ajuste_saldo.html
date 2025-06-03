@@ -1,0 +1,269 @@
+<!-- financeiro/templates/financeiro/movimentos/ajuste_saldo.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ajustar Saldo - {{ proprietario.nome }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-6">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- ========== HEADER ========== -->
+        <div class="mb-6">
+            <nav class="flex" aria-label="Breadcrumb">
+                <ol class="flex items-center space-x-4">
+                    <li>
+                        <a href="{% url 'financeiro:extrato_proprietario' proprietario.pk %}" 
+                           class="text-gray-400 hover:text-gray-500">
+                            <svg class="flex-shrink-0 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="sr-only">Voltar</span>
+                        </a>
+                    </li>
+                    <li>
+                        <div class="flex items-center">
+                            <svg class="flex-shrink-0 h-5 w-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            <a href="{% url 'financeiro:extrato_proprietario' proprietario.pk %}" 
+                               class="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+                                Extrato
+                            </a>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="flex items-center">
+                            <svg class="flex-shrink-0 h-5 w-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="ml-4 text-sm font-medium text-gray-500">
+                                Ajustar Saldo
+                            </span>
+                        </div>
+                    </li>
+                </ol>
+            </nav>
+        </div>
+
+        <!-- ========== SALDO ATUAL ========== -->
+        <div class="bg-white shadow rounded-lg mb-6">
+            <div class="px-6 py-4">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Saldo Atual</h3>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Proprietário</p>
+                        <p class="text-lg font-medium text-gray-900">{{ proprietario.nome }}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm text-gray-500">Saldo</p>
+                        <p class="text-2xl font-bold {% if saldo_obj.saldo_atual >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                            R$ {{ saldo_obj.saldo_atual|floatformat:2 }}
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-2 text-xs text-gray-500">
+                    Última atualização: {{ saldo_obj.ultima_atualizacao|date:"d/m/Y H:i" }}
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== ALERTA DE SEGURANÇA ========== -->
+        <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-yellow-800">
+                        ⚠️ Operação de Ajuste de Saldo
+                    </h3>
+                    <div class="mt-2 text-sm text-yellow-700">
+                        <p>Esta operação deve ser usada apenas para correções contábeis ou reconciliação. Um movimento de ajuste será criado automaticamente para registrar a diferença.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== FORMULÁRIO ========== -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">
+                    Ajustar Saldo
+                </h3>
+                <p class="mt-1 text-sm text-gray-500">
+                    Defina o novo saldo correto e informe o motivo do ajuste.
+                </p>
+            </div>
+            
+            <form method="post" class="p-6">
+                {% csrf_token %}
+                
+                <!-- Exibir erros do formulário -->
+                {% if form.errors %}
+                    <div class="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-red-800">
+                                    Erro(s) no formulário:
+                                </h3>
+                                <div class="mt-2 text-sm text-red-700">
+                                    <ul class="list-disc pl-5 space-y-1">
+                                        {% for field, errors in form.errors.items %}
+                                            {% for error in errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="space-y-6">
+                    <!-- ========== NOVO SALDO ========== -->
+                    <div>
+                        <label for="novo_saldo" class="block text-sm font-medium text-gray-700">
+                            Novo Saldo *
+                        </label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 sm:text-sm">R$</span>
+                            </div>
+                            <input type="number" 
+                                   step="0.01" 
+                                   name="novo_saldo" 
+                                   id="novo_saldo"
+                                   required
+                                   value="{{ form.novo_saldo.value|default:saldo_obj.saldo_atual }}"
+                                   class="pl-8 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 {% if form.novo_saldo.errors %}border-red-300{% endif %}"
+                                   placeholder="0,00">
+                        </div>
+                        {% if form.novo_saldo.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.novo_saldo.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-sm text-gray-500">Informe o saldo correto que deve ficar na conta</p>
+                    </div>
+
+                    <!-- ========== MOTIVO ========== -->
+                    <div>
+                        <label for="motivo" class="block text-sm font-medium text-gray-700">
+                            Motivo do Ajuste *
+                        </label>
+                        <input type="text" 
+                               name="motivo" 
+                               id="motivo"
+                               required 
+                               maxlength="255"
+                               value="{{ form.motivo.value|default:'' }}"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 {% if form.motivo.errors %}border-red-300{% endif %}"
+                               placeholder="Ex: Correção de lançamento duplicado, Reconciliação bancária...">
+                        {% if form.motivo.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.motivo.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-sm text-gray-500">Descreva detalhadamente o motivo do ajuste para auditoria</p>
+                    </div>
+
+                    <!-- ========== PREVIEW DA DIFERENÇA ========== -->
+                    <div id="preview-diferenca" class="bg-gray-50 border border-gray-200 rounded-md p-4" style="display: none;">
+                        <h4 class="text-sm font-medium text-gray-900 mb-2">Preview do Ajuste</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Saldo atual:</span>
+                                <span class="font-medium">R$ {{ saldo_obj.saldo_atual|floatformat:2 }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Novo saldo:</span>
+                                <span class="font-medium" id="preview-novo-saldo">R$ 0,00</span>
+                            </div>
+                            <div class="border-t border-gray-300 pt-2">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Diferença:</span>
+                                    <span class="font-medium" id="preview-diferenca-valor">R$ 0,00</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Tipo de movimento:</span>
+                                    <span class="font-medium" id="preview-tipo-movimento">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== BOTÕES DE AÇÃO ========== -->
+                <div class="mt-8 flex justify-end space-x-3">
+                    <a href="{% url 'financeiro:extrato_proprietario' proprietario.pk %}" 
+                       class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                        Cancelar
+                    </a>
+                    <button type="submit" 
+                            class="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a1 1 0 01-1-1V9a1 1 0 011-1h1a2 2 0 100-4H4a1 1 0 01-1-1V4a1 1 0 011-1h3a1 1 0 001-1z"/>
+                        </svg>
+                        Confirmar Ajuste
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ========== JAVASCRIPT ========== -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const novoSaldoInput = document.getElementById('novo_saldo');
+    const previewDiv = document.getElementById('preview-diferenca');
+    const previewNovoSaldo = document.getElementById('preview-novo-saldo');
+    const previewDiferenca = document.getElementById('preview-diferenca-valor');
+    const previewTipo = document.getElementById('preview-tipo-movimento');
+    
+    const saldoAtual = {{ saldo_obj.saldo_atual }};
+    
+    function atualizarPreview() {
+        const novoSaldo = parseFloat(novoSaldoInput.value) || 0;
+        const diferenca = novoSaldo - saldoAtual;
+        
+        if (novoSaldoInput.value && novoSaldo !== saldoAtual) {
+            previewDiv.style.display = 'block';
+            
+            previewNovoSaldo.textContent = `R$ ${novoSaldo.toFixed(2).replace('.', ',')}`;
+            previewDiferenca.textContent = `R$ ${Math.abs(diferenca).toFixed(2).replace('.', ',')}`;
+            
+            if (diferenca > 0) {
+                previewDiferenca.className = 'font-medium text-green-600';
+                previewTipo.textContent = 'Crédito';
+                previewTipo.className = 'font-medium text-green-600';
+            } else if (diferenca < 0) {
+                previewDiferenca.className = 'font-medium text-red-600';
+                previewTipo.textContent = 'Débito';
+                previewTipo.className = 'font-medium text-red-600';
+            } else {
+                previewDiferenca.className = 'font-medium text-gray-600';
+                previewTipo.textContent = 'Nenhum';
+                previewTipo.className = 'font-medium text-gray-600';
+            }
+        } else {
+            previewDiv.style.display = 'none';
+        }
+    }
+    
+    // Atualizar preview quando o valor mudar
+    novoSaldoInput.addEventListener('input', atualizarPreview);
+    
+    // Executar ao carregar
+    atualizarPreview();
+});
+</script>
+{% endblock %}

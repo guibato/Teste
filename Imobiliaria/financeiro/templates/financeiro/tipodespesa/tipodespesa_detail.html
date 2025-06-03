@@ -1,0 +1,318 @@
+<!-- financeiro/templates/financeiro/tipodespesa/tipodespesa_detail.html -->
+<!-- Template para visualizar detalhes de um tipo de despesa -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ tipo.nome }} - Detalhes{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'financeiro:dashboard' %}">Financeiro</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'financeiro:tipodespesa:list' %}">Tipos de Despesa</a></li>
+        <li class="breadcrumb-item active">{{ tipo.nome }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Cabeçalho -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>
+                <i class="fas fa-tag"></i> {{ tipo.nome }}
+                {% if tipo.ativo %}
+                    <span class="badge bg-success ms-2">Ativo</span>
+                {% else %}
+                    <span class="badge bg-secondary ms-2">Inativo</span>
+                {% endif %}
+            </h2>
+            {% if tipo.descricao %}
+                <p class="text-muted">{{ tipo.descricao }}</p>
+            {% endif %}
+        </div>
+        <div class="col-md-4 text-end">
+            <!-- Dropdown de ações -->
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-cog"></i> Ações
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a class="dropdown-item" href="{% url 'financeiro:tipodespesa:update' tipo.pk %}">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item toggle-status" 
+                           href="{% url 'financeiro:tipodespesa:toggle_status' tipo.pk %}"
+                           data-tipo-nome="{{ tipo.nome }}"
+                           data-status-atual="{{ tipo.ativo }}">
+                            {% if tipo.ativo %}
+                                <i class="fas fa-times text-danger"></i> Inativar Tipo
+                            {% else %}
+                                <i class="fas fa-check text-success"></i> Ativar Tipo
+                            {% endif %}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Informações básicas -->
+        <div class="col-md-8">
+            <!-- Card de informações -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Informações do Tipo</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">Nome:</dt>
+                                <dd class="col-sm-8">{{ tipo.nome }}</dd>
+                                
+                                <dt class="col-sm-4">Status:</dt>
+                                <dd class="col-sm-8">
+                                    {% if tipo.ativo %}
+                                        <span class="badge bg-success">Ativo</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inativo</span>
+                                    {% endif %}
+                                </dd>
+                                
+                                <dt class="col-sm-4">Total de Despesas:</dt>
+                                <dd class="col-sm-8">
+                                    <span class="badge bg-info">{{ total_despesas }}</span>
+                                </dd>
+                                
+                                <dt class="col-sm-4">Despesas Ativas:</dt>
+                                <dd class="col-sm-8">
+                                    <span class="badge bg-success">{{ despesas_ativas }}</span>
+                                </dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-5">Descrição:</dt>
+                                <dd class="col-sm-7">
+                                    {{ tipo.descricao|default:"<em>Sem descrição</em>" }}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de despesas recentes -->
+            {% if ultimas_despesas %}
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-list"></i> Despesas Recentes</h5>
+                    <a href="{% url 'financeiro:despesa:list' %}?tipo={{ tipo.pk }}" class="btn btn-sm btn-outline-primary">
+                        Ver Todas
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Contrato</th>
+                                    <th>Descrição</th>
+                                    <th>Valor</th>
+                                    <th>Status</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for despesa in ultimas_despesas %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'sisimob:contrato_detail' despesa.contrato.pk %}">
+                                            {{ despesa.contrato }}
+                                        </a>
+                                    </td>
+                                    <td>{{ despesa.descricao|default:despesa.get_descricao_padrao|truncatechars:30 }}</td>
+                                    <td>R$ {{ despesa.valor_total|floatformat:2 }}</td>
+                                    <td>
+                                        {% if despesa.is_ativa %}
+                                            <span class="badge bg-success">Ativa</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inativa</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ despesa.data_cadastro|date:"d/m/Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    {% if total_despesas > ultimas_despesas|length %}
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            Mostrando {{ ultimas_despesas|length }} de {{ total_despesas }} despesas
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar com estatísticas -->
+        <div class="col-md-4">
+            <!-- Card de estatísticas -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-chart-bar"></i> Estatísticas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h4 class="text-primary">{{ total_despesas }}</h4>
+                                <small class="text-muted">Total<br>de Despesas</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success">{{ despesas_ativas }}</h4>
+                            <small class="text-muted">Despesas<br>Ativas</small>
+                        </div>
+                    </div>
+                    
+                    {% if total_despesas > 0 %}
+                    <hr>
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-success" 
+                             style="width: {% widthratio despesas_ativas total_despesas 100 %}%">
+                        </div>
+                    </div>
+                    <small class="text-muted">
+                        {% widthratio despesas_ativas total_despesas 100 %}% das despesas estão ativas
+                    </small>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Card de ações rápidas -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-bolt"></i> Ações Rápidas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'financeiro:despesa:create' %}?tipo={{ tipo.pk }}" 
+                           class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-plus"></i> Nova Despesa deste Tipo
+                        </a>
+                        
+                        <a href="{% url 'financeiro:despesa:list' %}?tipo={{ tipo.pk }}" 
+                           class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-list"></i> Ver Todas as Despesas
+                        </a>
+                        
+                        <a href="{% url 'financeiro:tipodespesa:update' tipo.pk %}" 
+                           class="btn btn-outline-warning btn-sm">
+                            <i class="fas fa-edit"></i> Editar Tipo
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de informações adicionais -->
+            {% if not tipo.ativo %}
+            <div class="card mt-4 border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Tipo Inativo</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">Este tipo está inativo e não pode ser usado para criar novas despesas.</p>
+                    <button class="btn btn-warning btn-sm toggle-status" 
+                            data-tipo-nome="{{ tipo.nome }}"
+                            data-status-atual="false">
+                        <i class="fas fa-check"></i> Reativar Tipo
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmação -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Ação</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-message"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirm-button">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handler para toggle de status
+    const toggleButtons = document.querySelectorAll('.toggle-status');
+    const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    const confirmMessage = document.getElementById('confirm-message');
+    const confirmButton = document.getElementById('confirm-button');
+    
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const tipoNome = this.dataset.tipoNome;
+            const statusAtual = this.dataset.statusAtual === 'true';
+            const acao = statusAtual ? 'inativar' : 'ativar';
+            const url = '{% url "financeiro:tipodespesa:toggle_status" tipo.pk %}';
+            
+            confirmMessage.textContent = `Tem certeza que deseja ${acao} o tipo "${tipoNome}"?`;
+            
+            confirmButton.onclick = function() {
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao processar solicitação');
+                });
+                
+                confirmModal.hide();
+            };
+            
+            confirmModal.show();
+        });
+    });
+});
+</script>
+{% endblock %}

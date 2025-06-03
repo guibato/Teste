@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="p-6">
+    <h1 class="text-2xl font-bold mb-4">Cobranças</h1>
+
+    <!-- Filtros -->
+    <form method="get" class="flex gap-4 mb-6 items-end">
+        <div>
+            <label for="contrato" class="block text-sm font-medium text-gray-700">Contrato</label>
+            <select name="contrato" id="contrato" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm">
+                <option value="">Todos</option>
+                {% for contrato in contratos %}
+                    <option value="{{ contrato.id }}" {% if contrato.id|stringformat:"s" == filtro_contrato %}selected{% endif %}>
+                        {{ contrato }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+            <select name="status" id="status" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm">
+                <option value="">Todos</option>
+                {% for chave, valor in cobrancas.model.STATUS_CHOICES %}
+                    <option value="{{ chave }}" {% if chave == filtro_status %}selected{% endif %}>{{ valor }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md">Filtrar</button>
+        </div>
+    </form>
+
+    <!-- Tabela -->
+    <div class="overflow-x-auto bg-gray-700 shadow rounded-lg">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-700 text-sm text-left">
+                <tr>
+                    <th class="px-4 py-2">Referência</th>
+                    <th class="px-4 py-2">Contrato</th>
+                    <th class="px-4 py-2">Inquilino</th>
+                    <th class="px-4 py-2">Vencimento</th>
+                    <th class="px-4 py-2">Valor Total</th>
+                    <th class="px-4 py-2">Status</th>
+                    <th class="px-4 py-2">Pagamento</th>
+                    <th class="px-4 py-2">Repasse</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 text-sm">
+                {% for cobranca in cobrancas %}
+                <tr>
+                    <td class="px-4 py-2">{{ cobranca.data_referencia_texto }}</td>
+                    <td class="px-4 py-2">{{ cobranca.contrato }}</td>
+                    <td class="px-4 py-2">{{ cobranca.inquilino }}</td>
+                    <td class="px-4 py-2">{{ cobranca.data_vencimento }}</td>
+                    <td class="px-4 py-2">R$ {{ cobranca.valor_total|floatformat:2 }}</td>
+                    <td class="px-4 py-2">{{ cobranca.get_status_display }}</td>
+                    <td class="px-4 py-2">
+                        {% if cobranca.status != 'paga' %}
+                            <form method="post" action="{% url 'marcar_cobranca_paga' cobranca.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="text-green-600 hover:underline">Marcar como paga</button>
+                            </form>
+                        {% else %}
+                            {{ cobranca.data_pagamento }}
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-2">
+                        {% if cobranca.status == 'paga' %}
+                            {% if cobranca.repasse_set.exists %}
+                                {{ cobranca.repasse_set.first.data_repasse }}
+                            {% else %}
+                                <form method="post" action="{% url 'marcar_repasse' cobranca.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="text-blue-600 hover:underline">Marcar repasse</button>
+                                </form>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-gray-400 italic">Aguardando pagamento</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="px-4 py-4 text-center text-gray-500">Nenhuma cobrança encontrada.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,273 @@
+<!-- financeiro/templates/financeiro/indices/lista_indices.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Índices de Inflação{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-100">Índices de Inflação</h1>
+            <p class="mt-1 text-sm text-gray-400">Consulta e atualização de índices econômicos</p>
+        </div>
+        <div class="flex space-x-2">
+            <button id="btnAtualizarAPI" 
+                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                <span>Atualizar API</span>
+            </button>
+            <a href="{% url 'financeiro:indice_create' %}" 
+               class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <span>Novo Índice</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-gray-800 rounded-lg shadow mb-6 border border-gray-700">
+        <div class="px-6 py-4 border-b border-gray-700">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-medium text-gray-100">Filtros</h3>
+                <span class="text-sm text-gray-400">{{ indices|length }} registros</span>
+            </div>
+        </div>
+        <div class="p-6">
+            <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label for="tipo" class="block text-sm font-medium text-gray-300 mb-1">Tipo</label>
+                    <select name="tipo" id="tipo" class="w-full bg-gray-700 border border-gray-600 text-gray-100 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Todos os tipos</option>
+                        {% for value, label in tipos %}
+                        <option value="{{ value }}" {% if filters.tipo == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="ano" class="block text-sm font-medium text-gray-300 mb-1">Ano</label>
+                    <select name="ano" id="ano" class="w-full bg-gray-700 border border-gray-600 text-gray-100 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Todos os anos</option>
+                        {% for ano in anos %}
+                        <option value="{{ ano }}" {% if filters.ano == ano|stringformat:"s" %}selected{% endif %}>{{ ano }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="flex items-end space-x-2">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors">
+                        Filtrar
+                    </button>
+                    <a href="{% url 'financeiro:indice_list' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors">
+                        Limpar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabela -->
+    <div class="bg-gray-800 rounded-lg shadow overflow-hidden border border-gray-700">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-700">
+                <thead class="bg-gray-900">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Tipo</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Data</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">Valor (%)</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">Acum. 12M (%)</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Fonte</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">Ações</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-gray-800 divide-y divide-gray-700">
+                    {% for indice in indices %}
+                    <tr class="hover:bg-gray-700 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                                {% if indice.tipo == 'IPCA' %}bg-blue-900 text-blue-200
+                                {% elif indice.tipo == 'IGPM' %}bg-green-900 text-green-200
+                                {% elif indice.tipo == 'INPC' %}bg-yellow-900 text-yellow-200
+                                {% else %}bg-purple-900 text-purple-200{% endif %}">
+                                {{ indice.get_tipo_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-100">{{ indice.data_referencia|date:"m/Y" }}</div>
+                            <div class="text-sm text-gray-400">{{ indice.data_referencia|date:"F" }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            <span class="text-sm font-medium {% if indice.valor > 0 %}text-red-400{% elif indice.valor < 0 %}text-green-400{% else %}text-gray-400{% endif %}">
+                                {% if indice.valor > 0 %}+{% endif %}{{ indice.valor|floatformat:4 }}%
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            {% if indice.acumulado_12_meses %}
+                            <span class="text-sm font-medium {% if indice.acumulado_12_meses > 0 %}text-orange-400{% elif indice.acumulado_12_meses < 0 %}text-green-400{% else %}text-gray-400{% endif %}">
+                                {% if indice.acumulado_12_meses > 0 %}+{% endif %}{{ indice.acumulado_12_meses|floatformat:2 }}%
+                            </span>
+                            {% else %}
+                            <span class="text-sm text-gray-500">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if indice.fonte %}
+                            <span class="inline-flex px-2 py-1 text-xs font-medium bg-gray-700 text-gray-200 rounded">{{ indice.fonte }}</span>
+                            {% else %}
+                            <span class="text-sm text-gray-500">Não informada</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <a href="{% url 'financeiro:indice_update' indice.pk %}" 
+                               class="text-blue-400 hover:text-blue-300 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center">
+                            <div class="text-gray-500">
+                                <svg class="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                                </svg>
+                                <h3 class="text-lg font-medium text-gray-300 mb-2">Nenhum índice encontrado</h3>
+                                <p class="text-gray-500 mb-4">Não há índices cadastrados com os filtros selecionados.</p>
+                                <a href="{% url 'financeiro:indice_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors">
+                                    Cadastrar Primeiro Índice
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginação -->
+        {% if is_paginated %}
+        <div class="bg-gray-800 px-4 py-3 border-t border-gray-700 sm:px-6">
+            <div class="flex justify-between items-center">
+                <div class="text-sm text-gray-400">
+                    Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ page_obj.paginator.count }} registros
+                </div>
+                <div class="flex space-x-2">
+                    {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" 
+                       class="px-3 py-2 text-sm bg-gray-700 border border-gray-600 text-gray-200 rounded-md hover:bg-gray-600 transition-colors">
+                        Anterior
+                    </a>
+                    {% endif %}
+                    
+                    <span class="px-3 py-2 text-sm bg-blue-600 text-white rounded-md">
+                        {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                    </span>
+                    
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" 
+                       class="px-3 py-2 text-sm bg-gray-700 border border-gray-600 text-gray-200 rounded-md hover:bg-gray-600 transition-colors">
+                        Próxima
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit filtros
+    document.getElementById('tipo').addEventListener('change', function() {
+        this.form.submit();
+    });
+    
+    document.getElementById('ano').addEventListener('change', function() {
+        this.form.submit();
+    });
+
+    // Botão atualizar API
+    document.getElementById('btnAtualizarAPI').addEventListener('click', function() {
+        atualizarIndicesAPI();
+    });
+});
+
+function atualizarIndicesAPI() {
+    const btn = document.getElementById('btnAtualizarAPI');
+    const originalText = btn.innerHTML;
+    
+    // Mostrar loading
+    btn.innerHTML = `
+        <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        <span>Atualizando...</span>
+    `;
+    btn.disabled = true;
+
+    fetch('{% url "financeiro:atualizar_indices_api" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.sucesso) {
+            mostrarNotificacao(data.mensagem, 'success');
+            // Recarregar página após 2 segundos
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            mostrarNotificacao(data.mensagem, 'error');
+        }
+    })
+    .catch(error => {
+        mostrarNotificacao('Erro na comunicação com o servidor', 'error');
+    })
+    .finally(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+}
+
+function mostrarNotificacao(mensagem, tipo) {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white z-50 ${
+        tipo === 'success' ? 'bg-green-600' : 'bg-red-600'
+    }`;
+    notification.textContent = mensagem;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

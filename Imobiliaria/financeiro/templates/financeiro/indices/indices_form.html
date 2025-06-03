@@ -1,0 +1,80 @@
+<!-- financeiro/templates/financeiro/indices/form_indice.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+{% if object %}Editar Índice{% else %}Novo Índice{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    {% if object %}Editar Índice{% else %}Novo Índice{% endif %}
+                </h1>
+                <a href="{% url 'financeiro:indice_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </a>
+            </div>
+
+            <!-- Formulário -->
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.tipo.id_for_label }}" class="form-label">Tipo *</label>
+                            {{ form.tipo }}
+                            {% if form.tipo.errors %}
+                            <div class="text-danger">{{ form.tipo.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.data_referencia.id_for_label }}" class="form-label">Data *</label>
+                                    {{ form.data_referencia }}
+                                    {% if form.data_referencia.errors %}
+                                    <div class="text-danger">{{ form.data_referencia.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.valor.id_for_label }}" class="form-label">Valor (%) *</label>
+                                    {{ form.valor }}
+                                    {% if form.valor.errors %}
+                                    <div class="text-danger">{{ form.valor.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.fonte.id_for_label }}" class="form-label">Fonte</label>
+                            {{ form.fonte }}
+                            {% if form.fonte.errors %}
+                            <div class="text-danger">{{ form.fonte.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'financeiro:indice_list' %}" class="btn btn-secondary me-md-2">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if object %}Atualizar{% else %}Salvar{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

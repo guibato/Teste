@@ -1,0 +1,363 @@
+<!-- financeiro/templates/financeiro/repasses/processar_repasse.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Processar Repasse{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-6">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="md:flex md:items-center md:justify-between mb-8">
+            <div class="flex-1 min-w-0">
+                <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                    Processar Repasse
+                </h2>
+                <p class="mt-1 text-sm text-gray-500">
+                    Confirme e efetive o repasse para o proprietário
+                </p>
+            </div>
+            <div class="mt-4 flex md:mt-0 md:ml-4">
+                <a href="{% url 'financeiro:repasse_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Voltar
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <!-- Detalhes do Repasse -->
+            <div class="lg:col-span-2">
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                            Detalhes do Repasse
+                        </h3>
+                        
+                        <!-- Informações do Proprietário -->
+                        <div class="border-b border-gray-200 pb-4 mb-4">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="text-lg font-medium text-gray-900">{{ repasse.proprietario.nome }}</h4>
+                                    <p class="text-sm text-gray-500">{{ repasse.proprietario.email }}</p>
+                                    {% if repasse.proprietario.telefone %}
+                                        <p class="text-sm text-gray-500">{{ repasse.proprietario.telefone }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Informações do Imóvel -->
+                        <div class="border-b border-gray-200 pb-4 mb-4">
+                            <h5 class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">Imóvel</h5>
+                            <p class="text-sm text-gray-900">{{ repasse.contrato.imovel.endereco }}</p>
+                            <p class="text-sm text-gray-500">
+                                Contrato: {{ repasse.contrato.id }} | 
+                                Tipo: {{ repasse.contrato.get_tipo_display }}
+                            </p>
+                        </div>
+
+                        <!-- Valores -->
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Valor Bruto</dt>
+                                <dd class="mt-1 text-lg font-semibold text-gray-900">R$ {{ repasse.valor|floatformat:2 }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Período de Referência</dt>
+                                <dd class="mt-1 text-lg font-semibold text-gray-900">
+                                    {{ repasse.mes_referencia|stringformat:"02d" }}/{{ repasse.ano_referencia }}
+                                </dd>
+                            </div>
+                            {% if repasse.valor_desconto > 0 %}
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Descontos</dt>
+                                <dd class="mt-1 text-lg font-semibold text-red-600">- R$ {{ repasse.valor_desconto|floatformat:2 }}</dd>
+                            </div>
+                            {% endif %}
+                            {% if repasse.valor_taxa_admin > 0 %}
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Taxa Administrativa</dt>
+                                <dd class="mt-1 text-lg font-semibold text-red-600">- R$ {{ repasse.valor_taxa_admin|floatformat:2 }}</dd>
+                            </div>
+                            {% endif %}
+                            <div class="sm:col-span-2 bg-green-50 p-4 rounded-lg">
+                                <dt class="text-sm font-medium text-green-700">Valor Líquido a Repassar</dt>
+                                <dd class="mt-1 text-2xl font-bold text-green-800">R$ {{ repasse.valor_liquido|floatformat:2 }}</dd>
+                            </div>
+                        </div>
+
+                        <!-- Informações Adicionais -->
+                        <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Data Prevista</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ repasse.data_prevista|date:"d/m/Y" }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Tipo</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ repasse.get_tipo_display }}</dd>
+                            </div>
+                            {% if repasse.cobranca %}
+                            <div class="sm:col-span-2">
+                                <dt class="text-sm font-medium text-gray-500">Cobrança Relacionada</dt>
+                                <dd class="mt-1 text-sm text-gray-900">
+                                    <a href="{% url 'financeiro:cobranca_detail' repasse.cobranca.pk %}" class="text-indigo-600 hover:text-indigo-900">
+                                        Cobrança #{{ repasse.cobranca.id }} - Paga em {{ repasse.cobranca.data_pagamento|date:"d/m/Y" }}
+                                    </a>
+                                </dd>
+                            </div>
+                            {% endif %}
+                            {% if repasse.descricao %}
+                            <div class="sm:col-span-2">
+                                <dt class="text-sm font-medium text-gray-500">Descrição</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ repasse.descricao }}</dd>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulário de Processamento -->
+            <div>
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                            Confirmar Processamento
+                        </h3>
+
+                        {% if repasse.status == 'pendente' %}
+                        <form method="post" enctype="multipart/form-data" class="space-y-4">
+                            {% csrf_token %}
+                            
+                            <!-- Método de Pagamento -->
+                            <div>
+                                <label for="{{ form.metodo_pagamento.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                    {{ form.metodo_pagamento.label }}
+                                </label>
+                                {{ form.metodo_pagamento }}
+                                {% if form.metodo_pagamento.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.metodo_pagamento.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Upload de Comprovante -->
+                            <div>
+                                <label for="{{ form.comprovante.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                    {{ form.comprovante.label }}
+                                </label>
+                                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                                    <div class="space-y-1 text-center">
+                                        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                        <div class="flex text-sm text-gray-600">
+                                            <label for="{{ form.comprovante.id_for_label }}" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                                                <span>Enviar arquivo</span>
+                                                {{ form.comprovante }}
+                                            </label>
+                                            <p class="pl-1">ou arraste e solte</p>
+                                        </div>
+                                        <p class="text-xs text-gray-500">
+                                            PNG, JPG, PDF até 5MB
+                                        </p>
+                                    </div>
+                                </div>
+                                {% if form.comprovante.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.comprovante.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Observações -->
+                            <div>
+                                <label for="{{ form.observacoes.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                    {{ form.observacoes.label }}
+                                </label>
+                                {{ form.observacoes }}
+                                {% if form.observacoes.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.observacoes.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Botões de Ação -->
+                            <div class="pt-4 space-y-3">
+                                <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Confirmar e Efetivar Repasse
+                                </button>
+                                
+                                <button type="button" onclick="confirmarCancelamento()" class="w-full inline-flex justify-center items-center px-4 py-3 border border-red-300 text-base font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    Cancelar Repasse
+                                </button>
+                            </div>
+                        </form>
+
+                        {% else %}
+                        <!-- Repasse já processado -->
+                        <div class="text-center py-6">
+                            {% if repasse.status == 'efetuado' %}
+                                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                                    <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <h3 class="mt-2 text-sm font-medium text-gray-900">Repasse Efetuado</h3>
+                                <p class="mt-1 text-sm text-gray-500">
+                                    Este repasse foi efetuado em {{ repasse.data_efetivacao|date:"d/m/Y" }}
+                                </p>
+                                {% if repasse.metodo_pagamento %}
+                                    <p class="mt-1 text-sm text-gray-500">
+                                        Método: {{ repasse.get_metodo_pagamento_display }}
+                                    </p>
+                                {% endif %}
+                                {% if repasse.comprovante %}
+                                    <div class="mt-4">
+                                        <a href="{{ repasse.comprovante.url }}" target="_blank" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                            <svg class="-ml-0.5 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                            </svg>
+                                            Ver Comprovante
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                                    <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </div>
+                                <h3 class="mt-2 text-sm font-medium text-gray-900">Repasse Cancelado</h3>
+                                <p class="mt-1 text-sm text-gray-500">
+                                    Este repasse foi cancelado
+                                </p>
+                            {% endif %}
+                            
+                            {% if repasse.observacoes %}
+                                <div class="mt-4 p-3 bg-gray-50 rounded-md">
+                                    <p class="text-xs text-gray-500 uppercase tracking-wide font-medium">Observações</p>
+                                    <p class="mt-1 text-sm text-gray-700">{{ repasse.observacoes }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Histórico relacionado -->
+                {% if repasse.status == 'efetuado' %}
+                <div class="mt-6 bg-white shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                            Histórico de Movimentação
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-500">Data do Repasse:</span>
+                                <span class="font-medium">{{ repasse.data_efetivacao|date:"d/m/Y H:i" }}</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-500">Valor Repassado:</span>
+                                <span class="font-medium text-green-600">+ R$ {{ repasse.valor_liquido|floatformat:2 }}</span>
+                            </div>
+                            {% if repasse.metodo_pagamento %}
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-500">Método:</span>
+                                <span class="font-medium">{{ repasse.get_metodo_pagamento_display }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação de Cancelamento -->
+<div id="cancelModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.728-.833-2.498 0L4.316 15.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mt-4">Cancelar Repasse</h3>
+            <div class="mt-2 px-7 py-3">
+                <p class="text-sm text-gray-500 mb-4">
+                    Tem certeza que deseja cancelar este repasse? Esta ação não poderá ser desfeita.
+                </p>
+                <form id="cancelForm" method="post" action="{% url 'financeiro:cancelar_repasse' repasse.pk %}">
+                    {% csrf_token %}
+                    <textarea name="motivo" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500" placeholder="Motivo do cancelamento (opcional)"></textarea>
+                </form>
+            </div>
+            <div class="items-center px-4 py-3">
+                <button onclick="submitCancel()" class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">
+                    Confirmar Cancelamento
+                </button>
+                <button onclick="closeModal()" class="mt-3 px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmarCancelamento() {
+    document.getElementById('cancelModal').classList.remove('hidden');
+}
+
+function closeModal() {
+    document.getElementById('cancelModal').classList.add('hidden');
+}
+
+function submitCancel() {
+    document.getElementById('cancelForm').submit();
+}
+
+// Preview do arquivo de comprovante
+document.getElementById('{{ form.comprovante.id_for_label }}').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // Aqui você pode adicionar lógica para mostrar preview do arquivo
+            console.log('Arquivo selecionado:', file.name);
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Validação antes do submit
+document.querySelector('form').addEventListener('submit', function(e) {
+    const metodoPagamento = document.querySelector('[name="metodo_pagamento"]').value;
+    if (!metodoPagamento) {
+        e.preventDefault();
+        alert('Por favor, selecione um método de pagamento.');
+        return false;
+    }
+    
+    if (!confirm('Tem certeza que deseja efetivar este repasse? Esta ação não poderá ser desfeita.')) {
+        e.preventDefault();
+        return false;
+    }
+});
+</script>
+{% endblock %}

@@ -19,6 +19,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 LANGUAGE_CODE = 'pt-br'
 USE_L10N = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+LOGIN_URL = '/admin/login/'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -32,9 +33,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'django_select2',
     'financeiro',
-    'widget_tweaks',
-    
-    
+
 ]
 
 MIDDLEWARE = [

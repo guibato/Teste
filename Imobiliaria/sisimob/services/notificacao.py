@@ -36,14 +36,19 @@ def gerar_mensagem_cobranca(cobranca):
 
     # Valores monetários
     try:
-        # Acessa o atributo .amount se o valor for do tipo Money
-        valor_aluguel = contrato.valor_aluguel.amount if hasattr(contrato.valor_aluguel, 'amount') else contrato.valor_aluguel or Decimal("0.00")
-        valor_total = cobranca.valor.amount if hasattr(cobranca.valor, 'amount') else cobranca.valor or Decimal("0.00")
+        # Obtem valor de aluguel e total
+        valor_aluguel_raw = contrato.valor_aluguel_atual()
+        valor_total_raw = cobranca.valor
+
+        valor_aluguel = valor_aluguel_raw.amount if hasattr(valor_aluguel_raw, 'amount') else valor_aluguel_raw or Decimal("0.00")
+        valor_total = valor_total_raw.amount if hasattr(valor_total_raw, 'amount') else valor_total_raw or Decimal("0.00")
+
         outros = valor_total - valor_aluguel
 
         # Formata os valores monetários com locale
         valor_aluguel_formatado = locale.currency(valor_aluguel, grouping=True, symbol=None)
         valor_total_formatado = locale.currency(valor_total, grouping=True, symbol=None)
+
 
     except Exception as e:
         raise ValueError(f"Erro ao processar valores monetários: {str(e)}")

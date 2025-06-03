@@ -1,0 +1,836 @@
+<!-- financeiro/templates/financeiro/reajustes/historico_contrato.html -->
+{% extends 'base.html' %}
+{% load static %}
+{% load reajuste_extras %}
+
+{% block title %}Histórico de Reajustes - {{ contrato.imovel.endereco }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 flex items-center">
+                    <svg class="w-8 h-8 mr-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/>
+                    </svg>
+                    Histórico de Reajustes
+                </h1>
+                <h2 class="text-xl text-gray-600 mt-1">{{ contrato.imovel.endereco }}</h2>
+                <p class="text-gray-500">
+                    {% if contrato.nome_locatario %}
+                        {{ contrato.nome_locatario }}
+                    {% elif contrato.locatario %}
+                        {{ contrato.locatario }}
+                    {% elif contrato.inquilino %}
+                        {{ contrato.inquilino }}
+                    {% else %}
+                        Locatário não informado
+                    {% endif %}
+                </p>
+            </div>
+            <div class="flex space-x-3 mt-4 lg:mt-0">
+                <a href="{% url 'financeiro:lista_reajustes' %}" 
+                   class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                    </svg>
+                    Lista Geral
+                </a>
+                <a href="{% url 'financeiro:form_reajuste_contrato' contrato.id %}" 
+                   class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"/>
+                    </svg>
+                    Novo Reajuste
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            
+            <!-- Sidebar - Informações do Contrato -->
+            <div class="lg:col-span-1 space-y-6">
+                
+                <!-- Info do Contrato -->
+                <div class="bg-gradient-to-br from-blue-600 to-purple-700 rounded-xl p-6 text-white">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M4 4a1 1 0 011-1h10a1 1 0 011 1v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4zm2 2v2h8V6H6zm0 4v2h8v-2H6zm0 4v2h8v-2H6z"/>
+                        </svg>
+                        Informações do Contrato
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <p class="text-blue-100 text-sm">Endereço</p>
+                            <p class="font-medium">{{ contrato.imovel.endereco }}</p>
+                        </div>
+                        <div>
+                            <p class="text-blue-100 text-sm">Locatário</p>
+                            <p class="font-medium">
+                                {% if contrato.nome_locatario %}
+                                    {{ contrato.nome_locatario }}
+                                {% elif contrato.locatario %}
+                                    {{ contrato.locatario }}
+                                {% elif contrato.inquilino %}
+                                    {{ contrato.inquilino }}
+                                {% else %}
+                                    Não informado
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-blue-100 text-sm">Início do Contrato</p>
+                            <p class="font-medium">{{ contrato.data_inicio|date:"d/m/Y" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-blue-100 text-sm">Valor Base</p>
+                            <p class="text-2xl font-bold">R$ {{ stats_contrato.valor_inicial|floatformat:2 }}</p>
+                        </div>
+                        {% if stats_contrato.valor_atual != stats_contrato.valor_inicial %}
+                        <div>
+                            <p class="text-blue-100 text-sm">Valor Atual</p>
+                            <p class="text-xl font-semibold text-yellow-300">R$ {{ stats_contrato.valor_atual|floatformat:2 }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Estatísticas -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Estatísticas</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Total de Reajustes</span>
+                            <span class="font-semibold text-gray-900">{{ stats_contrato.total_reajustes }}</span>
+                        </div>
+                        
+                        {% if stats_contrato.total_reajustes > 0 %}
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Variação Total</span>
+                            <span class="font-semibold {% if stats_contrato.variacao_total > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                                {% if stats_contrato.variacao_total > 0 %}+{% endif %}{{ stats_contrato.variacao_total|floatformat:2 }}%
+                            </span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Tempo de Contrato</span>
+                            <span class="font-semibold text-gray-900">{{ stats_contrato.tempo_contrato_meses }} meses</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Próxima Sugestão -->
+                {% if proxima_sugestao %}
+                <div class="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl p-6 text-white">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707z"/>
+                        </svg>
+                        Próximo Reajuste Sugerido
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-2 gap-4 text-center">
+                            <div>
+                                <p class="text-yellow-100 text-sm">Data</p>
+                                <p class="font-semibold">{{ proxima_sugestao.data_reajuste|date:"d/m/Y" }}</p>
+                            </div>
+                            <div>
+                                <p class="text-yellow-100 text-sm">Valor</p>
+                                <p class="font-semibold">R$ {{ proxima_sugestao.valor_sugerido|floatformat:2 }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-center space-x-2">
+                            <span class="inline-flex px-2 py-1 text-xs font-medium bg-white bg-opacity-20 rounded-full">
+                                {{ proxima_sugestao.fator_aplicado|floatformat:2 }}%
+                            </span>
+                            <span class="inline-flex px-2 py-1 text-xs font-medium bg-white bg-opacity-20 rounded-full">
+                                {{ proxima_sugestao.indice_utilizado }}
+                            </span>
+                        </div>
+                        
+                        <div class="pt-2">
+                            <a href="{% url 'financeiro:form_reajuste_sugestao' contrato.id proxima_sugestao.data_reajuste|date:'Y-m-d' %}" 
+                               class="w-full inline-flex items-center justify-center px-4 py-2 bg-white text-orange-600 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                                </svg>
+                                Aplicar Sugestão
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Timeline do Histórico -->
+            <div class="lg:col-span-3 space-y-6">
+                
+                <!-- Filtros -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Filtros</h3>
+                    <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Data Início</label>
+                            <input type="date" name="data_inicio" 
+                                   value="{{ filtros.data_inicio }}"
+                                   class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Data Fim</label>
+                            <input type="date" name="data_fim" 
+                                   value="{{ filtros.data_fim }}"
+                                   class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div class="flex items-end">
+                            <button type="submit" 
+                                    class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                <svg class="w-5 h-5 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Timeline -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Timeline de Reajustes</h3>
+                    </div>
+                    
+                    <div class="p-6">
+                        {% if historico %}
+                            <div class="relative">
+                                <!-- Linha vertical da timeline -->
+                                <div class="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+                                
+                                <div class="space-y-8">
+                                    {% for item in historico %}
+                                        <div class="relative flex items-start">
+                                            <!-- Marcador da timeline -->
+                                            <div class="flex-shrink-0 w-16 h-16 rounded-full border-4 border-white shadow-lg flex items-center justify-center
+                                                      {% if item.tipo == 'periodo' %}bg-gray-500
+                                                      {% elif item.tipo == 'reajuste' %}bg-blue-600
+                                                      {% else %}bg-green-600{% endif %}">
+                                                {% if item.tipo == 'periodo' %}
+                                                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"/>
+                                                    </svg>
+                                                {% elif item.tipo == 'reajuste' %}
+                                                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                                                    </svg>
+                                                {% else %}
+                                                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+                                                    </svg>
+                                                {% endif %}
+                                            </div>
+
+                                            <!-- Conteúdo -->
+                                            <div class="ml-6 flex-1">
+                                                <div class="bg-gray-50 rounded-lg p-6 border border-gray-200
+                                                          {% if item.tipo == 'periodo' %}border-l-4 border-l-gray-500
+                                                          {% elif item.tipo == 'reajuste' %}border-l-4 border-l-blue-600
+                                                          {% else %}border-l-4 border-l-green-600{% endif %}">
+                                                    
+                                                    {% if item.tipo == 'periodo' %}
+                                                        <!-- Período de Vigência -->
+                                                        <div class="flex justify-between items-start">
+                                                            <div>
+                                                                <h4 class="text-lg font-medium text-gray-900 mb-2">
+                                                                    <svg class="w-5 h-5 inline mr-2 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                                                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"/>
+                                                                    </svg>
+                                                                    Período de Vigência
+                                                                </h4>
+                                                                <p class="text-gray-700 mb-2">
+                                                                    <strong>{{ item.data_inicio|date:"d/m/Y" }}</strong> até 
+                                                                    <strong>{{ item.data_fim|date:"d/m/Y" }}</strong>
+                                                                </p>
+                                                                <p class="text-sm text-gray-500">
+                                                                    Duração: {{ item.duracao_meses }} meses
+                                                                </p>
+                                                            </div>
+                                                            <div class="text-right">
+                                                                <p class="text-2xl font-bold text-gray-900">
+                                                                    R$ {{ item.valor|floatformat:2 }}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                    {% elif item.tipo == 'periodo_atual' %}
+                                                        <!-- Período Atual -->
+                                                        <div class="flex justify-between items-start">
+                                                            <div>
+                                                                <h4 class="text-lg font-medium text-green-700 mb-2">
+                                                                    <svg class="w-5 h-5 inline mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+                                                                    </svg>
+                                                                    Período Atual
+                                                                </h4>
+                                                                <p class="text-gray-700 mb-2">
+                                                                    <strong>{{ item.data_inicio|date:"d/m/Y" }}</strong> até 
+                                                                    <strong>{{ item.data_fim|date:"d/m/Y" }}</strong>
+                                                                </p>
+                                                                <p class="text-sm text-gray-500">
+                                                                    Em vigência há {{ item.duracao_meses }} meses
+                                                                </p>
+                                                            </div>
+                                                            <div class="text-right">
+                                                                <p class="text-2xl font-bold text-green-600">
+                                                                    R$ {{ item.valor|floatformat:2 }}
+                                                                </p>
+                                                                <span class="inline-flex px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                                                                    ATUAL
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                    {% else %}
+                                                        <!-- Reajuste -->
+                                                        <div class="space-y-4">
+                                                            <div class="flex justify-between items-start">
+                                                                <div>
+                                                                    <h4 class="text-lg font-medium text-blue-700 mb-2">
+                                                                        <svg class="w-5 h-5 inline mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                                                            <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                                                                        </svg>
+                                                                        Reajuste Aplicado
+                                                                    </h4>
+                                                                    <p class="text-gray-700 font-medium">{{ item.data|date:"d/m/Y" }}</p>
+                                                                </div>
+                                                                <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full
+                                                                           {% if item.variacao_percentual > 10 %}bg-red-100 text-red-800
+                                                                           {% elif item.variacao_percentual > 5 %}bg-yellow-100 text-yellow-800
+                                                                           {% else %}bg-green-100 text-green-800{% endif %}">
+                                                                    +{{ item.variacao_percentual|floatformat:2 }}%
+                                                                </span>
+                                                            </div>
+                                                            
+                                                            <div class="grid grid-cols-4 gap-4 text-center">
+                                                                <div>
+                                                                    <p class="text-sm text-gray-500 mb-1">De</p>
+                                                                    <p class="font-bold text-gray-900">R$ {{ item.valor_anterior|floatformat:2 }}</p>
+                                                                </div>
+                                                                <div class="flex items-center justify-center">
+                                                                    <svg class="w-6 h-6 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                                                        <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"/>
+                                                                    </svg>
+                                                                </div>
+                                                                <div>
+                                                                    <p class="text-sm text-gray-500 mb-1">Para</p>
+                                                                    <p class="font-bold text-green-600">R$ {{ item.valor_novo|floatformat:2 }}</p>
+                                                                </div>
+                                                                <div>
+                                                                    <p class="text-sm text-gray-500 mb-1">Fator</p>
+                                                                    <p class="font-bold text-blue-600">{{ item.fator_aplicado|floatformat:2 }}%</p>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <div class="flex justify-between items-center pt-2">
+                                                                <span class="inline-flex px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
+                                                                    {{ item.indice_utilizado }}
+                                                                </span>
+                                                                <div class="text-right">
+                                                                    <p class="text-lg font-bold text-green-600">
+                                                                        +R$ {{ item.valor_novo|floatformat:2|add:0|subtract:item.valor_anterior|floatformat:2 }}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            {% if item.observacao %}
+                                                                <div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                                                    <p class="text-sm text-blue-800">
+                                                                        <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                                            <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z"/>
+                                                                        </svg>
+                                                                        {{ item.observacao }}
+                                                                    </p>
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-12">
+                                <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                </svg>
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhum histórico encontrado</h3>
+                                <p class="text-gray-500 mb-6">Este contrato ainda não possui reajustes aplicados.</p>
+                                <a href="{% url 'financeiro:form_reajuste_contrato' contrato.id %}" 
+                                   class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"/>
+                                    </svg>
+                                    Criar Primeiro Reajuste
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Animação da timeline ao carregar
+document.addEventListener('DOMContentLoaded', function() {
+    const timelineItems = document.querySelectorAll('.relative.flex.items-start');
+    
+    // Observador para animação lazy
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateX(0)';
+            }
+        });
+    }, { threshold: 0.1 });
+    
+    // Aplicar animação inicial e observar
+    timelineItems.forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(-20px)';
+        item.style.transition = `all 0.6s ease-out ${index * 0.1}s`;
+        observer.observe(item);
+    });
+    
+    // Trigger manual para elementos já visíveis
+    setTimeout(() => {
+        timelineItems.forEach(item => {
+            const rect = item.getBoundingClientRect();
+            if (rect.top < window.innerHeight && rect.bottom > 0) {
+                item.style.opacity = '1';
+                item.style.transform = 'translateX(0)';
+            }
+        });
+    }, 100);
+});
+
+// Função para exportar histórico
+function exportarHistorico() {
+    window.print();
+}
+
+// Animação suave ao rolar
+function scrollToElement(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
+}
+</script>
+{% endblock %}<!-- financeiro/templates/financeiro/reajustes/historico_contrato.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Histórico de Reajustes - {{ contrato.imovel.endereco }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .timeline {
+        position: relative;
+        margin: 20px 0;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 30px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #dee2e6;
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 30px;
+        padding-left: 80px;
+    }
+    
+    .timeline-marker {
+        position: absolute;
+        left: 20px;
+        top: 15px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 3px #dee2e6;
+    }
+    
+    .timeline-marker.periodo { background: #6c757d; }
+    .timeline-marker.reajuste { background: #0d6efd; }
+    .timeline-marker.atual { background: #198754; box-shadow: 0 0 0 3px #198754; }
+    
+    .timeline-content {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .timeline-content.periodo {
+        background: #f8f9fa;
+        border-left: 4px solid #6c757d;
+    }
+    
+    .timeline-content.reajuste {
+        border-left: 4px solid #0d6efd;
+    }
+    
+    .timeline-content.atual {
+        background: #d1e7dd;
+        border-left: 4px solid #198754;
+    }
+    
+    .valor-destaque {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    
+    .badge-variacao {
+        font-size: 0.9rem;
+    }
+    
+    .info-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .proxima-sugestao {
+        background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        border-radius: 10px;
+        padding: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="fas fa-history"></i> Histórico de Reajustes</h2>
+            <h5 class="text-muted">{{ contrato.imovel.endereco }}</h5>
+            <small class="text-muted">{{ contrato.locatario.nome }}</small>
+        </div>
+        <div>
+            <a href="{% url 'financeiro:lista_reajustes' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-list"></i> Lista Geral
+            </a>
+            <a href="{% url 'financeiro:form_reajuste_contrato' contrato.id %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Novo Reajuste
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Informações do Contrato -->
+        <div class="col-lg-4 mb-4">
+            <div class="card info-card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0 text-white">Informações do Contrato</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Endereço:</strong><br>
+                        {{ contrato.imovel.endereco }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>Locatário:</strong><br>
+                        {{ contrato.locatario.nome }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>Início do Contrato:</strong><br>
+                        {{ contrato.data_inicio|date:"d/m/Y" }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>Valor Base:</strong><br>
+                        <span class="valor-destaque">R$ {{ contrato.valor_base|floatformat:2 }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Índice de Reajuste:</strong><br>
+                        <span class="badge bg-light text-dark">{{ contrato.get_fator_reajuste_display }}</span>
+                    </div>
+                    {% if contrato.valor_atual != contrato.valor_base %}
+                    <div>
+                        <strong>Valor Atual:</strong><br>
+                        <span class="valor-destaque text-warning">R$ {{ contrato.valor_atual|floatformat:2 }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Próxima Sugestão -->
+            {% if proxima_sugestao %}
+            <div class="card mt-4">
+                <div class="card-body proxima-sugestao">
+                    <h6 class="card-title">
+                        <i class="fas fa-lightbulb"></i> Próximo Reajuste Sugerido
+                    </h6>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <small class="text-muted">Data</small>
+                            <div class="fw-bold">{{ proxima_sugestao.data_reajuste|date:"d/m/Y" }}</div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Valor</small>
+                            <div class="fw-bold text-success">R$ {{ proxima_sugestao.valor_sugerido|floatformat:2 }}</div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <span class="badge bg-primary">{{ proxima_sugestao.fator_aplicado|floatformat:2 }}%</span>
+                        <span class="badge bg-secondary">{{ proxima_sugestao.indice_utilizado }}</span>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'financeiro:form_reajuste_sugestao' contrato.id proxima_sugestao.data_reajuste|date:'Y-m-d' %}" 
+                           class="btn btn-success btn-sm">
+                            <i class="fas fa-check"></i> Aplicar Sugestão
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Timeline do Histórico -->
+        <div class="col-lg-8">
+            <!-- Filtros -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Data Início</label>
+                            <input type="date" name="data_inicio" class="form-control" 
+                                   value="{{ filtros.data_inicio }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Data Fim</label>
+                            <input type="date" name="data_fim" class="form-control" 
+                                   value="{{ filtros.data_fim }}">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-secondary w-100">
+                                <i class="fas fa-filter"></i> Filtrar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Timeline de Reajustes</h5>
+                </div>
+                <div class="card-body">
+                    {% if historico %}
+                        <div class="timeline">
+                            {% for item in historico %}
+                                <div class="timeline-item">
+                                    <div class="timeline-marker {{ item.tipo }}"></div>
+                                    <div class="timeline-content {{ item.tipo }}">
+                                        
+                                        {% if item.tipo == 'periodo' %}
+                                            <!-- Período de Vigência -->
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <h6 class="text-muted">
+                                                        <i class="fas fa-calendar-alt"></i>
+                                                        Período de Vigência
+                                                    </h6>
+                                                    <p class="mb-2">
+                                                        <strong>{{ item.data_inicio|date:"d/m/Y" }}</strong> até 
+                                                        <strong>{{ item.data_fim|date:"d/m/Y" }}</strong>
+                                                    </p>
+                                                    <small class="text-muted">
+                                                        Duração: {{ item.duracao_meses }} meses
+                                                    </small>
+                                                </div>
+                                                <div class="text-end">
+                                                    <div class="valor-destaque text-secondary">
+                                                        R$ {{ item.valor|floatformat:2 }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                        {% elif item.tipo == 'periodo_atual' %}
+                                            <!-- Período Atual -->
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <h6 class="text-success">
+                                                        <i class="fas fa-play-circle"></i>
+                                                        Período Atual
+                                                    </h6>
+                                                    <p class="mb-2">
+                                                        <strong>{{ item.data_inicio|date:"d/m/Y" }}</strong> até 
+                                                        <strong>{{ item.data_fim|date:"d/m/Y" }}</strong>
+                                                    </p>
+                                                    <small class="text-muted">
+                                                        Em vigência há {{ item.duracao_meses }} meses
+                                                    </small>
+                                                </div>
+                                                <div class="text-end">
+                                                    <div class="valor-destaque text-success">
+                                                        R$ {{ item.valor|floatformat:2 }}
+                                                    </div>
+                                                    <span class="badge bg-success">ATUAL</span>
+                                                </div>
+                                            </div>
+                                            
+                                        {% else %}
+                                            <!-- Reajuste -->
+                                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                                <div>
+                                                    <h6 class="text-primary">
+                                                        <i class="fas fa-chart-line"></i>
+                                                        Reajuste Aplicado
+                                                    </h6>
+                                                    <p class="mb-1">
+                                                        <strong>{{ item.data|date:"d/m/Y" }}</strong>
+                                                    </p>
+                                                </div>
+                                                <div class="text-end">
+                                                    <span class="badge badge-variacao bg-{% if item.variacao_percentual > 10 %}danger{% elif item.variacao_percentual > 5 %}warning{% else %}success{% endif %}">
+                                                        +{{ item.variacao_percentual|floatformat:2 }}%
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="row text-center mb-3">
+                                                <div class="col-4">
+                                                    <small class="text-muted">De</small>
+                                                    <div class="fw-bold">R$ {{ item.valor_anterior|floatformat:2 }}</div>
+                                                </div>
+                                                <div class="col-1 d-flex align-items-center justify-content-center">
+                                                    <i class="fas fa-arrow-right text-primary"></i>
+                                                </div>
+                                                <div class="col-4">
+                                                    <small class="text-muted">Para</small>
+                                                    <div class="fw-bold text-success">R$ {{ item.valor_novo|floatformat:2 }}</div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <small class="text-muted">Fator</small>
+                                                    <div class="fw-bold">{{ item.fator_aplicado|floatformat:2 }}%</div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <span class="badge bg-secondary">{{ item.indice_utilizado }}</span>
+                                                </div>
+                                                <div class="text-success fw-bold">
+                                                    +R$ {{ item.valor_novo|floatformat:2|add:0|subtract:item.valor_anterior|floatformat:2 }}
+                                                </div>
+                                            </div>
+                                            
+                                            {% if item.observacao %}
+                                                <div class="mt-3 p-2 bg-light rounded">
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-comment"></i> 
+                                                        {{ item.observacao }}
+                                                    </small>
+                                                </div>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Nenhum histórico encontrado</h5>
+                            <p class="text-muted">Este contrato ainda não possui reajustes aplicados.</p>
+                            <a href="{% url 'financeiro:form_reajuste_contrato' contrato.id %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Criar Primeiro Reajuste
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Animação da timeline ao carregar
+document.addEventListener('DOMContentLoaded', function() {
+    const timelineItems = document.querySelectorAll('.timeline-item');
+    
+    // Observador para animação lazy
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateX(0)';
+            }
+        });
+    }, { threshold: 0.1 });
+    
+    // Aplicar animação inicial e observar
+    timelineItems.forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(-20px)';
+        item.style.transition = `all 0.5s ease-out ${index * 0.1}s`;
+        observer.observe(item);
+    });
+    
+    // Trigger manual para elementos já visíveis
+    setTimeout(() => {
+        timelineItems.forEach(item => {
+            const rect = item.getBoundingClientRect();
+            if (rect.top < window.innerHeight && rect.bottom > 0) {
+                item.style.opacity = '1';
+                item.style.transform = 'translateX(0)';
+            }
+        });
+    }, 100);
+});
+
+// Função para exportar histórico (se necessário)
+function exportarHistorico() {
+    // Implementar exportação em PDF ou Excel
+    alert('Funcionalidade de exportação em desenvolvimento');
+}
+
+// Função para imprimir histórico
+function imprimirHistorico() {
+    window.print();
+}
+</script>
+
+<!-- Estilos para impressão -->
+<style media="print">
+    .btn, .card-header, .timeline::before { display: none !important; }
+    .timeline-content { border: 1px solid #000 !important; margin-bottom: 10px; }
+    .timeline-item { padding-left: 0 !important; }
+    .timeline-marker { display: none !important; }
+</style>
+{% endblock %}

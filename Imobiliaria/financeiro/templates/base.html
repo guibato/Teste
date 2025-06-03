@@ -3,10 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Palestra Imóveis - Sistema Imobiliário</title>
+    <title>{% block title %}Palestra Imóveis - Sistema Imobiliário{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <!-- Font Awesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- CSS Extra dos templates filhos -->
+    {% block extra_css %}{% endblock %}
+    
     <style>
         /* Estilos personalizados */
         .sidebar {
@@ -43,6 +47,17 @@
         
         .notification-pulse {
             animation: pulse 2s infinite;
+        }
+
+        /* Animações para toasts */
+        @keyframes fade-in-out {
+          0% { opacity: 0; transform: translateY(20px); }
+          10% { opacity: 1; transform: translateY(0); }
+          90% { opacity: 1; transform: translateY(0); }
+          100% { opacity: 0; transform: translateY(20px); }
+        }
+        .animate-fade-in-out {
+          animation: fade-in-out 4s ease-in-out;
         }
     </style>
 </head>
@@ -157,28 +172,63 @@
                             <i class="fas fa-chevron-down ml-auto text-sm text-gray-500"></i>
                         </div>
                         <ul id="financeiroSubMenu" class="pl-10 hidden">
-    <li>
-        <a href="{% url 'cadastro_cobrancas' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
-            <i class="fas fa-file-invoice-dollar mr-2"></i> Gerar Cobranças
-        </a>
-    </li>
-    <li>
-        <a href="{% url 'extrato' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
-            <i class="fas fa-receipt mr-2"></i> Extrato
-        </a>
-    </li>
-    <li>
-        <a href="{% url 'visualizar_mensagens' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
-            <i class="fas fa-envelope mr-2"></i> Mensagens de Cobranças
-        </a>
-    </li>
-    <li>
-        <a href="{% url 'listar_tipos_despesa' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
-            <i class="fas fa-tags mr-2"></i> Tipos de Despesa
-        </a>
-    </li>
-</ul>
-
+                            <!-- Dashboard Financeiro -->
+                            <li>
+                                <a href="{% url 'financeiro:dashboard' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
+                                    <i class="fas fa-chart-pie mr-2"></i> Dashboard
+                                </a>
+                            </li>
+                            
+                            <!-- Separador -->
+                            <li class="border-t border-gray-600 my-2"></li>
+                            
+                            <!-- Tipos de Despesa -->
+                            <li>
+                                <a href="{% url 'financeiro:tipodespesa_list' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
+                                    <i class="fas fa-tags mr-2"></i> Tipos de Despesa
+                                </a>
+                            </li>
+                            
+                            <!-- Despesas -->
+                            <li>
+                                <a href="{% url 'financeiro:despesa_list' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
+                                    <i class="fas fa-receipt mr-2"></i> Despesas
+                                </a>
+                            </li>
+                            
+                            <!-- Separador -->
+                            <li class="border-t border-gray-600 my-2"></li>
+                            
+                            <!-- Links antigos (manter funcionando) -->
+                            <li>
+                                <a href="{% url 'cadastro_cobrancas' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
+                                    <i class="fas fa-file-invoice-dollar mr-2"></i> Gerar Cobranças
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'extrato' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
+                                    <i class="fas fa-file-alt mr-2"></i> Extrato
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'visualizar_mensagens' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
+                                    <i class="fas fa-envelope mr-2"></i> Mensagens de Cobranças
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'home' %}" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors">
+                                    <i class="fas fa-chart-line mr-2"></i> Reajustar Aluguéis
+                                </a>
+                            </li>
+                            <li>
+                                <form method="post" action="{% url 'atualizar_indices' %}" onsubmit="return confirm('Deseja atualizar os índices agora?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="flex items-center py-2 text-sm hover:text-blue-400 transition-colors w-full text-left">
+                                        <i class="fas fa-chart-line mr-2"></i> Atualizar Índices
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
                     </div>
                 </li>
                 
@@ -200,15 +250,14 @@
                     </div>
                 </li>
             </ul>
-            <div class="absolute  w-full border-gray-700 p-4">
-            <a href="{% url 'logout' %}" class="flex items-center text-gray-400 hover:text-white transition-colors">
-                <i class="fas fa-sign-out-alt mr-3"></i>
-                <span id="menu-logout" class="text-sm">Sair</span>
-            </a>
+            
+            <div class="absolute bottom-4 w-full border-gray-700 p-4">
+                <a href="{% url 'logout' %}" class="flex items-center text-gray-400 hover:text-white transition-colors">
+                    <i class="fas fa-sign-out-alt mr-3"></i>
+                    <span id="menu-logout" class="text-sm">Sair</span>
+                </a>
             </div>
         </nav>
-
-        
     </aside>
 
     <!-- Conteúdo Principal -->
@@ -276,16 +325,27 @@
             
             <!-- Conteúdo dinâmico -->
             {% block content %}{% endblock %}
-            
         </main>
     </div>
 
-    {% load static %}
-    <!-- JavaScript -->
-    <script src="{% static 'js/bundle.js' %}"></script>
+    <!-- JavaScript Base -->
     <script>
-        // Manipulação da Sidebar
+        // === FUNÇÕES BASE DO SISTEMA ===
+        console.log("🔧 Sistema base carregando...");
+        
+        // Função para abrir/fechar submenus
+        function toggleSubMenu(id) {
+            const subMenu = document.getElementById(id);
+            if (subMenu) {
+                subMenu.classList.toggle('hidden');
+            }
+        }
+        
+        // Inicialização quando DOM estiver pronto
         document.addEventListener('DOMContentLoaded', function() {
+            console.log("🚀 DOM carregado - inicializando sistema base");
+            
+            // === MANIPULAÇÃO DA SIDEBAR ===
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('main-content');
             const toggleButton = document.getElementById('toggle-sidebar');
@@ -295,55 +355,61 @@
             const menuTitle = document.getElementById('menu-title');
             
             // Toggle sidebar em desktop
-            toggleButton.addEventListener('click', function() {
-                sidebar.classList.toggle('sidebar-collapsed');
-                sidebar.classList.toggle('sidebar-expanded');
-                
-                if (sidebar.classList.contains('sidebar-collapsed')) {
-                    toggleButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
-                    logoText.classList.add('hidden');
-                    menuTitle.classList.add('hidden');
-                    menuTexts.forEach(item => {
-                        if (item.id !== 'logo-text') {
-                            item.classList.add('hidden');
-                        }
-                    });
-                    const chevrons = document.querySelectorAll('.fa-chevron-down');
-                    chevrons.forEach(chevron => {
-                        chevron.classList.add('hidden');
-                    });
-                } else {
-                    toggleButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
-                    logoText.classList.remove('hidden');
-                    menuTitle.classList.remove('hidden');
-                    menuTexts.forEach(item => {
-                        if (item.id !== 'logo-text') {
-                            item.classList.remove('hidden');
-                        }
-                    });
-                    const chevrons = document.querySelectorAll('.fa-chevron-down');
-                    chevrons.forEach(chevron => {
-                        chevron.classList.remove('hidden');
-                    });
-                }
-            });
-            
-            // Toggle sidebar em mobile
-            mobileMenuButton.addEventListener('click', function() {
-                if (window.innerWidth < 768) {
-                    sidebar.classList.toggle('hidden');
-                }
-            });
-            
-            // Fechar sidebar quando clicar em um link (mobile)
-            const sidebarLinks = sidebar.querySelectorAll('a');
-            sidebarLinks.forEach(link => {
-                link.addEventListener('click', function() {
-                    if (window.innerWidth < 768) {
-                        sidebar.classList.add('hidden');
+            if (toggleButton) {
+                toggleButton.addEventListener('click', function() {
+                    sidebar.classList.toggle('sidebar-collapsed');
+                    sidebar.classList.toggle('sidebar-expanded');
+                    
+                    if (sidebar.classList.contains('sidebar-collapsed')) {
+                        toggleButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                        logoText.classList.add('hidden');
+                        menuTitle.classList.add('hidden');
+                        menuTexts.forEach(item => {
+                            if (item.id !== 'logo-text') {
+                                item.classList.add('hidden');
+                            }
+                        });
+                        const chevrons = document.querySelectorAll('.fa-chevron-down');
+                        chevrons.forEach(chevron => {
+                            chevron.classList.add('hidden');
+                        });
+                    } else {
+                        toggleButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
+                        logoText.classList.remove('hidden');
+                        menuTitle.classList.remove('hidden');
+                        menuTexts.forEach(item => {
+                            if (item.id !== 'logo-text') {
+                                item.classList.remove('hidden');
+                            }
+                        });
+                        const chevrons = document.querySelectorAll('.fa-chevron-down');
+                        chevrons.forEach(chevron => {
+                            chevron.classList.remove('hidden');
+                        });
                     }
                 });
-            });
+            }
+            
+            // Toggle sidebar em mobile
+            if (mobileMenuButton) {
+                mobileMenuButton.addEventListener('click', function() {
+                    if (window.innerWidth < 768) {
+                        sidebar.classList.toggle('hidden');
+                    }
+                });
+            }
+            
+            // Fechar sidebar quando clicar em um link (mobile)
+            if (sidebar) {
+                const sidebarLinks = sidebar.querySelectorAll('a');
+                sidebarLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        if (window.innerWidth < 768) {
+                            sidebar.classList.add('hidden');
+                        }
+                    });
+                });
+            }
             
             // Esconder sidebar em mobile por padrão
             function handleResize() {
@@ -356,58 +422,77 @@
             
             window.addEventListener('resize', handleResize);
             handleResize(); // Execute ao carregar
-        });
-        
-        // Função para abrir/fechar submenus
-        function toggleSubMenu(id) {
-            const subMenu = document.getElementById(id);
-            subMenu.classList.toggle('hidden');
-        }
-        
-        // Atualizar índices de inflação
-        document.addEventListener('DOMContentLoaded', function() {
+            
+            // === ATUALIZAR ÍNDICES ===
             const atualizarIndicesBtn = document.getElementById('atualizarIndices');
             if (atualizarIndicesBtn) {
-                atualizarIndicesBtn.addEventListener('click', async () => {
+                atualizarIndicesBtn.addEventListener('click', async function() {
                     try {
-                        // Criar mensagem de status
                         const mainContent = document.querySelector('main');
-                        const statusMsg = document.createElement('div');
-                        statusMsg.id = 'statusAtualizacao';
-                        statusMsg.className = 'fixed bottom-4 right-4 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center';
-                        statusMsg.innerHTML = '<i class="fas fa-sync fa-spin mr-3"></i> Atualização em andamento...';
-                        mainContent.appendChild(statusMsg);
+                        let statusMsg = document.getElementById('toastNotification');
                         
-                        const response = await fetch("/atualizar-indices/", { method: "POST" });
-                        
-                        if (response.ok) {
-                            statusMsg.className = 'fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center';
-                            statusMsg.innerHTML = '<i class="fas fa-check-circle mr-3"></i> Atualização concluída com sucesso!';
-                        } else {
-                            throw new Error(`Erro na atualização (Status: ${response.status})`);
+                        if (!statusMsg) {
+                            statusMsg = document.createElement('div');
+                            statusMsg.id = 'toastNotification';
+                            mainContent.appendChild(statusMsg);
                         }
                         
-                        // Remover notificação após 3 segundos
+                        statusMsg.className = 'fixed bottom-6 right-6 bg-blue-600 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-fade-in-out z-50';
+                        statusMsg.innerHTML = `
+                            <i class="fas fa-sync fa-spin"></i>
+                            <span>Atualizando índices...</span>
+                        `;
+
+                        const response = await fetch("/atualizar-indices/", { method: "POST" });
+                        const data = await response.json();
+
+                        if (response.ok && data.status === 'success') {
+                            statusMsg.className = 'fixed bottom-6 right-6 bg-green-600 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-fade-in-out z-50';
+                            statusMsg.innerHTML = `
+                                <i class="fas fa-check-circle"></i>
+                                <span>${data.message}</span>
+                            `;
+                        } else {
+                            throw new Error(data.message || 'Erro desconhecido');
+                        }
+
                         setTimeout(() => {
-                            statusMsg.remove();
-                        }, 3000);
-                        
+                            if (statusMsg && statusMsg.parentNode) {
+                                statusMsg.remove();
+                            }
+                        }, 4000);
                     } catch (error) {
                         const mainContent = document.querySelector('main');
-                        const statusMsg = document.getElementById('statusAtualizacao') || document.createElement('div');
-                        statusMsg.id = 'statusAtualizacao';
-                        statusMsg.className = 'fixed bottom-4 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center';
-                        statusMsg.innerHTML = '<i class="fas fa-exclamation-circle mr-3"></i> Erro ao atualizar os índices.';
-                        mainContent.appendChild(statusMsg);
+                        let statusMsg = document.getElementById('toastNotification');
                         
-                        // Remover notificação após 3 segundos
+                        if (!statusMsg) {
+                            statusMsg = document.createElement('div');
+                            statusMsg.id = 'toastNotification';
+                            mainContent.appendChild(statusMsg);
+                        }
+                        
+                        statusMsg.className = 'fixed bottom-6 right-6 bg-red-600 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-fade-in-out z-50';
+                        statusMsg.innerHTML = `
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>Erro: ${error.message}</span>
+                        `;
                         setTimeout(() => {
-                            statusMsg.remove();
-                        }, 3000);
+                            if (statusMsg && statusMsg.parentNode) {
+                                statusMsg.remove();
+                            }
+                        }, 5000);
                     }
                 });
             }
+            
+            console.log("✅ Sistema base inicializado com sucesso!");
         });
+        
+        console.log("🎯 JavaScript base carregado");
     </script>
+    
+    <!-- JavaScript específico dos templates filhos -->
+    {% block extra_js %}{% endblock %}
+
 </body>
 </html>

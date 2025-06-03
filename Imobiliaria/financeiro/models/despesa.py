@@ -118,16 +118,28 @@ class Despesa(models.Model):
         )
 
     def save(self, *args, **kwargs):
+        """
+        Método save corrigido - removendo tentativa de acessar atributos inexistentes
+        """
+        # Calcular data_fim_prevista automaticamente se não informada
         if not self.data_fim_prevista and self.data_inicio and self.numero_parcelas:
             meses_totais = self._calcular_total_meses()
             self.data_fim_prevista = self._adicionar_meses(self.data_inicio, meses_totais)
-        if self.tipo_id and self.pk is None:
-            try:
-                tipo = TipoDespesa.objects.get(pk=self.tipo_id)
-                self.is_recorrente = getattr(self, 'is_recorrente', tipo.is_recorrente_padrao)
-                self.is_base_calculo_administracao = getattr(
-                    self, 'is_base_calculo_administracao', tipo.is_base_calculo_admin_padrao
-                )
-            except TipoDespesa.DoesNotExist:
-                pass
+        
+        # CORREÇÃO: Remover tentativa de acessar atributos que não existem no TipoDespesa
+        # O código original tentava acessar is_recorrente_padrao e is_base_calculo_admin_padrao
+        # que não estão definidos no modelo TipoDespesa
+        
+        # Se é uma nova despesa, definir valores padrão
+        if self.pk is None:
+            # Usar valores padrão se não foram definidos
+            if not hasattr(self, '_state') or self._state.adding:
+                # is_recorrente permanece como foi definido no formulário ou False
+                if self.is_recorrente is None:
+                    self.is_recorrente = False
+                
+                # is_base_calculo_administracao permanece como foi definido ou False    
+                if self.is_base_calculo_administracao is None:
+                    self.is_base_calculo_administracao = False
+        
         super().save(*args, **kwargs)

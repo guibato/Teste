@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load static %}
+{% block page_title %}Cobranças{% endblock %}
+{% block content %}
+
+<!-- Botão Nova Cobrança -->
+<a href="{% url 'gerar_cobrancas' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mb-6 inline-block">Nova Cobrança</a>
+
+<!-- Filtros -->
+<form method="get" class="flex gap-4 mb-6 items-end">
+    <div>
+        <label for="contrato" class="block text-sm font-medium text-gray-700">Contrato</label>
+        <select name="contrato" id="contrato" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm">
+            <option value="">Todos</option>
+            {% for contrato in contratos %}
+                <option value="{{ contrato.id }}" {% if contrato.id|stringformat:"s" == filtro_contrato %}selected{% endif %}>
+                    {{ contrato }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+        <select name="status" id="status" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm">
+            <option value="">Todos</option>
+            {% for chave, valor in cobrancas.model.STATUS_CHOICES %}
+                <option value="{{ chave }}" {% if chave == filtro_status %}selected{% endif %}>{{ valor }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md">Filtrar</button>
+    </div>
+</form>
+
+<!-- Tabela -->
+<div class="overflow-x-auto bg-gray-700 shadow rounded-lg">
+    <table class="min-w-full divide-y divide-gray-200 text-sm text-white">
+        <thead class="bg-gray-800">
+            <tr>
+                <th class="px-4 py-2 text-left">Contrato</th>
+                <th class="px-4 py-2">Inquilino</th>
+                <th class="px-4 py-2">Referência</th>
+                <th class="px-4 py-2">Vencimento</th>
+                <th class="px-4 py-2">Valor</th>
+                <th class="px-4 py-2">Status</th>
+                <th class="px-4 py-2">Pagamento</th>
+                <th class="px-4 py-2">Repasse</th>
+                <th class="px-4 py-2">Ações</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-600">
+        {% for cobranca in cobrancas %}
+            <tr>
+                <td class="px-4 py-2">{{ cobranca.contrato }}</td>
+                <td class="px-4 py-2">{{ cobranca.inquilino }}</td>
+                <td class="px-4 py-2">{{ cobranca.data_referencia_texto }}</td>
+                <td class="px-4 py-2">{{ cobranca.data_vencimento }}</td>
+                <td class="px-4 py-2">R$ {{ cobranca.valor_total|floatformat:2 }}</td>
+                <td class="px-4 py-2">{{ cobranca.get_status_display }}</td>
+                <td class="px-4 py-2">
+                    {% if cobranca.status != 'paga' %}
+                        <form method="post" action="{% url 'marcar_cobranca_paga' cobranca.id %}">
+                            {% csrf_token %}
+                            <input type="date" name="data_pagamento" class="bg-gray-900 text-white border rounded px-2" required>
+                            <button type="submit" class="text-green-400 hover:underline ml-2">Marcar como paga</button>
+                        </form>
+                    {% else %}
+                        {{ cobranca.data_pagamento|date:"d/m/Y" }}
+                    {% endif %}
+                </td>
+                <td class="px-4 py-2">
+                    {% if cobranca.status == 'paga' %}
+                        {% if cobranca.repasse_set.exists %}
+                            {{ cobranca.repasse_set.first.data_repasse|date:"d/m/Y" }}
+                        {% else %}
+                            <form method="post" action="{% url 'marcar_repasse' cobranca.id %}">
+                                {% csrf_token %}
+                                <input type="date" name="data_repasse" class="bg-gray-900 text-white border rounded px-2" required>
+                                <button type="submit" class="text-blue-400 hover:underline ml-2">Marcar repasse</button>
+                            </form>
+                        {% endif %}
+                    {% else %}
+                        <span class="text-gray-400 italic">Aguardando pagamento</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-2">
+                    <a href="{% url 'excluir_cobranca' cobranca.id %}" class="text-red-400 hover:underline">Excluir</a>
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="9" class="text-center px-4 py-4 text-gray-400">Nenhuma cobrança encontrada.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

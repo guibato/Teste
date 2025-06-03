@@ -1,0 +1,292 @@
+<!-- financeiro/templates/financeiro/tipodespesa/tipodespesa_list.html -->
+<!-- Template convertido para Tailwind CSS -->
+{% extends 'base.html' %}
+
+{% block page_title %}Tipos de Despesa{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Cabeçalho da página -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-white flex items-center">
+                <i class="fas fa-tags mr-3 text-blue-400"></i>
+                Tipos de Despesa
+            </h1>
+            <p class="text-gray-400 mt-1">Gerencie os tipos de despesa utilizados nos contratos</p>
+        </div>
+        <div class="mt-4 md:mt-0">
+            <a href="{% url 'financeiro:tipodespesa_create' %}" 
+               class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
+                <i class="fas fa-plus mr-2"></i>
+                Novo Tipo
+            </a>
+        </div>
+    </div>
+
+    <!-- Cards de estatísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-blue-600 rounded-lg p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-blue-100">Total</p>
+                    <p class="text-3xl font-bold">{{ total_tipos }}</p>
+                </div>
+                <i class="fas fa-tags text-3xl text-blue-200"></i>
+            </div>
+        </div>
+        
+        <div class="bg-green-600 rounded-lg p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-green-100">Ativos</p>
+                    <p class="text-3xl font-bold">{{ tipos_ativos }}</p>
+                </div>
+                <i class="fas fa-check-circle text-3xl text-green-200"></i>
+            </div>
+        </div>
+        
+        <div class="bg-gray-600 rounded-lg p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-100">Inativos</p>
+                    <p class="text-3xl font-bold">{{ tipos_inativos }}</p>
+                </div>
+                <i class="fas fa-times-circle text-3xl text-gray-200"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-gray-800 rounded-lg p-6">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Status</label>
+                <select name="status" onchange="this.form.submit()" 
+                        class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="ativo" {% if filtro_status == 'ativo' %}selected{% endif %}>Apenas Ativos</option>
+                    <option value="inativo" {% if filtro_status == 'inativo' %}selected{% endif %}>Apenas Inativos</option>
+                    <option value="todos" {% if filtro_status == 'todos' %}selected{% endif %}>Todos</option>
+                </select>
+            </div>
+            
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-300 mb-2">Buscar</label>
+                <input type="text" name="busca" value="{{ filtro_busca }}" 
+                       placeholder="Buscar por nome ou descrição..."
+                       class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <div class="flex space-x-2">
+                <button type="submit" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
+                    <i class="fas fa-search mr-2"></i>
+                    Buscar
+                </button>
+                <a href="{% url 'financeiro:tipodespesa_list' %}" 
+                   class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
+                    <i class="fas fa-times mr-2"></i>
+                    Limpar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabela de tipos -->
+    <div class="bg-gray-800 rounded-lg overflow-hidden">
+        {% if tipos %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-700">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Nome</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Descrição</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Despesas</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-32">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700">
+                        {% for tipo in tipos %}
+                        <tr class="hover:bg-gray-700 transition-colors">
+                            <td class="px-6 py-4">
+                                <div class="text-white font-medium">{{ tipo.nome }}</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-gray-300">
+                                    {{ tipo.descricao|default:"-"|truncatechars:50 }}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                {% if tipo.ativo %}
+                                    <span class="bg-green-600 text-green-100 px-2 py-1 rounded-full text-xs font-medium">Ativo</span>
+                                {% else %}
+                                    <span class="bg-gray-600 text-gray-100 px-2 py-1 rounded-full text-xs font-medium">Inativo</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="bg-blue-600 text-blue-100 px-2 py-1 rounded-full text-xs font-medium">
+                                    {{ tipo.despesas.count }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="relative">
+                                    <button class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm flex items-center transition-colors"
+                                            onclick="toggleDropdown('dropdown-{{ tipo.pk }}')">
+                                        Ações
+                                        <i class="fas fa-chevron-down ml-1"></i>
+                                    </button>
+                                    
+                                    <div id="dropdown-{{ tipo.pk }}" class="hidden absolute right-0 mt-2 w-48 bg-gray-700 rounded-lg shadow-lg z-10">
+                                        <div class="py-1">
+                                            <a href="{% url 'financeiro:tipodespesa_detail' tipo.pk %}" 
+                                               class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">
+                                                <i class="fas fa-eye mr-2"></i> Ver Detalhes
+                                            </a>
+                                            <a href="{% url 'financeiro:tipodespesa_update' tipo.pk %}" 
+                                               class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">
+                                                <i class="fas fa-edit mr-2"></i> Editar
+                                            </a>
+                                            <button onclick="toggleStatus({{ tipo.pk }}, '{{ tipo.nome }}', {{ tipo.ativo|yesno:'true,false' }})"
+                                                    class="w-full text-left block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">
+                                                {% if tipo.ativo %}
+                                                    <i class="fas fa-times text-red-400 mr-2"></i> Inativar
+                                                {% else %}
+                                                    <i class="fas fa-check text-green-400 mr-2"></i> Ativar
+                                                {% endif %}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginação -->
+            {% if is_paginated %}
+            <div class="bg-gray-700 px-6 py-3 flex items-center justify-between">
+                <div class="text-sm text-gray-300">
+                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                </div>
+                <div class="flex space-x-1">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}{% if filtro_status != 'ativo' %}&status={{ filtro_status }}{% endif %}{% if filtro_busca %}&busca={{ filtro_busca }}{% endif %}" 
+                           class="bg-gray-600 hover:bg-gray-500 text-white px-3 py-1 rounded text-sm transition-colors">
+                            Anterior
+                        </a>
+                    {% endif %}
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if filtro_status != 'ativo' %}&status={{ filtro_status }}{% endif %}{% if filtro_busca %}&busca={{ filtro_busca }}{% endif %}" 
+                           class="bg-gray-600 hover:bg-gray-500 text-white px-3 py-1 rounded text-sm transition-colors">
+                            Próxima
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+        {% else %}
+            <!-- Mensagem quando não há tipos -->
+            <div class="text-center py-12">
+                <i class="fas fa-tags text-6xl text-gray-600 mb-4"></i>
+                <h3 class="text-xl font-medium text-gray-300 mb-2">Nenhum tipo de despesa encontrado</h3>
+                {% if filtro_busca or filtro_status != 'ativo' %}
+                    <p class="text-gray-400 mb-4">Tente ajustar os filtros ou 
+                        <a href="{% url 'financeiro:tipodespesa_list' %}" class="text-blue-400 hover:text-blue-300">remover filtros</a>
+                    </p>
+                {% else %}
+                    <p class="text-gray-400 mb-4">Comece criando seu primeiro tipo de despesa</p>
+                    <a href="{% url 'financeiro:tipodespesa_create' %}" 
+                       class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg inline-flex items-center transition-colors">
+                        <i class="fas fa-plus mr-2"></i>
+                        Criar Primeiro Tipo
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal de confirmação -->
+<div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <h3 class="text-lg font-medium text-white mb-4">Confirmar Ação</h3>
+            <p id="confirmMessage" class="text-gray-300 mb-6"></p>
+            <div class="flex space-x-3">
+                <button onclick="closeModal()" 
+                        class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors">
+                    Cancelar
+                </button>
+                <button id="confirmButton" 
+                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors">
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Fechar dropdowns quando clicar fora
+document.addEventListener('click', function(event) {
+    const dropdowns = document.querySelectorAll('[id^="dropdown-"]');
+    dropdowns.forEach(dropdown => {
+        if (!dropdown.closest('.relative').contains(event.target)) {
+            dropdown.classList.add('hidden');
+        }
+    });
+});
+
+// Toggle dropdown
+function toggleDropdown(id) {
+    const dropdown = document.getElementById(id);
+    dropdown.classList.toggle('hidden');
+}
+
+// Toggle status do tipo
+function toggleStatus(tipoId, tipoNome, statusAtual) {
+    const acao = statusAtual ? 'inativar' : 'ativar';
+    const modal = document.getElementById('confirmModal');
+    const message = document.getElementById('confirmMessage');
+    const confirmBtn = document.getElementById('confirmButton');
+    
+    message.textContent = `Tem certeza que deseja ${acao} o tipo "${tipoNome}"?`;
+    
+    confirmBtn.onclick = function() {
+        fetch(`/financeiro/tipos-despesa/${tipoId}/toggle-status/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao processar solicitação');
+        });
+        
+        closeModal();
+    };
+    
+    modal.classList.remove('hidden');
+}
+
+// Fechar modal
+function closeModal() {
+    document.getElementById('confirmModal').classList.add('hidden');
+}
+</script>
+{% endblock %}

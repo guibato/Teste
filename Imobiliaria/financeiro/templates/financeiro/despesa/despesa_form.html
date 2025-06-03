@@ -1,0 +1,599 @@
+<!-- financeiro/templates/financeiro/despesa/despesa_form.html - VERSÃO MELHORADA -->
+{% extends 'base.html' %}
+
+{% block page_title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <!-- Cabeçalho -->
+    <div class="bg-gray-800 rounded-lg p-6 mb-6">
+        <h1 class="text-2xl font-bold text-white flex items-center">
+            <i class="fas fa-receipt text-blue-400 mr-3"></i>
+            {{ titulo }}
+        </h1>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Formulário Principal -->
+        <div class="lg:col-span-2">
+            <div class="bg-gray-800 rounded-lg p-6">
+                <!-- Alertas de validação -->
+                {% if form.non_field_errors %}
+                    <div class="bg-red-600 text-white p-4 rounded-lg mb-6 flex items-center">
+                        <i class="fas fa-exclamation-triangle mr-3"></i>
+                        <div>{{ form.non_field_errors }}</div>
+                    </div>
+                {% endif %}
+
+                <!-- Formulário -->
+                <form method="post" class="space-y-6" id="despesa-form">
+                    {% csrf_token %}
+                    
+                    <!-- Linha 1: Contrato e Tipo -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Campo Contrato -->
+                        <div>
+                            <label for="{{ form.contrato.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                                {{ form.contrato.label }}
+                                <span class="text-red-400">*</span>
+                            </label>
+                            <select id="{{ form.contrato.id_for_label }}"
+                                    name="{{ form.contrato.name }}"
+                                    required
+                                    class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 {% if form.contrato.errors %}border-red-500{% endif %}">
+                                <option value="">Selecione um contrato</option>
+                                {% for choice in form.contrato.field.choices %}
+                                    {% if choice.0 %}
+                                        <option value="{{ choice.0 }}" {% if form.contrato.value == choice.0|stringformat:"s" %}selected{% endif %}>
+                                            {{ choice.1 }}
+                                        </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                            
+                            {% if form.contrato.errors %}
+                                <div class="text-red-400 text-sm mt-1">
+                                    {% for error in form.contrato.errors %}
+                                        <div><i class="fas fa-times-circle mr-1"></i>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Campo Tipo -->
+                        <div>
+                            <label for="{{ form.tipo.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                                {{ form.tipo.label }}
+                                <span class="text-red-400">*</span>
+                            </label>
+                            <select id="{{ form.tipo.id_for_label }}"
+                                    name="{{ form.tipo.name }}"
+                                    required
+                                    class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 {% if form.tipo.errors %}border-red-500{% endif %}">
+                                <option value="">Selecione um tipo</option>
+                                {% for choice in form.tipo.field.choices %}
+                                    {% if choice.0 %}
+                                        <option value="{{ choice.0 }}" {% if form.tipo.value == choice.0|stringformat:"s" %}selected{% endif %}>
+                                            {{ choice.1 }}
+                                        </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                            
+                            {% if form.tipo.errors %}
+                                <div class="text-red-400 text-sm mt-1">
+                                    {% for error in form.tipo.errors %}
+                                        <div><i class="fas fa-times-circle mr-1"></i>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Linha 2: Descrição -->
+                    <div>
+                        <label for="{{ form.descricao.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                            {{ form.descricao.label }}
+                        </label>
+                        <input type="text" 
+                               id="{{ form.descricao.id_for_label }}"
+                               name="{{ form.descricao.name }}"
+                               value="{{ form.descricao.value|default:'' }}"
+                               placeholder="Descrição da despesa (opcional)..."
+                               class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Seção de Valores -->
+                    <div class="bg-gray-700 rounded-lg p-4 space-y-4">
+                        <h3 class="text-lg font-medium text-white flex items-center">
+                            <i class="fas fa-calculator text-green-400 mr-2"></i>
+                            Configuração de Valores
+                        </h3>
+                        
+                        <!-- Tipo de Valor -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-3">{{ form.tipo_valor.label }}</label>
+                            <div class="flex space-x-6">
+                                {% for choice in form.tipo_valor.field.choices %}
+                                    <label class="flex items-center">
+                                        <input type="radio" 
+                                               name="{{ form.tipo_valor.name }}" 
+                                               value="{{ choice.0 }}"
+                                               {% if form.tipo_valor.value == choice.0 or choice.0 == 'total' and not form.tipo_valor.value %}checked{% endif %}
+                                               class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500 focus:ring-2">
+                                        <span class="ml-2 text-white">{{ choice.1 }}</span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                            <p class="text-gray-400 text-sm mt-1">{{ form.tipo_valor.help_text }}</p>
+                        </div>
+
+                        <!-- Campos de Valor -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Valor Total -->
+                            <div id="campo-valor-total">
+                                <label for="{{ form.valor_total.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                                    {{ form.valor_total.label }}
+                                    <span class="text-red-400">*</span>
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">R$</span>
+                                    <input type="number" 
+                                           id="{{ form.valor_total.id_for_label }}"
+                                           name="{{ form.valor_total.name }}"
+                                           value="{{ form.valor_total.value|default:'' }}"
+                                           step="0.01"
+                                           min="0"
+                                           placeholder="0,00"
+                                           class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg pl-12 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+
+                            <!-- Valor por Parcela -->
+                            <div id="campo-valor-parcela" style="display: none;">
+                                <label for="{{ form.valor_parcela.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                                    {{ form.valor_parcela.label }}
+                                    <span class="text-red-400">*</span>
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">R$</span>
+                                    <input type="number" 
+                                           id="{{ form.valor_parcela.id_for_label }}"
+                                           name="{{ form.valor_parcela.name }}"
+                                           value="{{ form.valor_parcela.value|default:'' }}"
+                                           step="0.01"
+                                           min="0"
+                                           placeholder="0,00"
+                                           class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg pl-12 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Linha 3: Paga Por e Parcelas -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Campo Paga Por -->
+                        <div>
+                            <label for="{{ form.paga_por.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                                {{ form.paga_por.label }}
+                                <span class="text-red-400">*</span>
+                            </label>
+                            <select id="{{ form.paga_por.id_for_label }}"
+                                    name="{{ form.paga_por.name }}"
+                                    required
+                                    class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                {% for choice in form.paga_por.field.choices %}
+                                    <option value="{{ choice.0 }}" {% if form.paga_por.value == choice.0 %}selected{% endif %}>
+                                        {{ choice.1 }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Campo Número de Parcelas -->
+                        <div>
+                            <label for="{{ form.numero_parcelas.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                                {{ form.numero_parcelas.label }}
+                                <span class="text-red-400">*</span>
+                            </label>
+                            <input type="number" 
+                                   id="{{ form.numero_parcelas.id_for_label }}"
+                                   name="{{ form.numero_parcelas.name }}"
+                                   value="{{ form.numero_parcelas.value|default:'1' }}"
+                                   min="1"
+                                   max="360"
+                                   required
+                                   class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <!-- Campo Periodicidade -->
+                        <div>
+                            <label for="{{ form.periodicidade.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                                {{ form.periodicidade.label }}
+                                <span class="text-red-400">*</span>
+                            </label>
+                            <select id="{{ form.periodicidade.id_for_label }}"
+                                    name="{{ form.periodicidade.name }}"
+                                    required
+                                    class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                {% for choice in form.periodicidade.field.choices %}
+                                    <option value="{{ choice.0 }}" {% if form.periodicidade.value == choice.0 %}selected{% endif %}>
+                                        {{ choice.1 }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Linha 4: Data de Início e Status -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Campo Data de Início -->
+                        <div>
+                            <label for="{{ form.data_inicio.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                                {{ form.data_inicio.label }}
+                                <span class="text-red-400">*</span>
+                            </label>
+                            <input type="date" 
+                                   id="{{ form.data_inicio.id_for_label }}"
+                                   name="{{ form.data_inicio.name }}"
+                                   value="{{ form.data_inicio.value|date:'Y-m-d'|default:'' }}"
+                                   required
+                                   class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <!-- Campo Ativa -->
+                        <div class="flex items-center mt-8">
+                            <input type="checkbox" 
+                                   id="{{ form.is_ativa.id_for_label }}"
+                                   name="{{ form.is_ativa.name }}"
+                                   {% if form.is_ativa.value %}checked{% endif %}
+                                   class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2">
+                            <label for="{{ form.is_ativa.id_for_label }}" class="ml-2 text-sm text-gray-300">
+                                {{ form.is_ativa.label }}
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Seção de Recorrência -->
+                    {% if not object.pk %}
+                    <div class="bg-blue-900 bg-opacity-30 rounded-lg p-4 space-y-4">
+                        <h3 class="text-lg font-medium text-white flex items-center">
+                            <i class="fas fa-sync-alt text-blue-400 mr-2"></i>
+                            Despesas Recorrentes
+                            <span class="ml-2 bg-blue-600 text-xs px-2 py-1 rounded-full">NOVO</span>
+                        </h3>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" 
+                                   id="{{ form.gerar_recorrentes.id_for_label }}"
+                                   name="{{ form.gerar_recorrentes.name }}"
+                                   class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2">
+                            <label for="{{ form.gerar_recorrentes.id_for_label }}" class="ml-2 text-sm text-gray-300">
+                                {{ form.gerar_recorrentes.label }}
+                            </label>
+                        </div>
+                        <p class="text-gray-400 text-sm">{{ form.gerar_recorrentes.help_text }}</p>
+                        
+                        <div id="campo-recorrentes" style="display: none;" class="mt-4">
+                            <label for="{{ form.quantidade_recorrentes.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                                {{ form.quantidade_recorrentes.label }}
+                            </label>
+                            <input type="number" 
+                                   id="{{ form.quantidade_recorrentes.id_for_label }}"
+                                   name="{{ form.quantidade_recorrentes.name }}"
+                                   value="{{ form.quantidade_recorrentes.value|default:'12' }}"
+                                   min="1"
+                                   max="60"
+                                   class="w-32 bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <p class="text-gray-400 text-sm mt-1">{{ form.quantidade_recorrentes.help_text }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Campo Observações -->
+                    <div>
+                        <label for="{{ form.observacoes.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                            {{ form.observacoes.label }}
+                        </label>
+                        <textarea id="{{ form.observacoes.id_for_label }}"
+                                  name="{{ form.observacoes.name }}"
+                                  rows="3"
+                                  placeholder="Observações adicionais..."
+                                  class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">{{ form.observacoes.value|default:'' }}</textarea>
+                    </div>
+
+                    <!-- Botões de ação -->
+                    <div class="flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-6">
+                        <a href="{% url 'financeiro:despesa_list' %}" 
+                           class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-6 rounded-lg flex items-center justify-center transition-colors">
+                            <i class="fas fa-times mr-2"></i>
+                            Cancelar
+                        </a>
+                        <button type="submit" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg flex items-center justify-center transition-colors">
+                            <i class="fas fa-save mr-2"></i>
+                            {{ botao_submit }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sidebar com Previews -->
+        <div class="space-y-6">
+            <!-- Preview do cálculo -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h3 class="text-lg font-medium text-white mb-4 flex items-center">
+                    <i class="fas fa-calculator text-green-400 mr-2"></i>
+                    Preview dos Cálculos
+                </h3>
+                
+                <div id="calculo-preview" class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Valor Total:</span>
+                        <span class="text-white font-medium" id="preview-valor-total">R$ 0,00</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Valor por Parcela:</span>
+                        <span class="text-white font-medium" id="preview-valor-parcela">R$ 0,00</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Número de Parcelas:</span>
+                        <span class="text-white font-medium" id="preview-parcelas">0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Periodicidade:</span>
+                        <span class="text-white font-medium" id="preview-periodicidade">-</span>
+                    </div>
+                    
+                    <div class="border-t border-gray-600 pt-3">
+                        <div class="flex justify-between text-lg">
+                            <span class="text-gray-300 font-medium">Total Geral:</span>
+                            <span class="text-green-400 font-bold" id="preview-total-geral">R$ 0,00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview de Recorrência -->
+            <div id="preview-recorrencia" class="bg-gray-800 rounded-lg p-6" style="display: none;">
+                <h3 class="text-lg font-medium text-white mb-4 flex items-center">
+                    <i class="fas fa-calendar-alt text-blue-400 mr-2"></i>
+                    Despesas Recorrentes
+                </h3>
+                
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Quantidade:</span>
+                        <span class="text-white font-medium" id="preview-qtd-recorrentes">0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Valor por Mês:</span>
+                        <span class="text-white font-medium" id="preview-valor-mensal">R$ 0,00</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Total Recorrente:</span>
+                        <span class="text-blue-400 font-bold" id="preview-total-recorrente">R$ 0,00</span>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-blue-900 bg-opacity-30 rounded">
+                        <p class="text-blue-300 text-sm">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Serão criadas <span id="preview-qtd-texto">0</span> despesas automáticas
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de ajuda -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h3 class="text-lg font-medium text-white mb-3 flex items-center">
+                    <i class="fas fa-question-circle text-yellow-400 mr-2"></i>
+                    Dicas
+                </h3>
+                <div class="space-y-3 text-sm text-gray-300">
+                    <div class="flex items-start">
+                        <i class="fas fa-circle text-yellow-400 text-xs mt-2 mr-3 flex-shrink-0"></i>
+                        <span><strong>Valor Total:</strong> Informe o valor completo da despesa</span>
+                    </div>
+                    <div class="flex items-start">
+                        <i class="fas fa-circle text-yellow-400 text-xs mt-2 mr-3 flex-shrink-0"></i>
+                        <span><strong>Valor por Parcela:</strong> Informe o valor de cada parcela individual</span>
+                    </div>
+                    <div class="flex items-start">
+                        <i class="fas fa-circle text-yellow-400 text-xs mt-2 mr-3 flex-shrink-0"></i>
+                        <span><strong>Recorrentes:</strong> Ideal para despesas mensais como Condomínio, IPTU</span>
+                    </div>
+                    <div class="flex items-start">
+                        <i class="fas fa-circle text-yellow-400 text-xs mt-2 mr-3 flex-shrink-0"></i>
+                        <span><strong>Periodicidade:</strong> Define a frequência das parcelas/recorrências</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exemplos práticos -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h3 class="text-lg font-medium text-white mb-3 flex items-center">
+                    <i class="fas fa-lightbulb text-orange-400 mr-2"></i>
+                    Exemplos
+                </h3>
+                <div class="space-y-3 text-sm">
+                    <div class="bg-gray-700 rounded p-3">
+                        <div class="text-green-400 font-medium">Condomínio Mensal</div>
+                        <div class="text-gray-300">• Valor por Parcela: R$ 350,00</div>
+                        <div class="text-gray-300">• Recorrente: 12 meses</div>
+                        <div class="text-gray-300">• Periodicidade: Mensal</div>
+                    </div>
+                    
+                    <div class="bg-gray-700 rounded p-3">
+                        <div class="text-blue-400 font-medium">IPTU Parcelado</div>
+                        <div class="text-gray-300">• Valor Total: R$ 1.200,00</div>
+                        <div class="text-gray-300">• Parcelas: 10x</div>
+                        <div class="text-gray-300">• Periodicidade: Mensal</div>
+                    </div>
+                    
+                    <div class="bg-gray-700 rounded p-3">
+                        <div class="text-purple-400 font-medium">Reforma Única</div>
+                        <div class="text-gray-300">• Valor Total: R$ 5.000,00</div>
+                        <div class="text-gray-300">• Parcelas: 1x</div>
+                        <div class="text-gray-300">• Sem recorrência</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Elementos do formulário
+    const tipoValorRadios = document.querySelectorAll('input[name="tipo_valor"]');
+    const campoValorTotal = document.getElementById('campo-valor-total');
+    const campoValorParcela = document.getElementById('campo-valor-parcela');
+    const valorTotalField = document.getElementById('{{ form.valor_total.id_for_label }}');
+    const valorParcelaField = document.getElementById('{{ form.valor_parcela.id_for_label }}');
+    const parcelasField = document.getElementById('{{ form.numero_parcelas.id_for_label }}');
+    const periodicidadeField = document.getElementById('{{ form.periodicidade.id_for_label }}');
+    const gerarRecorrentesField = document.getElementById('{{ form.gerar_recorrentes.id_for_label }}');
+    const campoRecorrentes = document.getElementById('campo-recorrentes');
+    const quantidadeRecorrentesField = document.getElementById('{{ form.quantidade_recorrentes.id_for_label }}');
+    
+    // Elementos de preview
+    const previewValorTotal = document.getElementById('preview-valor-total');
+    const previewValorParcela = document.getElementById('preview-valor-parcela');
+    const previewParcelas = document.getElementById('preview-parcelas');
+    const previewPeriodicidade = document.getElementById('preview-periodicidade');
+    const previewTotalGeral = document.getElementById('preview-total-geral');
+    const previewRecorrencia = document.getElementById('preview-recorrencia');
+    const previewQtdRecorrentes = document.getElementById('preview-qtd-recorrentes');
+    const previewValorMensal = document.getElementById('preview-valor-mensal');
+    const previewTotalRecorrente = document.getElementById('preview-total-recorrente');
+    const previewQtdTexto = document.getElementById('preview-qtd-texto');
+
+    // Função para alternar campos de valor
+    function toggleCamposValor() {
+        const tipoSelecionado = document.querySelector('input[name="tipo_valor"]:checked').value;
+        
+        if (tipoSelecionado === 'parcela') {
+            campoValorTotal.style.display = 'none';
+            campoValorParcela.style.display = 'block';
+            valorTotalField.removeAttribute('required');
+            valorParcelaField.setAttribute('required', 'required');
+        } else {
+            campoValorTotal.style.display = 'block';
+            campoValorParcela.style.display = 'none';
+            valorTotalField.setAttribute('required', 'required');
+            valorParcelaField.removeAttribute('required');
+        }
+        updatePreview();
+    }
+
+    // Função para alternar campo de recorrentes
+    function toggleCampoRecorrentes() {
+        if (gerarRecorrentesField && gerarRecorrentesField.checked) {
+            campoRecorrentes.style.display = 'block';
+            previewRecorrencia.style.display = 'block';
+        } else {
+            campoRecorrentes.style.display = 'none';
+            previewRecorrencia.style.display = 'none';
+        }
+        updatePreview();
+    }
+
+    // Função para atualizar preview
+    function updatePreview() {
+        const tipoValor = document.querySelector('input[name="tipo_valor"]:checked').value;
+        const parcelas = parseInt(parcelasField.value) || 1;
+        const periodicidade = periodicidadeField.options[periodicidadeField.selectedIndex].text;
+        
+        let valorTotal = 0;
+        let valorParcela = 0;
+        
+        if (tipoValor === 'parcela') {
+            valorParcela = parseFloat(valorParcelaField.value) || 0;
+            valorTotal = valorParcela * parcelas;
+            
+            // Atualizar campo valor total automaticamente
+            if (valorParcela > 0) {
+                valorTotalField.value = valorTotal.toFixed(2);
+            }
+        } else {
+            valorTotal = parseFloat(valorTotalField.value) || 0;
+            valorParcela = valorTotal / parcelas;
+        }
+        
+        // Atualizar preview básico
+        previewValorTotal.textContent = `R$ ${valorTotal.toFixed(2).replace('.', ',')}`;
+        previewValorParcela.textContent = `R$ ${valorParcela.toFixed(2).replace('.', ',')}`;
+        previewParcelas.textContent = parcelas;
+        previewPeriodicidade.textContent = periodicidade;
+        previewTotalGeral.textContent = `R$ ${valorTotal.toFixed(2).replace('.', ',')}`;
+        
+        // Atualizar preview de recorrência
+        if (gerarRecorrentesField && gerarRecorrentesField.checked) {
+            const qtdRecorrentes = parseInt(quantidadeRecorrentesField.value) || 12;
+            const valorMensal = valorTotal; // Valor de cada despesa recorrente
+            const totalRecorrente = valorMensal * qtdRecorrentes;
+            
+            previewQtdRecorrentes.textContent = qtdRecorrentes;
+            previewValorMensal.textContent = `R$ ${valorMensal.toFixed(2).replace('.', ',')}`;
+            previewTotalRecorrente.textContent = `R$ ${totalRecorrente.toFixed(2).replace('.', ',')}`;
+            previewQtdTexto.textContent = qtdRecorrentes;
+        }
+    }
+
+    // Event listeners
+    tipoValorRadios.forEach(radio => {
+        radio.addEventListener('change', toggleCamposValor);
+    });
+
+    if (gerarRecorrentesField) {
+        gerarRecorrentesField.addEventListener('change', toggleCampoRecorrentes);
+    }
+
+    [valorTotalField, valorParcelaField, parcelasField, periodicidadeField, quantidadeRecorrentesField].forEach(field => {
+        if (field) {
+            field.addEventListener('input', updatePreview);
+            field.addEventListener('change', updatePreview);
+        }
+    });
+
+    // Inicializar
+    toggleCamposValor();
+    toggleCampoRecorrentes();
+    updatePreview();
+
+    // Validação do formulário
+    document.getElementById('despesa-form').addEventListener('submit', function(e) {
+        const tipoValor = document.querySelector('input[name="tipo_valor"]:checked').value;
+        
+        if (tipoValor === 'parcela') {
+            const valorParcela = parseFloat(valorParcelaField.value) || 0;
+            if (valorParcela <= 0) {
+                e.preventDefault();
+                valorParcelaField.classList.add('border-red-500');
+                valorParcelaField.focus();
+                return;
+            }
+        } else {
+            const valorTotal = parseFloat(valorTotalField.value) || 0;
+            if (valorTotal <= 0) {
+                e.preventDefault();
+                valorTotalField.classList.add('border-red-500');
+                valorTotalField.focus();
+                return;
+            }
+        }
+    });
+
+    // Remover bordas vermelhas ao digitar
+    [valorTotalField, valorParcelaField].forEach(field => {
+        if (field) {
+            field.addEventListener('input', function() {
+                this.classList.remove('border-red-500');
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

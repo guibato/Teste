@@ -1,0 +1,514 @@
+<!-- financeiro/templates/financeiro/cobranca/cobranca_form.html -->
+{% extends "financeiro/cobranca/base_cobranca.html" %}
+{% load static %}
+
+{% block page_title %}{{ titulo|default:"Cobrança" }}{% endblock %}
+{% block page_description %}{% if object %}Editar dados da cobrança{% else %}Criar nova cobrança de aluguel{% endif %}{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'financeiro:cobranca_list' %}" 
+   class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+    </svg>
+    <span>Voltar</span>
+</a>
+{% endblock %}
+
+{% block main_content %}
+<div class="max-w-4xl mx-auto">
+    <form method="post" id="cobrancaForm" class="space-y-8">
+        {% csrf_token %}
+        
+        <!-- Informações Básicas -->
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Informações Básicas</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Dados principais da cobrança</p>
+            </div>
+            <div class="px-6 py-6 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Contrato -->
+                    <div>
+                        <label for="{{ form.contrato.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            {{ form.contrato.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.contrato }}
+                        {% if form.contrato.help_text %}
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ form.contrato.help_text }}</p>
+                        {% endif %}
+                        {% if form.contrato.errors %}
+                        <div class="mt-1 text-sm text-red-600 dark:text-red-400">
+                            {{ form.contrato.errors|first }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Inquilino -->
+                    <div>
+                        <label for="{{ form.inquilino.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            {{ form.inquilino.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.inquilino }}
+                        {% if form.inquilino.help_text %}
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ form.inquilino.help_text }}</p>
+                        {% endif %}
+                        {% if form.inquilino.errors %}
+                        <div class="mt-1 text-sm text-red-600 dark:text-red-400">
+                            {{ form.inquilino.errors|first }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Mês de Referência -->
+                    <div>
+                        <label for="{{ form.mes_referencia.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            {{ form.mes_referencia.label }}
+                        </label>
+                        {{ form.mes_referencia }}
+                        {% if form.mes_referencia.errors %}
+                        <div class="mt-1 text-sm text-red-600 dark:text-red-400">
+                            {{ form.mes_referencia.errors|first }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Ano de Referência -->
+                    <div>
+                        <label for="{{ form.ano_referencia.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            {{ form.ano_referencia.label }}
+                        </label>
+                        {{ form.ano_referencia }}
+                        {% if form.ano_referencia.errors %}
+                        <div class="mt-1 text-sm text-red-600 dark:text-red-400">
+                            {{ form.ano_referencia.errors|first }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Data de Vencimento -->
+                    <div>
+                        <label for="{{ form.data_vencimento.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            {{ form.data_vencimento.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.data_vencimento }}
+                        {% if form.data_vencimento.errors %}
+                        <div class="mt-1 text-sm text-red-600 dark:text-red-400">
+                            {{ form.data_vencimento.errors|first }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Valores -->
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Valores</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Configuração dos valores da cobrança</p>
+            </div>
+            <div class="px-6 py-6 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Valor do Aluguel -->
+                    <div>
+                        <label for="{{ form.valor_aluguel.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            {{ form.valor_aluguel.label }}
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 dark:text-gray-400">R$</span>
+                            </div>
+                            {{ form.valor_aluguel }}
+                        </div>
+                        {% if form.valor_aluguel.help_text %}
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ form.valor_aluguel.help_text }}</p>
+                        {% endif %}
+                        {% if form.valor_aluguel.errors %}
+                        <div class="mt-1 text-sm text-red-600 dark:text-red-400">
+                            {{ form.valor_aluguel.errors|first }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Valor Total -->
+                    <div>
+                        <label for="{{ form.valor_total.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            {{ form.valor_total.label }}
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 dark:text-gray-400">R$</span>
+                            </div>
+                            {{ form.valor_total }}
+                        </div>
+                        <p class="mt-1 text-sm text-blue-600 dark:text-blue-400">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            {{ form.valor_total.help_text }}
+                        </p>
+                        {% if form.valor_total.errors %}
+                        <div class="mt-1 text-sm text-red-600 dark:text-red-400">
+                            {{ form.valor_total.errors|first }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Opções de Despesas -->
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-md font-medium text-gray-900 dark:text-white">Incluir Despesas</h4>
+                        <div class="flex items-center">
+                            {{ form.incluir_despesas }}
+                            <label for="{{ form.incluir_despesas.id_for_label }}" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                                {{ form.incluir_despesas.label }}
+                            </label>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">{{ form.incluir_despesas.help_text }}</p>
+                    
+                    <!-- Container para despesas (será populado via JavaScript) -->
+                    <div id="despesas-container" class="hidden">
+                        <h5 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Despesas Disponíveis:</h5>
+                        <div id="despesas-list" class="space-y-2"></div>
+                        <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                            <div class="flex justify-between text-sm">
+                                <span class="font-medium text-gray-700 dark:text-gray-300">Total das Despesas:</span>
+                                <span id="total-despesas" class="font-medium text-gray-900 dark:text-white">R$ 0,00</span>
+                            </div>
+                        </div>
+                    </div>
+                    {{ form.despesas_selecionadas }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Descrição -->
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Descrição e Observações</h3>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Informações detalhadas da cobrança</p>
+                    </div>
+                    <div class="flex items-center">
+                        {{ form.gerar_descricao_automatica }}
+                        <label for="{{ form.gerar_descricao_automatica.id_for_label }}" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                            {{ form.gerar_descricao_automatica.label }}
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="px-6 py-6 space-y-6">
+                <!-- Descrição -->
+                <div>
+                    <label for="{{ form.descricao.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        {{ form.descricao.label }}
+                    </label>
+                    {{ form.descricao }}
+                    {% if form.descricao.help_text %}
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ form.descricao.help_text }}</p>
+                    {% endif %}
+                    {% if form.descricao.errors %}
+                    <div class="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {{ form.descricao.errors|first }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Observações -->
+                <div>
+                    <label for="{{ form.observacoes.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        {{ form.observacoes.label }}
+                    </label>
+                    {{ form.observacoes }}
+                    {% if form.observacoes.help_text %}
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ form.observacoes.help_text }}</p>
+                    {% endif %}
+                    {% if form.observacoes.errors %}
+                    <div class="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {{ form.observacoes.errors|first }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="flex justify-end space-x-4">
+            <a href="{% url 'financeiro:cobranca_list' %}" 
+               class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-3 rounded-lg font-medium transition-colors">
+                Cancelar
+            </a>
+            <button type="submit" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span>{{ botao_submit|default:"Salvar" }}</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Preview da Cobrança -->
+{% if object %}
+<div class="max-w-4xl mx-auto mt-8">
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Preview da Cobrança</h3>
+        </div>
+        <div class="px-6 py-6">
+            <div id="preview-cobranca" class="prose dark:prose-invert max-w-none">
+                <!-- Conteúdo será atualizado via JavaScript -->
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <p class="text-gray-600 dark:text-gray-400 text-center">
+                        Preencha os dados do formulário para ver o preview da cobrança
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const contratoSelect = document.getElementById('{{ form.contrato.id_for_label }}');
+    const incluirDespesasCheckbox = document.getElementById('{{ form.incluir_despesas.id_for_label }}');
+    const despesasContainer = document.getElementById('despesas-container');
+    const despesasList = document.getElementById('despesas-list');
+    const totalDespesas = document.getElementById('total-despesas');
+    const valorAluguelInput = document.getElementById('{{ form.valor_aluguel.id_for_label }}');
+    const valorTotalInput = document.getElementById('{{ form.valor_total.id_for_label }}');
+    const inquilinoSelect = document.getElementById('{{ form.inquilino.id_for_label }}');
+
+    // Função para buscar despesas do contrato
+    function buscarDespesasContrato(contratoId) {
+        if (!contratoId) {
+            despesasContainer.classList.add('hidden');
+            return;
+        }
+
+        fetch(`/financeiro/cobrancas/api/despesas-contrato/${contratoId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Atualizar valor do aluguel se não foi informado
+                    if (!valorAluguelInput.value && data.valor_aluguel > 0) {
+                        valorAluguelInput.value = data.valor_aluguel.toFixed(2);
+                    }
+
+                    // Atualizar inquilino
+                    if (data.inquilino_nome && inquilinoSelect) {
+                        // Buscar opção pelo texto
+                        for (let option of inquilinoSelect.options) {
+                            if (option.text.includes(data.inquilino_nome)) {
+                                inquilinoSelect.value = option.value;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Mostrar despesas se existirem
+                    if (data.despesas && data.despesas.length > 0) {
+                        despesasContainer.classList.remove('hidden');
+                        renderizarDespesas(data.despesas);
+                    } else {
+                        despesasContainer.classList.add('hidden');
+                    }
+
+                    calcularValorTotal();
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao buscar despesas:', error);
+                despesasContainer.classList.add('hidden');
+            });
+    }
+
+    // Função para renderizar lista de despesas
+    function renderizarDespesas(despesas) {
+        despesasList.innerHTML = '';
+        
+        despesas.forEach(despesa => {
+            const div = document.createElement('div');
+            div.className = 'flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded border';
+            div.innerHTML = `
+                <div class="flex items-center">
+                    <input type="checkbox" 
+                           id="despesa-${despesa.id}" 
+                           value="${despesa.id}"
+                           class="despesa-checkbox w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                           ${despesa.ativa_em_data ? 'checked' : ''}>
+                    <label for="despesa-${despesa.id}" class="ml-3 text-sm">
+                        <div class="font-medium text-gray-900 dark:text-white">${despesa.tipo_nome}</div>
+                        <div class="text-gray-500 dark:text-gray-400">${despesa.descricao || ''}</div>
+                    </label>
+                </div>
+                <div class="text-right">
+                    <div class="font-medium text-gray-900 dark:text-white">R$ ${despesa.valor_parcela.toFixed(2)}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">${despesa.periodicidade}</div>
+                </div>
+            `;
+            despesasList.appendChild(div);
+        });
+
+        // Adicionar event listeners para checkboxes
+        document.querySelectorAll('.despesa-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', calcularValorTotal);
+        });
+    }
+
+    // Função para calcular valor total
+    function calcularValorTotal() {
+        let valorAluguel = parseFloat(valorAluguelInput.value) || 0;
+        let valorDespesasTotal = 0;
+
+        // Somar despesas selecionadas
+        document.querySelectorAll('.despesa-checkbox:checked').forEach(checkbox => {
+            const despesaDiv = checkbox.closest('div').parentElement;
+            const valorTexto = despesaDiv.querySelector('.font-medium').textContent;
+            const valor = parseFloat(valorTexto.replace('R$ ', '').replace(',', '.'));
+            valorDespesasTotal += valor;
+        });
+
+        // Atualizar displays
+        totalDespesas.textContent = `R$ ${valorDespesasTotal.toFixed(2).replace('.', ',')}`;
+        
+        if (incluirDespesasCheckbox.checked) {
+            valorTotalInput.value = (valorAluguel + valorDespesasTotal).toFixed(2);
+        } else {
+            valorTotalInput.value = valorAluguel.toFixed(2);
+        }
+
+        // Atualizar campo hidden com IDs das despesas selecionadas
+        const despesasSelecionadas = Array.from(document.querySelectorAll('.despesa-checkbox:checked'))
+            .map(cb => cb.value)
+            .join(',');
+        document.getElementById('{{ form.despesas_selecionadas.id_for_label }}').value = despesasSelecionadas;
+    }
+
+    // Event listeners
+    contratoSelect.addEventListener('change', function() {
+        buscarDespesasContrato(this.value);
+    });
+
+    incluirDespesasCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            despesasContainer.classList.remove('hidden');
+        } else {
+            despesasContainer.classList.add('hidden');
+        }
+        calcularValorTotal();
+    });
+
+    valorAluguelInput.addEventListener('input', calcularValorTotal);
+
+    // Inicializar se já tem contrato selecionado
+    if (contratoSelect.value) {
+        buscarDespesasContrato(contratoSelect.value);
+    }
+
+    // Preview da descrição automática
+    const gerarDescricaoCheckbox = document.getElementById('{{ form.gerar_descricao_automatica.id_for_label }}');
+    const descricaoTextarea = document.getElementById('{{ form.descricao.id_for_label }}');
+
+    function atualizarPreviewDescricao() {
+        if (!gerarDescricaoCheckbox.checked) return;
+
+        const contrato = contratoSelect.options[contratoSelect.selectedIndex]?.text || '';
+        const mes = document.getElementById('{{ form.mes_referencia.id_for_label }}').selectedOptions[0]?.text || '';
+        const ano = document.getElementById('{{ form.ano_referencia.id_for_label }}').value || '';
+        const valorAluguel = valorAluguelInput.value || '0';
+        const valorTotal = valorTotalInput.value || '0';
+
+        if (mes && ano) {
+            let descricao = `Aluguel referente a ${mes} de ${ano}\n`;
+            descricao += `Valor do aluguel: R$ ${parseFloat(valorAluguel).toFixed(2).replace('.', ',')}`;
+
+            // Adicionar despesas se houver
+            const despesasSelecionadas = document.querySelectorAll('.despesa-checkbox:checked');
+            if (despesasSelecionadas.length > 0) {
+                descricao += '\n\nDespesas incluídas:';
+                despesasSelecionadas.forEach(checkbox => {
+                    const despesaDiv = checkbox.closest('div').parentElement;
+                    const nome = despesaDiv.querySelector('.font-medium').textContent;
+                    const valor = despesaDiv.querySelector('.font-medium').nextElementSibling?.textContent || 'R$ 0,00';
+                    descricao += `\n• ${nome}: ${valor}`;
+                });
+            }
+
+            descricao += `\n\nValor total: R$ ${parseFloat(valorTotal).toFixed(2).replace('.', ',')}`;
+            descricaoTextarea.value = descricao;
+        }
+    }
+
+    // Event listeners para preview
+    [contratoSelect, document.getElementById('{{ form.mes_referencia.id_for_label }}'), 
+     document.getElementById('{{ form.ano_referencia.id_for_label }}'), valorAluguelInput].forEach(element => {
+        if (element) {
+            element.addEventListener('change', atualizarPreviewDescricao);
+        }
+    });
+
+    gerarDescricaoCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            atualizarPreviewDescricao();
+        }
+    });
+
+    // Validação do formulário
+    document.getElementById('cobrancaForm').addEventListener('submit', function(e) {
+        let hasErrors = false;
+
+        // Validar campos obrigatórios
+        const camposObrigatorios = [contratoSelect, inquilinoSelect, 
+                                   document.getElementById('{{ form.data_vencimento.id_for_label }}')];
+        
+        camposObrigatorios.forEach(campo => {
+            if (campo && !campo.value.trim()) {
+                hasErrors = true;
+                campo.classList.add('border-red-500');
+            } else if (campo) {
+                campo.classList.remove('border-red-500');
+            }
+        });
+
+        // Validar valor do aluguel
+        const valorAluguel = parseFloat(valorAluguelInput.value) || 0;
+        if (valorAluguel <= 0) {
+            hasErrors = true;
+            valorAluguelInput.classList.add('border-red-500');
+            alert('O valor do aluguel deve ser maior que zero.');
+        } else {
+            valorAluguelInput.classList.remove('border-red-500');
+        }
+
+        if (hasErrors) {
+            e.preventDefault();
+            alert('Por favor, corrija os erros no formulário.');
+        }
+    });
+
+    // Formatação de valores monetários
+    [valorAluguelInput, valorTotalInput].forEach(input => {
+        if (input) {
+            input.addEventListener('blur', function() {
+                const valor = parseFloat(this.value) || 0;
+                this.value = valor.toFixed(2);
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

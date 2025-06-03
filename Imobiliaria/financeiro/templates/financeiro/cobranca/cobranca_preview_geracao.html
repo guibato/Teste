@@ -1,0 +1,633 @@
+<!-- financeiro/templates/financeiro/cobranca/cobranca_preview_geracao.html -->
+{% extends "financeiro/cobranca/base_cobranca.html" %}
+{% load static %}
+
+{% block page_title %}Preview de Cobranças{% endblock %}
+{% block page_description %}Visualize e selecione as cobranças para gerar{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'financeiro:cobranca_list' %}" 
+   class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+    </svg>
+    <span>Voltar para Lista</span>
+</a>
+{% endblock %}
+
+{% block main_content %}
+<div class="max-w-7xl mx-auto">
+    
+    <!-- Configurações do Preview -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-8">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Configurações do Preview</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Defina os parâmetros para visualizar as cobranças</p>
+        </div>
+        <div class="px-6 py-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <!-- Mês -->
+                <div>
+                    <label for="mes_referencia" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Mês de Referência <span class="text-red-500">*</span>
+                    </label>
+                    <select id="mes_referencia" 
+                            class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        {% for value, name in meses %}
+                        <option value="{{ value }}" {% if value == mes_atual %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Ano -->
+                <div>
+                    <label for="ano_referencia" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Ano <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number" id="ano_referencia" value="{{ ano_atual }}" min="2020" max="2030"
+                           class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <!-- Data Vencimento -->
+                <div>
+                    <label for="data_vencimento" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Vencimento <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date" id="data_vencimento" value="{{ data_vencimento_padrao }}"
+                           class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                        <!-- Contratos -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Contratos
+                    </label>
+                    <select id="filtro_contratos" multiple
+                            class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 h-20">
+                        {% for contrato in contratos_ativos %}
+                        <option value="{{ contrato.pk }}">
+                            {{ contrato.tipo_contrato|default:contrato.pk }} - 
+                            {% if contrato.inquilino.all %}
+                                {{ contrato.inquilino.all.0.nome }}
+                            {% else %}
+                                Sem inquilino
+                            {% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <strong>Vazio = todos os contratos</strong> 
+                        ({% if contratos_ativos %}{{ contratos_ativos|length }} disponíveis{% else %}nenhum contrato ativo{% endif %})
+                    </p>
+                </div>
+            </div>
+
+            <!-- Opções -->
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
+                <h4 class="text-md font-medium text-gray-900 dark:text-white mb-3">Opções</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="incluir_despesas" checked
+                               class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                        <label for="incluir_despesas" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                            Incluir despesas automaticamente
+                        </label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="gerar_descricao_automatica" checked
+                               class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                        <label for="gerar_descricao_automatica" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                            Gerar descrição automaticamente
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botões -->
+            <div class="flex justify-between items-center">
+                <button type="button" onclick="gerarPreview()" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                    <span>Gerar Preview</span>
+                </button>
+
+                <button type="button" onclick="gerarSelecionadas()" id="btn-gerar-selecionadas" disabled
+                        class="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span>Gerar Selecionadas (<span id="contador-selecionadas">0</span>)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading-preview" class="hidden text-center py-12">
+        <svg class="animate-spin mx-auto h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Gerando preview...</p>
+    </div>
+
+    <!-- Resumo -->
+    <div id="resumo-preview" class="hidden bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Resumo do Preview</h3>
+        </div>
+        <div class="px-6 py-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="bg-blue-50 dark:bg-blue-900 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-blue-600 dark:text-blue-400">Cobranças Possíveis</p>
+                            <p class="text-2xl font-bold text-blue-900 dark:text-blue-100" id="total-cobrancas-preview">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-green-50 dark:bg-green-900 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-green-600 dark:text-green-400">Valor Total</p>
+                            <p class="text-2xl font-bold text-green-900 dark:text-green-100" id="valor-total-preview">R$ 0,00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-purple-50 dark:bg-purple-900 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="w-8 h-8 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-purple-600 dark:text-purple-400">Selecionadas</p>
+                            <p class="text-2xl font-bold text-purple-900 dark:text-purple-100" id="total-selecionadas-preview">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="w-8 h-8 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a4 4 0 118 0v4h4a1 1 0 011 1v9a2 2 0 01-2 2H5a2 2 0 01-2-2V8a1 1 0 011-1h4z"/>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Período</p>
+                            <p class="text-lg font-bold text-gray-900 dark:text-gray-100" id="periodo-preview">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela de Preview -->
+    <div id="tabela-preview" class="hidden bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Preview das Cobranças</h3>
+                <div class="flex space-x-2">
+                    <button type="button" onclick="selecionarTodasPreview()" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors">
+                        Selecionar Todas
+                    </button>
+                    <button type="button" onclick="deselecionarTodasPreview()" 
+                            class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm transition-colors">
+                        Limpar Seleção
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            <input type="checkbox" id="select-all-preview" onchange="toggleAllPreview(this)"
+                                   class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Contrato
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Inquilino
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Valores
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Despesas
+                        </th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Ações
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-preview" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    <!-- Conteúdo será preenchido via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Aguardar carregamento completo antes de definir funções -->
+<script>
+// Aguardar que o base.html carregue completamente
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("🚀 Preview de Cobranças carregando...");
+    
+    // Verificar se função CSRF existe, senão criar
+    if (typeof getCSRFToken === 'undefined') {
+        console.log("⚠️ getCSRFToken não encontrada, criando...");
+        window.getCSRFToken = function() {
+            let csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (csrfToken) {
+                return csrfToken.value;
+            }
+            
+            const name = 'csrftoken';
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        };
+    }
+    
+    console.log("✅ Sistema de preview carregado com sucesso!");
+});
+
+// Variáveis globais
+let cobrancasPreview = [];
+let cobrancasSelecionadas = new Set();
+
+// Função principal - gerar preview
+function gerarPreview() {
+    console.log("📊 Gerando preview...");
+    
+    const mes = document.getElementById('mes_referencia').value;
+    const ano = document.getElementById('ano_referencia').value;
+    const data = document.getElementById('data_vencimento').value;
+    const contratos = Array.from(document.getElementById('filtro_contratos').selectedOptions).map(opt => opt.value);
+    
+    console.log("🔍 Contratos selecionados:", contratos);
+    console.log("📅 Período:", mes + "/" + ano);
+    
+    if (!mes || !ano || !data) {
+        alert('Preencha todos os campos obrigatórios!');
+        return false;
+    }
+    
+    // Se nenhum contrato selecionado, usar todos
+    if (contratos.length === 0) {
+        console.log("ℹ️ Nenhum contrato selecionado - usando todos os contratos");
+    }
+    
+    // Mostrar loading
+    document.getElementById('loading-preview').classList.remove('hidden');
+    document.getElementById('resumo-preview').classList.add('hidden');
+    document.getElementById('tabela-preview').classList.add('hidden');
+    
+    const requestData = {
+        mes_referencia: parseInt(mes),
+        ano_referencia: parseInt(ano),
+        data_vencimento: data,
+        contratos: contratos.map(id => parseInt(id)),
+        incluir_despesas: document.getElementById('incluir_despesas').checked
+    };
+    
+    console.log("📤 Enviando dados:", requestData);
+    
+    // Verificar se temos função CSRF
+    const csrfToken = typeof getCSRFToken === 'function' ? getCSRFToken() : null;
+    console.log("🔑 CSRF Token:", csrfToken ? "OK" : "ERRO");
+    
+    if (!csrfToken) {
+        console.error("❌ CSRF Token não encontrado!");
+        alert("Erro: Token de segurança não encontrado. Recarregue a página.");
+        document.getElementById('loading-preview').classList.add('hidden');
+        return false;
+    }
+    
+    fetch('{% url "financeiro:cobranca_api_preview" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify(requestData)
+    })
+    .then(response => {
+        console.log("📡 Resposta recebida:", response.status);
+        document.getElementById('loading-preview').classList.add('hidden');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log("✅ Preview gerado:", data);
+        
+        if (data.success) {
+            cobrancasPreview = data.cobrancas || [];
+            console.log("📋 Cobranças encontradas:", cobrancasPreview.length);
+            
+            if (cobrancasPreview.length === 0) {
+                console.log("⚠️ Nenhuma cobrança encontrada para o período");
+            }
+            
+            atualizarResumo(data);
+            atualizarTabela(data.cobrancas || []);
+        } else {
+            throw new Error(data.error || 'Erro desconhecido');
+        }
+    })
+    .catch(error => {
+        console.error("❌ Erro:", error);
+        alert("Erro: " + error.message);
+        document.getElementById('loading-preview').classList.add('hidden');
+    });
+    
+    return false;
+}
+
+// Função para atualizar resumo
+function atualizarResumo(data) {
+    console.log("📊 Atualizando resumo:", data);
+    
+    document.getElementById('total-cobrancas-preview').textContent = data.total_cobrancas || 0;
+    document.getElementById('valor-total-preview').textContent = `R$ ${(data.valor_total_geral || 0).toFixed(2).replace('.', ',')}`;
+    document.getElementById('periodo-preview').textContent = `${data.mes_nome}/${data.ano}`;
+    document.getElementById('total-selecionadas-preview').textContent = '0';
+    document.getElementById('resumo-preview').classList.remove('hidden');
+    
+    console.log("✅ Resumo atualizado");
+}
+
+// Função para atualizar tabela
+function atualizarTabela(cobrancas) {
+    console.log("📋 Atualizando tabela com", cobrancas.length, "cobranças");
+    
+    const tbody = document.getElementById('tbody-preview');
+    tbody.innerHTML = '';
+    
+    // Limpar seleções anteriores
+    cobrancasSelecionadas.clear();
+    atualizarContadores();
+    
+    if (cobrancas.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                    <div class="text-center">
+                        <i class="fas fa-search text-4xl mb-4 text-gray-400"></i>
+                        <p class="text-lg font-medium">Nenhuma cobrança encontrada</p>
+                        <p class="text-sm text-gray-500 mt-2">
+                            Verifique se há contratos ativos para o período selecionado<br>
+                            ou se já existem cobranças geradas para este mês/ano.
+                        </p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        console.log("ℹ️ Tabela vazia - nenhuma cobrança encontrada");
+    } else {
+        cobrancas.forEach((cobranca, index) => {
+            console.log(`📄 Processando cobrança ${index + 1}:`, cobranca);
+            
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700';
+            
+            const valorFormatado = `R$ ${(cobranca.valor_total || 0).toFixed(2).replace('.', ',')}`;
+            const despesasTexto = `${(cobranca.despesas || []).length} despesa(s)`;
+            
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <input type="checkbox" class="cobranca-checkbox w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" 
+                           value="${cobranca.contrato_id}" onchange="atualizarSelecao(this)">
+                </td>
+                <td class="px-6 py-4">
+                    <div class="text-sm font-medium text-gray-900 dark:text-white">
+                        ${cobranca.contrato_numero || 'N/A'}
+                    </div>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="text-sm text-gray-900 dark:text-white">
+                        ${cobranca.inquilino_nome || 'N/A'}
+                    </div>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="text-sm font-medium text-gray-900 dark:text-white">
+                        ${valorFormatado}
+                    </div>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="text-sm text-gray-700 dark:text-gray-300">
+                        ${despesasTexto}
+                    </div>
+                </td>
+                <td class="px-6 py-4 text-right">
+                    <button onclick="mostrarDetalhes(${cobranca.contrato_id})" 
+                            class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 text-sm">
+                        Ver detalhes
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+        console.log("✅ Tabela preenchida com sucesso");
+    }
+    
+    document.getElementById('tabela-preview').classList.remove('hidden');
+}
+
+// Função para atualizar seleção
+function atualizarSelecao(checkbox) {
+    const contratoId = parseInt(checkbox.value);
+    
+    if (checkbox.checked) {
+        cobrancasSelecionadas.add(contratoId);
+    } else {
+        cobrancasSelecionadas.delete(contratoId);
+    }
+    
+    atualizarContadores();
+}
+
+// Função para atualizar contadores
+function atualizarContadores() {
+    const totalSelecionadas = cobrancasSelecionadas.size;
+    document.getElementById('total-selecionadas-preview').textContent = totalSelecionadas;
+    document.getElementById('contador-selecionadas').textContent = totalSelecionadas;
+    
+    const btnGerar = document.getElementById('btn-gerar-selecionadas');
+    btnGerar.disabled = totalSelecionadas === 0;
+    
+    // Atualizar checkbox master
+    const masterCheckbox = document.getElementById('select-all-preview');
+    const checkboxes = document.querySelectorAll('.cobranca-checkbox');
+    if (checkboxes.length > 0) {
+        masterCheckbox.checked = totalSelecionadas === checkboxes.length;
+        masterCheckbox.indeterminate = totalSelecionadas > 0 && totalSelecionadas < checkboxes.length;
+    }
+}
+
+// Funções de seleção em massa
+function selecionarTodasPreview() {
+    document.querySelectorAll('.cobranca-checkbox').forEach(checkbox => {
+        checkbox.checked = true;
+        cobrancasSelecionadas.add(parseInt(checkbox.value));
+    });
+    atualizarContadores();
+}
+
+function deselecionarTodasPreview() {
+    document.querySelectorAll('.cobranca-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    cobrancasSelecionadas.clear();
+    atualizarContadores();
+}
+
+function toggleAllPreview(masterCheckbox) {
+    if (masterCheckbox.checked) {
+        selecionarTodasPreview();
+    } else {
+        deselecionarTodasPreview();
+    }
+}
+
+// Função para mostrar detalhes
+function mostrarDetalhes(contratoId) {
+    const cobranca = cobrancasPreview.find(c => c.contrato_id === contratoId);
+    if (cobranca) {
+        const valorFormatado = `R$ ${(cobranca.valor_total || 0).toFixed(2).replace('.', ',')}`;
+        const despesasInfo = cobranca.despesas && cobranca.despesas.length > 0 
+            ? cobranca.despesas.map(d => `• ${d.nome}: R$ ${d.valor.toFixed(2).replace('.', ',')}`).join('\n')
+            : 'Nenhuma despesa';
+            
+        alert(
+            `Detalhes da Cobrança:\n\n` +
+            `Contrato: ${cobranca.contrato_numero}\n` +
+            `Inquilino: ${cobranca.inquilino_nome}\n` +
+            `Valor do Aluguel: R$ ${(cobranca.valor_aluguel || 0).toFixed(2).replace('.', ',')}\n` +
+            `Valor Total: ${valorFormatado}\n\n` +
+            `Despesas:\n${despesasInfo}`
+        );
+    }
+}
+
+// Função para gerar cobranças selecionadas
+function gerarSelecionadas() {
+    if (cobrancasSelecionadas.size === 0) {
+        alert('Selecione pelo menos uma cobrança.');
+        return;
+    }
+
+    const mesReferencia = document.getElementById('mes_referencia').value;
+    const anoReferencia = document.getElementById('ano_referencia').value;
+    const dataVencimento = document.getElementById('data_vencimento').value;
+    const incluirDespesas = document.getElementById('incluir_despesas').checked;
+    const gerarDescricaoAutomatica = document.getElementById('gerar_descricao_automatica').checked;
+
+    const mesNome = document.getElementById('mes_referencia').options[document.getElementById('mes_referencia').selectedIndex].text;
+
+    const confirmar = confirm(
+        `Confirma a geração de ${cobrancasSelecionadas.size} cobrança(s) ` +
+        `para ${mesNome}/${anoReferencia}?\n\n` +
+        `Esta operação criará as cobranças no banco de dados.`
+    );
+
+    if (!confirmar) return;
+
+    // Mostrar loading no botão
+    const btnGerar = document.getElementById('btn-gerar-selecionadas');
+    const originalHTML = btnGerar.innerHTML;
+    btnGerar.disabled = true;
+    btnGerar.innerHTML = `
+        <svg class="animate-spin w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Gerando...</span>
+    `;
+
+    fetch('{% url "financeiro:cobranca_gerar_selecionadas" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({
+            mes_referencia: parseInt(mesReferencia),
+            ano_referencia: parseInt(anoReferencia),
+            data_vencimento: dataVencimento,
+            cobrancas_selecionadas: Array.from(cobrancasSelecionadas),
+            incluir_despesas: incluirDespesas,
+            gerar_descricao_automatica: gerarDescricaoAutomatica
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`${data.cobrancas_criadas} cobrança(s) criada(s) com sucesso!`);
+            
+            if (data.erros && data.erros.length > 0) {
+                console.warn('Erros:', data.erros);
+                alert('Alguns erros ocorreram:\n' + data.erros.slice(0, 3).join('\n'));
+            }
+            
+            // Redirecionar para lista de cobranças
+            window.location.href = '{% url "financeiro:cobranca_list" %}';
+        } else {
+            alert('Erro: ' + (data.error || 'Erro desconhecido'));
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro na comunicação com o servidor: ' + error.message);
+    })
+    .finally(() => {
+        // Restaurar botão
+        btnGerar.disabled = cobrancasSelecionadas.size === 0;
+        btnGerar.innerHTML = originalHTML;
+    });
+}
+
+// Inicialização quando o DOM estiver carregado
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("🚀 Preview de Cobranças carregado");
+    console.log("✅ Sistema de preview carregado com sucesso!");
+});
+</script>
+{% endblock %}

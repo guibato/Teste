@@ -1,0 +1,231 @@
+<!-- financeiro/templates/financeiro/tipodespesa/tipodespesa_form.html -->
+<!-- Template convertido para Tailwind CSS -->
+{% extends 'base.html' %}
+
+{% block page_title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <!-- Cabeçalho -->
+    <div class="bg-gray-800 rounded-lg p-6 mb-6">
+        <h1 class="text-2xl font-bold text-white flex items-center">
+            <i class="fas fa-tag text-blue-400 mr-3"></i>
+            {{ titulo }}
+        </h1>
+    </div>
+
+    <div class="bg-gray-800 rounded-lg p-6">
+        <!-- Alertas de validação -->
+        {% if form.non_field_errors %}
+            <div class="bg-red-600 text-white p-4 rounded-lg mb-6 flex items-center">
+                <i class="fas fa-exclamation-triangle mr-3"></i>
+                <div>{{ form.non_field_errors }}</div>
+            </div>
+        {% endif %}
+
+        <!-- Aviso se o tipo está em uso -->
+        {% if em_uso %}
+            <div class="bg-blue-600 text-white p-4 rounded-lg mb-6 flex items-center">
+                <i class="fas fa-info-circle mr-3"></i>
+                <div>
+                    <strong>Atenção:</strong> Este tipo está sendo usado em despesas existentes. 
+                    Alterações podem afetar relatórios e cálculos.
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Formulário -->
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Campo Nome -->
+            <div>
+                <label for="{{ form.nome.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                    {{ form.nome.label }}
+                    <span class="text-red-400">*</span>
+                </label>
+                <input type="text" 
+                       id="{{ form.nome.id_for_label }}"
+                       name="{{ form.nome.name }}"
+                       value="{{ form.nome.value|default:'' }}"
+                       placeholder="Ex: Condomínio, IPTU, Água..."
+                       maxlength="50"
+                       required
+                       class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 {% if form.nome.errors %}border-red-500{% endif %}">
+                
+                {% if form.nome.help_text %}
+                    <p class="text-gray-400 text-sm mt-1">{{ form.nome.help_text }}</p>
+                {% endif %}
+                
+                {% if form.nome.errors %}
+                    <div class="text-red-400 text-sm mt-1">
+                        {% for error in form.nome.errors %}
+                            <div class="flex items-center">
+                                <i class="fas fa-times-circle mr-1"></i>
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Campo Descrição -->
+            <div>
+                <label for="{{ form.descricao.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                    {{ form.descricao.label }}
+                </label>
+                <textarea id="{{ form.descricao.id_for_label }}"
+                          name="{{ form.descricao.name }}"
+                          rows="3"
+                          maxlength="500"
+                          placeholder="Descrição opcional do tipo de despesa..."
+                          class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 {% if form.descricao.errors %}border-red-500{% endif %}">{{ form.descricao.value|default:'' }}</textarea>
+                
+                {% if form.descricao.help_text %}
+                    <p class="text-gray-400 text-sm mt-1">{{ form.descricao.help_text }}</p>
+                {% endif %}
+                
+                {% if form.descricao.errors %}
+                    <div class="text-red-400 text-sm mt-1">
+                        {% for error in form.descricao.errors %}
+                            <div class="flex items-center">
+                                <i class="fas fa-times-circle mr-1"></i>
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <div id="char-counter" class="text-right text-sm text-gray-400 mt-1">
+                    <span id="char-count">0</span>/500 caracteres
+                </div>
+            </div>
+
+            <!-- Campo Ativo -->
+            <div class="flex items-center">
+                <input type="checkbox" 
+                       id="{{ form.ativo.id_for_label }}"
+                       name="{{ form.ativo.name }}"
+                       {% if form.ativo.value %}checked{% endif %}
+                       class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2">
+                <label for="{{ form.ativo.id_for_label }}" class="ml-2 text-sm text-gray-300">
+                    {{ form.ativo.label }}
+                </label>
+            </div>
+            
+            {% if form.ativo.help_text %}
+                <p class="text-gray-400 text-sm">{{ form.ativo.help_text }}</p>
+            {% endif %}
+            
+            {% if form.ativo.errors %}
+                <div class="text-red-400 text-sm">
+                    {% for error in form.ativo.errors %}
+                        <div class="flex items-center">
+                            <i class="fas fa-times-circle mr-1"></i>
+                            {{ error }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Botões de ação -->
+            <div class="flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-6">
+                <a href="{% url 'financeiro:tipodespesa_list' %}" 
+                   class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-6 rounded-lg flex items-center justify-center transition-colors">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancelar
+                </a>
+                <button type="submit" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg flex items-center justify-center transition-colors">
+                    <i class="fas fa-save mr-2"></i>
+                    {{ botao_submit }}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Card de ajuda -->
+    <div class="bg-gray-800 rounded-lg p-6 mt-6">
+        <h3 class="text-lg font-medium text-white mb-3 flex items-center">
+            <i class="fas fa-question-circle text-blue-400 mr-2"></i>
+            Dicas
+        </h3>
+        <ul class="text-gray-300 space-y-2">
+            <li class="flex items-start">
+                <i class="fas fa-circle text-blue-400 text-xs mt-2 mr-3 flex-shrink-0"></i>
+                <span><strong>Nome:</strong> Use nomes claros e únicos (ex: "Condomínio", "IPTU", "Água")</span>
+            </li>
+            <li class="flex items-start">
+                <i class="fas fa-circle text-blue-400 text-xs mt-2 mr-3 flex-shrink-0"></i>
+                <span><strong>Descrição:</strong> Adicione detalhes que ajudem a identificar o tipo</span>
+            </li>
+            <li class="flex items-start">
+                <i class="fas fa-circle text-blue-400 text-xs mt-2 mr-3 flex-shrink-0"></i>
+                <span><strong>Status:</strong> Tipos inativos não aparecem em novas despesas</span>
+            </li>
+            {% if object.pk %}
+            <li class="flex items-start">
+                <i class="fas fa-circle text-blue-400 text-xs mt-2 mr-3 flex-shrink-0"></i>
+                <span><strong>Edição:</strong> Alterações afetam todas as despesas deste tipo</span>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Contador de caracteres para descrição
+    const descricaoField = document.getElementById('{{ form.descricao.id_for_label }}');
+    const charCount = document.getElementById('char-count');
+    
+    function updateCharCount() {
+        const count = descricaoField.value.length;
+        charCount.textContent = count;
+        
+        if (count > 450) {
+            charCount.parentElement.classList.remove('text-gray-400');
+            charCount.parentElement.classList.add('text-yellow-400');
+        } else {
+            charCount.parentElement.classList.remove('text-yellow-400');
+            charCount.parentElement.classList.add('text-gray-400');
+        }
+    }
+    
+    if (descricaoField) {
+        descricaoField.addEventListener('input', updateCharCount);
+        updateCharCount(); // Inicializar contador
+    }
+
+    // Auto-capitalização do nome
+    const nomeField = document.getElementById('{{ form.nome.id_for_label }}');
+    if (nomeField) {
+        nomeField.addEventListener('blur', function() {
+            this.value = this.value.trim().replace(/\w\S*/g, function(txt) {
+                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+            });
+        });
+    }
+
+    // Validação visual em tempo real
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const nome = nomeField.value.trim();
+        if (!nome) {
+            e.preventDefault();
+            nomeField.classList.add('border-red-500');
+            nomeField.focus();
+        }
+    });
+
+    // Remover bordas vermelhas ao digitar
+    [nomeField, descricaoField].forEach(field => {
+        if (field) {
+            field.addEventListener('input', function() {
+                this.classList.remove('border-red-500');
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

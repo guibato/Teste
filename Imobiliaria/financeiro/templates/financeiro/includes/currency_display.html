@@ -1,0 +1,7 @@
+<!-- financeiro/templates/financeiro/includes/currency_display.html -->
+<div class="{% if highlight %}text-2xl font-bold text-blue-600 dark:text-blue-400{% else %}text-sm font-medium text-gray-900 dark:text-white{% endif %}">
+    {% if label %}
+    <span class="{% if highlight %}text-sm font-normal text-gray-500 dark:text-gray-400 block{% else %}text-xs text-gray-500 dark:text-gray-400{% endif %}">{{ label }}</span>
+    {% endif %}
+    {{ formatted_value }}
+</div>

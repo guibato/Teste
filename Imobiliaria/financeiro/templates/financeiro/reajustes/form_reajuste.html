@@ -1,0 +1,901 @@
+<!-- financeiro/templates/financeiro/reajustes/form_reajuste.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if sugestao %}Aprovar Reajuste{% else %}Novo Reajuste{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 flex items-center">
+                    <svg class="w-8 h-8 mr-3 {% if sugestao %}text-green-600{% else %}text-blue-600{% endif %}" fill="currentColor" viewBox="0 0 20 20">
+                        {% if sugestao %}
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                        {% else %}
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"/>
+                        {% endif %}
+                    </svg>
+                    {% if sugestao %}Aprovar Reajuste{% else %}Novo Reajuste{% endif %}
+                </h1>
+                <p class="text-gray-600 mt-1">
+                    {% if sugestao %}Aplicar sugestão automática de reajuste{% else %}Criar reajuste manualmente{% endif %}
+                </p>
+            </div>
+            <a href="{% url 'financeiro:sugestoes_reajustes' %}" 
+               class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors mt-4 sm:mt-0">
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"/>
+                </svg>
+                Voltar
+            </a>
+        </div>
+
+        <!-- Preview da Sugestão (se houver) -->
+        {% if sugestao %}
+        <div class="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-6 mb-8">
+            <div class="flex items-center mb-4">
+                <svg class="w-6 h-6 text-yellow-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.477.859h4z"/>
+                </svg>
+                <h3 class="text-lg font-medium text-gray-900">Sugestão Automática</h3>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
+                <div class="text-center">
+                    <p class="text-sm text-gray-600 mb-1">Valor Atual</p>
+                    <p class="text-xl font-bold text-gray-900">R$ {{ sugestao.valor_anterior|floatformat:2 }}</p>
+                </div>
+                
+                <div class="flex justify-center">
+                    <svg class="w-8 h-8 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"/>
+                    </svg>
+                </div>
+                
+                <div class="text-center">
+                    <p class="text-sm text-gray-600 mb-1">Valor Sugerido</p>
+                    <p class="text-xl font-bold text-green-600">R$ {{ sugestao.valor_sugerido|floatformat:2 }}</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="space-y-2">
+                        <div>
+                            <p class="text-xs text-gray-600">Fator</p>
+                            <p class="text-sm font-semibold">{{ sugestao.fator_aplicado|floatformat:2 }}%</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-600">Índice</p>
+                            <span class="inline-flex px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
+                                {{ sugestao.indice_utilizado }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <button type="button" onclick="aplicarSugestao()" 
+                            class="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors">
+                        <svg class="w-5 h-5 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                        </svg>
+                        Aplicar Sugestão
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Formulário -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Dados do Reajuste</h3>
+            </div>
+            
+            <form method="POST" id="formReajuste" class="p-6">
+                {% csrf_token %}
+                
+                <!-- Contrato -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Contrato *</label>
+                    <select name="contrato_id" required 
+                            {% if contrato %}disabled{% endif %} 
+                            onchange="buscarSugestao()"
+                            class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">Selecione um contrato</option>
+                        {% for c in contratos %}
+                            <option value="{{ c.id }}" 
+                                    {% if contrato and contrato.id == c.id %}selected{% endif %}
+                                    data-valor-atual="{{ c.valor_atual|default:c.valor_base }}">
+                                {{ c.imovel.endereco }} - {{ c.locatario.nome }}
+                                (R$ {{ c.valor_atual|default:c.valor_base|floatformat:2 }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                    {% if contrato %}
+                        <input type="hidden" name="contrato_id" value="{{ contrato.id }}">
+                    {% endif %}
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <!-- Valor Anterior -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Valor Anterior *</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 sm:text-sm">R$</span>
+                            </div>
+                            <input type="number" name="valor_anterior" required step="0.01" min="0" 
+                                   id="valorAnterior" onchange="calcularReajuste()"
+                                   value="{% if sugestao %}{{ sugestao.valor_anterior }}{% elif contrato %}{{ contrato.valor_atual|default:contrato.valor_base }}{% endif %}"
+                                   class="w-full pl-8 rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 font-semibold text-lg">
+                        </div>
+                    </div>
+
+                    <!-- Fator Aplicado -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Fator Aplicado (%) *</label>
+                        <div class="relative">
+                            <input type="number" name="fator_aplicado" required step="0.01" min="0" 
+                                   id="fatorAplicado" onchange="calcularReajuste()"
+                                   value="{% if sugestao %}{{ sugestao.fator_aplicado }}{% endif %}"
+                                   class="w-full pr-8 rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 sm:text-sm">%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cálculo em Tempo Real -->
+                <div id="calculoResultado" class="hidden mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 class="text-sm font-medium text-blue-900 mb-3">Preview do Cálculo</h4>
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <p class="text-xs text-blue-600 mb-1">Valor Atual</p>
+                            <p class="text-lg font-semibold text-blue-900" id="valorAtualCalc">R$ 0,00</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-blue-600 mb-1">Novo Valor</p>
+                            <p class="text-lg font-semibold text-green-600" id="valorNovoCalc">R$ 0,00</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-blue-600 mb-1">Diferença</p>
+                            <p class="text-lg font-semibold text-purple-600" id="diferencaCalc">+R$ 0,00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <!-- Valor Reajustado -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Valor Reajustado *</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 sm:text-sm">R$</span>
+                            </div>
+                            <input type="number" name="valor_reajustado" required step="0.01" min="0" 
+                                   id="valorReajustado"
+                                   value="{% if sugestao %}{{ sugestao.valor_sugerido }}{% endif %}"
+                                   class="w-full pl-8 rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 font-semibold text-lg text-green-600">
+                        </div>
+                    </div>
+
+                    <!-- Data do Reajuste -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Data do Reajuste *</label>
+                        <input type="date" name="data_reajuste" required
+                               value="{% if sugestao %}{{ sugestao.data_reajuste|date:'Y-m-d' }}{% endif %}"
+                               class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <!-- Índice Utilizado -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Índice Utilizado *</label>
+                    <select name="indice_utilizado" required 
+                            class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                        {% for value, label in indices_choices %}
+                            <option value="{{ value }}" 
+                                    {% if sugestao and sugestao.indice_utilizado == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Observação -->
+                <div class="mb-8">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Observação</label>
+                    <textarea name="observacao" rows="4" 
+                              placeholder="Observações sobre este reajuste..."
+                              class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"></textarea>
+                </div>
+
+                <!-- Botões -->
+                <div class="flex flex-col sm:flex-row gap-3 sm:justify-end">
+                    <a href="{% url 'financeiro:sugestoes_reajustes' %}" 
+                       class="w-full sm:w-auto px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors text-center">
+                        <svg class="w-5 h-5 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
+                        </svg>
+                        Cancelar
+                    </a>
+                    <button type="submit" 
+                            class="w-full sm:w-auto px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                        <svg class="w-5 h-5 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                        </svg>
+                        {% if sugestao %}Aprovar Reajuste{% else %}Criar Reajuste{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Histórico Rápido (se contrato selecionado) -->
+        {% if contrato %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 mt-8">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/>
+                    </svg>
+                    Últimos Reajustes - {{ contrato.imovel.endereco|truncatechars:40 }}
+                </h3>
+                <a href="{% url 'financeiro:historico_contrato' contrato.id %}" 
+                   class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                    Ver Histórico Completo →
+                </a>
+            </div>
+            <div class="p-6">
+                <div id="historicoRapido">
+                    <div class="flex items-center justify-center py-8 text-gray-500">
+                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Carregando histórico...
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Toast de Sugestão -->
+<div id="toastSugestao" class="fixed top-4 right-4 transform translate-x-full transition-transform duration-300 z-50">
+    <div class="bg-blue-100 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg shadow-lg max-w-sm">
+        <div class="flex items-center">
+            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707z"/>
+            </svg>
+            <div>
+                <p class="font-medium">💡 Sugestão Automática Disponível!</p>
+                <p class="text-sm" id="toastContent"></p>
+            </div>
+            <button onclick="fecharToast()" class="ml-3 text-blue-600 hover:text-blue-800">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Dados da sugestão (se houver)
+const sugestaoData = {% if sugestao %}{{ sugestao|safe }}{% else %}null{% endif %};
+
+function aplicarSugestao() {
+    if (!sugestaoData) return;
+    
+    document.getElementById('valorAnterior').value = parseFloat(sugestaoData.valor_anterior).toFixed(2);
+    document.getElementById('fatorAplicado').value = parseFloat(sugestaoData.fator_aplicado).toFixed(2);
+    document.getElementById('valorReajustado').value = parseFloat(sugestaoData.valor_sugerido).toFixed(2);
+    
+    // Trigger do cálculo
+    calcularReajuste();
+    
+    // Feedback visual
+    const elementos = ['valorAnterior', 'fatorAplicado', 'valorReajustado'];
+    elementos.forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.add('ring-2', 'ring-green-500', 'border-green-500');
+        setTimeout(() => {
+            el.classList.remove('ring-2', 'ring-green-500', 'border-green-500');
+        }, 2000);
+    });
+    
+    showNotification('Sugestão aplicada com sucesso!', 'success');
+}
+
+function calcularReajuste() {
+    const valorAnterior = parseFloat(document.getElementById('valorAnterior').value) || 0;
+    const fatorAplicado = parseFloat(document.getElementById('fatorAplicado').value) || 0;
+    
+    if (valorAnterior > 0 && fatorAplicado >= 0) {
+        fetch('{% url "financeiro:api_calcular_reajuste" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                valor_anterior: valorAnterior,
+                percentual: fatorAplicado
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.error) {
+                // Atualizar campos
+                document.getElementById('valorReajustado').value = data.valor_reajustado.toFixed(2);
+                
+                // Mostrar cálculo em tempo real
+                document.getElementById('valorAtualCalc').textContent = 
+                    'R$ ' + valorAnterior.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                document.getElementById('valorNovoCalc').textContent = 
+                    'R$ ' + data.valor_reajustado.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                document.getElementById('diferencaCalc').textContent = 
+                    '+R$ ' + data.diferenca.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                
+                document.getElementById('calculoResultado').classList.remove('hidden');
+            }
+        })
+        .catch(error => console.error('Erro no cálculo:', error));
+    } else {
+        document.getElementById('calculoResultado').classList.add('hidden');
+    }
+}
+
+function buscarSugestao() {
+    const contratoSelect = document.querySelector('select[name="contrato_id"]');
+    const contratoId = contratoSelect.value;
+    
+    if (!contratoId) return;
+    
+    // Buscar valor atual do contrato
+    const option = contratoSelect.querySelector(`option[value="${contratoId}"]`);
+    if (option) {
+        const valorAtual = option.dataset.valorAtual;
+        if (valorAtual) {
+            document.getElementById('valorAnterior').value = parseFloat(valorAtual).toFixed(2);
+        }
+    }
+    
+    // Buscar sugestão automática
+    fetch(`{% url 'financeiro:api_sugestao_contrato' 0 %}`.replace('0', contratoId))
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.sugestao) {
+                const sugestao = data.sugestao;
+                
+                if (!sugestao.ja_existe) {
+                    showSugestaoToast(sugestao);
+                }
+            }
+        })
+        .catch(error => console.error('Erro ao buscar sugestão:', error));
+}
+
+function showSugestaoToast(sugestao) {
+    const toast = document.getElementById('toastSugestao');
+    const content = document.getElementById('toastContent');
+    
+    content.innerHTML = `
+        Fator: ${parseFloat(sugestao.fator_aplicado).toFixed(2)}% | 
+        Valor: R$ ${parseFloat(sugestao.valor_sugerido).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+    `;
+    
+    toast.classList.remove('translate-x-full');
+    toast.classList.add('translate-x-0');
+    
+    // Auto hide após 8 segundos
+    setTimeout(() => {
+        fecharToast();
+    }, 8000);
+}
+
+function fecharToast() {
+    const toast = document.getElementById('toastSugestao');
+    toast.classList.remove('translate-x-0');
+    toast.classList.add('translate-x-full');
+}
+
+function showNotification(message, type = 'info') {
+    const colors = {
+        success: 'bg-green-100 text-green-800 border-green-200',
+        error: 'bg-red-100 text-red-800 border-red-200',
+        warning: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        info: 'bg-blue-100 text-blue-800 border-blue-200'
+    };
+    
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 left-4 p-4 rounded-lg border z-50 ${colors[type]} transform transition-all duration-300 -translate-x-full`;
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                </svg>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium">${message}</p>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.remove('-translate-x-full');
+        notification.classList.add('translate-x-0');
+    }, 100);
+    
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.classList.add('-translate-x-full');
+            setTimeout(() => notification.remove(), 300);
+        }
+    }, 3000);
+}
+
+// Carregar histórico rápido se contrato estiver selecionado
+{% if contrato %}
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        const historicoDiv = document.getElementById('historicoRapido');
+        historicoDiv.innerHTML = `
+            <div class="space-y-3">
+                {% if ultimo_reajuste %}
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">Último Reajuste</p>
+                            <p class="text-xs text-gray-500">{{ ultimo_reajuste.data_reajuste|date:"d/m/Y" }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-semibold text-gray-900">R$ {{ ultimo_reajuste.valor_reajustado|floatformat:2 }}</p>
+                            <p class="text-xs text-green-600">+{{ ultimo_reajuste.fator_aplicado|floatformat:2 }}%</p>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-gray-500">
+                        <p class="text-sm">Nenhum reajuste anterior encontrado</p>
+                        <p class="text-xs">Este será o primeiro reajuste do contrato</p>
+                    </div>
+                {% endif %}
+            </div>
+        `;
+    }, 1000);
+});
+{% endif %}
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', function() {
+    // Calcular se já há valores preenchidos
+    calcularReajuste();
+    
+    // Configurar eventos
+    document.getElementById('valorAnterior').addEventListener('input', calcularReajuste);
+    document.getElementById('fatorAplicado').addEventListener('input', calcularReajuste);
+    
+    // Animação de entrada
+    const elementos = document.querySelectorAll('.bg-white.rounded-xl');
+    elementos.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'all 0.5s ease-out';
+        
+        setTimeout(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, index * 200);
+    });
+});
+</script>
+{% endblock %}<!-- financeiro/templates/financeiro/reajustes/form_reajuste.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if sugestao %}Aprovar Reajuste{% else %}Novo Reajuste{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card-preview {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: 2px dashed #dee2e6;
+    }
+    .valor-input { font-size: 1.1rem; font-weight: bold; }
+    .calculo-tempo-real { 
+        background: #e3f2fd; 
+        border-radius: 8px; 
+        padding: 15px; 
+        margin: 10px 0; 
+    }
+    .badge-indice { font-size: 0.9rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-{% if sugestao %}check-circle{% else %}plus-circle{% endif %}"></i>
+                    {% if sugestao %}Aprovar Reajuste{% else %}Novo Reajuste{% endif %}
+                </h2>
+                <a href="{% url 'financeiro:sugestoes_reajustes' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </a>
+            </div>
+
+            <!-- Preview da Sugestão (se houver) -->
+            {% if sugestao %}
+            <div class="card card-preview mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb text-warning"></i>
+                        Sugestão Automática
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <small class="text-muted">Valor Atual</small>
+                            <div class="h4">R$ {{ sugestao.valor_anterior|floatformat:2 }}</div>
+                        </div>
+                        <div class="col-md-2 text-center d-flex align-items-center justify-content-center">
+                            <i class="fas fa-arrow-right fa-2x text-primary"></i>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <small class="text-muted">Valor Sugerido</small>
+                            <div class="h4 text-success">R$ {{ sugestao.valor_sugerido|floatformat:2 }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-6 text-center">
+                                    <small class="text-muted">Fator</small>
+                                    <div class="fw-bold">{{ sugestao.fator_aplicado|floatformat:2 }}%</div>
+                                </div>
+                                <div class="col-6 text-center">
+                                    <small class="text-muted">Índice</small>
+                                    <div><span class="badge bg-secondary badge-indice">{{ sugestao.indice_utilizado }}</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <button type="button" class="btn btn-success" onclick="aplicarSugestao()">
+                            <i class="fas fa-magic"></i> Aplicar Sugestão
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Formulário -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Dados do Reajuste</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="formReajuste">
+                        {% csrf_token %}
+                        
+                        <!-- Contrato -->
+                        <div class="mb-3">
+                            <label class="form-label">Contrato *</label>
+                            <select name="contrato_id" class="form-select" required 
+                                    {% if contrato %}disabled{% endif %} onchange="buscarSugestao()">
+                                <option value="">Selecione um contrato</option>
+                                {% for c in contratos %}
+                                    <option value="{{ c.id }}" 
+                                            {% if contrato and contrato.id == c.id %}selected{% endif %}
+                                            data-valor-atual="{{ c.valor_atual }}">
+                                        {{ c.imovel.endereco }} - {{ c.locatario.nome }}
+                                        (R$ {{ c.valor_atual|floatformat:2 }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            {% if contrato %}
+                                <input type="hidden" name="contrato_id" value="{{ contrato.id }}">
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <!-- Valor Anterior -->
+                            <div class="col-md-6">
+                                <label class="form-label">Valor Anterior *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="number" name="valor_anterior" class="form-control valor-input" 
+                                           step="0.01" min="0" required id="valorAnterior"
+                                           value="{% if sugestao %}{{ sugestao.valor_anterior }}{% elif contrato %}{{ contrato.valor_atual }}{% endif %}"
+                                           onchange="calcularReajuste()">
+                                </div>
+                            </div>
+
+                            <!-- Fator Aplicado -->
+                            <div class="col-md-6">
+                                <label class="form-label">Fator Aplicado (%) *</label>
+                                <div class="input-group">
+                                    <input type="number" name="fator_aplicado" class="form-control" 
+                                           step="0.01" min="0" required id="fatorAplicado"
+                                           value="{% if sugestao %}{{ sugestao.fator_aplicado }}{% endif %}"
+                                           onchange="calcularReajuste()">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cálculo em Tempo Real -->
+                        <div class="calculo-tempo-real" id="calculoResultado" style="display: none;">
+                            <div class="row text-center">
+                                <div class="col-md-4">
+                                    <small class="text-muted">Valor Atual</small>
+                                    <div class="h5" id="valorAtualCalc">R$ 0,00</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted">Novo Valor</small>
+                                    <div class="h5 text-success" id="valorNovoCalc">R$ 0,00</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted">Diferença</small>
+                                    <div class="h5 text-primary" id="diferencaCalc">+R$ 0,00</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Valor Reajustado -->
+                            <div class="col-md-6">
+                                <label class="form-label">Valor Reajustado *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="number" name="valor_reajustado" class="form-control valor-input" 
+                                           step="0.01" min="0" required id="valorReajustado"
+                                           value="{% if sugestao %}{{ sugestao.valor_sugerido }}{% endif %}">
+                                </div>
+                            </div>
+
+                            <!-- Data do Reajuste -->
+                            <div class="col-md-6">
+                                <label class="form-label">Data do Reajuste *</label>
+                                <input type="date" name="data_reajuste" class="form-control" required
+                                       value="{% if sugestao %}{{ sugestao.data_reajuste|date:'Y-m-d' }}{% endif %}">
+                            </div>
+                        </div>
+
+                        <!-- Índice Utilizado -->
+                        <div class="mb-3">
+                            <label class="form-label">Índice Utilizado *</label>
+                            <select name="indice_utilizado" class="form-select" required>
+                                {% for value, label in indices_choices %}
+                                    <option value="{{ value }}" 
+                                            {% if sugestao and sugestao.indice_utilizado == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Observação -->
+                        <div class="mb-4">
+                            <label class="form-label">Observação</label>
+                            <textarea name="observacao" class="form-control" rows="3" 
+                                      placeholder="Observações sobre este reajuste..."></textarea>
+                        </div>
+
+                        <!-- Botões -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'financeiro:sugestoes_reajustes' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check"></i> 
+                                {% if sugestao %}Aprovar Reajuste{% else %}Criar Reajuste{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Histórico Rápido (se contrato selecionado) -->
+            {% if contrato %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-history"></i>
+                        Últimos Reajustes - {{ contrato.imovel.endereco }}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="historicoRapido">
+                        <div class="text-center text-muted">
+                            <i class="fas fa-spinner fa-spin"></i> Carregando histórico...
+                        </div>
+                    </div>
+                    <div class="text-end mt-3">
+                        <a href="{% url 'financeiro:historico_contrato' contrato.id %}" 
+                           class="btn btn-sm btn-outline-info">
+                            <i class="fas fa-external-link-alt"></i> Ver Histórico Completo
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Dados da sugestão (se houver)
+const sugestaoData = {% if sugestao %}{{ sugestao|safe }}{% else %}null{% endif %};
+
+function aplicarSugestao() {
+    if (!sugestaoData) return;
+    
+    document.getElementById('valorAnterior').value = parseFloat(sugestaoData.valor_anterior).toFixed(2);
+    document.getElementById('fatorAplicado').value = parseFloat(sugestaoData.fator_aplicado).toFixed(2);
+    document.getElementById('valorReajustado').value = parseFloat(sugestaoData.valor_sugerido).toFixed(2);
+    
+    // Trigger do cálculo
+    calcularReajuste();
+    
+    // Feedback visual
+    const elementos = ['valorAnterior', 'fatorAplicado', 'valorReajustado'];
+    elementos.forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.add('border-success');
+        setTimeout(() => el.classList.remove('border-success'), 2000);
+    });
+}
+
+function calcularReajuste() {
+    const valorAnterior = parseFloat(document.getElementById('valorAnterior').value) || 0;
+    const fatorAplicado = parseFloat(document.getElementById('fatorAplicado').value) || 0;
+    
+    if (valorAnterior > 0 && fatorAplicado >= 0) {
+        fetch('{% url "financeiro:api_calcular_reajuste" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                valor_anterior: valorAnterior,
+                percentual: fatorAplicado
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.error) {
+                // Atualizar campos
+                document.getElementById('valorReajustado').value = data.valor_reajustado.toFixed(2);
+                
+                // Mostrar cálculo em tempo real
+                document.getElementById('valorAtualCalc').textContent = 
+                    'R$ ' + valorAnterior.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                document.getElementById('valorNovoCalc').textContent = 
+                    'R$ ' + data.valor_reajustado.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                document.getElementById('diferencaCalc').textContent = 
+                    '+R$ ' + data.diferenca.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                
+                document.getElementById('calculoResultado').style.display = 'block';
+            }
+        })
+        .catch(error => console.error('Erro no cálculo:', error));
+    } else {
+        document.getElementById('calculoResultado').style.display = 'none';
+    }
+}
+
+function buscarSugestao() {
+    const contratoSelect = document.querySelector('select[name="contrato_id"]');
+    const contratoId = contratoSelect.value;
+    
+    if (!contratoId) return;
+    
+    // Buscar valor atual do contrato
+    const option = contratoSelect.querySelector(`option[value="${contratoId}"]`);
+    if (option) {
+        const valorAtual = option.dataset.valorAtual;
+        if (valorAtual) {
+            document.getElementById('valorAnterior').value = parseFloat(valorAtual).toFixed(2);
+        }
+    }
+    
+    // Buscar sugestão automática
+    fetch(`{% url 'financeiro:api_sugestao_contrato' 0 %}`.replace('0', contratoId))
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.sugestao) {
+                const sugestao = data.sugestao;
+                
+                // Mostrar sugestão como tooltip ou notificação
+                if (!sugestao.ja_existe) {
+                    showSugestaoTooltip(sugestao);
+                }
+            }
+        })
+        .catch(error => console.error('Erro ao buscar sugestão:', error));
+}
+
+function showSugestaoTooltip(sugestao) {
+    // Criar tooltip com sugestão
+    const tooltip = document.createElement('div');
+    tooltip.className = 'alert alert-info alert-dismissible fade show position-fixed';
+    tooltip.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
+    tooltip.innerHTML = `
+        <strong>💡 Sugestão Automática Disponível!</strong><br>
+        Fator: ${parseFloat(sugestao.fator_aplicado).toFixed(2)}% | 
+        Valor: R$ ${parseFloat(sugestao.valor_sugerido).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(tooltip);
+    
+    // Auto remove
+    setTimeout(() => {
+        if (tooltip.parentNode) {
+            tooltip.remove();
+        }
+    }, 8000);
+}
+
+// Carregar histórico rápido se contrato estiver selecionado
+{% if contrato %}
+document.addEventListener('DOMContentLoaded', function() {
+    // Simulação de carregamento do histórico
+    setTimeout(() => {
+        const historicoDiv = document.getElementById('historicoRapido');
+        historicoDiv.innerHTML = `
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Valor</th>
+                            <th>Fator</th>
+                            <th>Índice</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="text-muted">
+                            <td colspan="4" class="text-center">
+                                <small>Carregue o histórico completo para ver mais detalhes</small>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }, 1000);
+});
+{% endif %}
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', function() {
+    // Calcular se já há valores preenchidos
+    calcularReajuste();
+    
+    // Configurar eventos
+    document.getElementById('valorAnterior').addEventListener('input', calcularReajuste);
+    document.getElementById('fatorAplicado').addEventListener('input', calcularReajuste);
+});
+</script>
+{% endblock %}

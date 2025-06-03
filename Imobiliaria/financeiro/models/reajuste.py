@@ -58,7 +58,6 @@ class ReajusteAluguel(models.Model):
         # Último reajuste aplicado (se houver)
         ultimo_reajuste = contrato.reajustes.order_by('-data_reajuste').first()
 
-        # Se já houve reajuste, usar a data e o valor daquele reajuste
         if ultimo_reajuste:
             data_inicio = ultimo_reajuste.data_reajuste
             valor_anterior = ultimo_reajuste.valor_reajustado
@@ -66,12 +65,10 @@ class ReajusteAluguel(models.Model):
             data_inicio = contrato.data_inicio
             valor_anterior = contrato.valor_base
 
-        # Próximo ciclo de reajuste
+        # Próximo ciclo (12 meses depois)
         data_reajuste = data_inicio + relativedelta(months=12)
-        if data_reajuste > date.today().replace(day=1):
-            return None  # Ainda não completou 12 meses
 
-        # Buscar os 12 índices após data_inicio
+        # Buscar os 12 índices a partir de data_inicio
         indices = IndiceInflacao.objects.filter(
             tipo=contrato.fator_reajuste,
             data_referencia__gte=data_inicio.replace(day=1),
@@ -79,14 +76,14 @@ class ReajusteAluguel(models.Model):
         ).order_by('data_referencia')
 
         if indices.count() < 12:
-            return None  # Não há 12 índices acumulados
+            return None  # Ainda não há 12 índices
 
         # Calcular o fator acumulado
         fator = Decimal('1.00')
         for indice in indices:
             fator *= (1 + (Decimal(indice.valor) / 100))
 
-        fator_aplicado = (fator - 1) * 100  # percentual
+        fator_aplicado = (fator - 1) * 100
         valor_sugerido = (valor_anterior * fator).quantize(Decimal("0.01"))
 
         return {

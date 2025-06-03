@@ -1,0 +1,396 @@
+<!-- financeiro/templates/financeiro/despesa/despesa_detail.html -->
+{% extends 'base.html' %}
+
+{% block page_title %}{{ despesa.get_descricao_padrao }} - Detalhes{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Cabeçalho -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-white flex items-center">
+                <i class="fas fa-receipt text-blue-400 mr-3"></i>
+                {{ despesa.get_descricao_padrao }}
+                {% if despesa.is_ativa %}
+                    <span class="ml-3 bg-green-600 text-green-100 px-2 py-1 rounded-full text-sm font-medium">Ativa</span>
+                {% else %}
+                    <span class="ml-3 bg-gray-600 text-gray-100 px-2 py-1 rounded-full text-sm font-medium">Inativa</span>
+                {% endif %}
+            </h1>
+            <p class="text-gray-400 mt-1">{{ despesa.tipo.nome }} - {{ despesa.contrato }}</p>
+        </div>
+        <div class="mt-4 md:mt-0">
+            <!-- Dropdown de ações -->
+            <div class="relative">
+                <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
+                        onclick="toggleDropdown('actions-dropdown')">
+                    <i class="fas fa-cog mr-2"></i>
+                    Ações
+                    <i class="fas fa-chevron-down ml-2"></i>
+                </button>
+                <div id="actions-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-gray-700 rounded-lg shadow-lg z-10">
+                    <div class="py-1">
+                        <a href="{% url 'financeiro:despesa_update' despesa.pk %}" 
+                           class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">
+                            <i class="fas fa-edit mr-2"></i> Editar
+                        </a>
+                        <a href="{% url 'financeiro:despesa_duplicar' despesa.pk %}" 
+                           class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">
+                            <i class="fas fa-copy mr-2"></i> Duplicar
+                        </a>
+                        <div class="border-t border-gray-600 my-1"></div>
+                        <button onclick="toggleStatus({{ despesa.pk }}, '{{ despesa.get_descricao_padrao }}', {{ despesa.is_ativa|yesno:'true,false' }})"
+                                class="w-full text-left block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">
+                            {% if despesa.is_ativa %}
+                                <i class="fas fa-times text-red-400 mr-2"></i> Inativar
+                            {% else %}
+                                <i class="fas fa-check text-green-400 mr-2"></i> Ativar
+                            {% endif %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Coluna principal - Informações detalhadas -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Card de informações básicas -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-bold text-white mb-4 flex items-center">
+                    <i class="fas fa-info-circle text-blue-400 mr-2"></i>
+                    Informações da Despesa
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Contrato</label>
+                            <p class="text-white">{{ despesa.contrato }}</p>
+                            {% if despesa.contrato.imovel %}
+                                <p class="text-gray-400 text-sm">{{ despesa.contrato.imovel.endereco }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Tipo de Despesa</label>
+                            <p class="text-white">{{ despesa.tipo.nome }}</p>
+                            {% if despesa.tipo.descricao %}
+                                <p class="text-gray-400 text-sm">{{ despesa.tipo.descricao }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Descrição</label>
+                            <p class="text-white">{{ despesa.descricao|default:despesa.get_descricao_padrao }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Paga Por</label>
+                            <span class="px-3 py-1 rounded-full text-sm font-medium
+                                {% if despesa.paga_por == 'proprietario' %}bg-blue-600 text-blue-100
+                                {% elif despesa.paga_por == 'inquilino' %}bg-green-600 text-green-100
+                                {% else %}bg-purple-600 text-purple-100{% endif %}">
+                                {{ despesa.get_paga_por_display }}
+                            </span>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Periodicidade</label>
+                            <p class="text-white">{{ despesa.get_periodicidade_display }}</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Data de Início</label>
+                            <p class="text-white">{{ despesa.data_inicio|date:"d/m/Y" }}</p>
+                        </div>
+                        
+                        {% if despesa.data_fim_prevista %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Data Fim Prevista</label>
+                            <p class="text-white">{{ despesa.data_fim_prevista|date:"d/m/Y" }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de valores -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-bold text-white mb-4 flex items-center">
+                    <i class="fas fa-calculator text-green-400 mr-2"></i>
+                    Cálculos Financeiros
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-gray-700 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-white">R$ {{ despesa.valor_total|floatformat:2 }}</div>
+                        <div class="text-gray-400 text-sm">Valor Total</div>
+                    </div>
+                    
+                    <div class="bg-gray-700 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-green-400">R$ {{ valor_parcela|floatformat:2 }}</div>
+                        <div class="text-gray-400 text-sm">Por Parcela</div>
+                    </div>
+                    
+                    <div class="bg-gray-700 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-blue-400">{{ despesa.numero_parcelas }}</div>
+                        <div class="text-gray-400 text-sm">Total Parcelas</div>
+                    </div>
+                    
+                    <div class="bg-gray-700 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-purple-400">R$ {{ valor_repassado|floatformat:2 }}</div>
+                        <div class="text-gray-400 text-sm">Valor Repassado</div>
+                        <div class="text-gray-500 text-xs">{{ despesa.percentual_repassado }}%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de observações -->
+            {% if despesa.observacoes %}
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-bold text-white mb-4 flex items-center">
+                    <i class="fas fa-sticky-note text-yellow-400 mr-2"></i>
+                    Observações
+                </h2>
+                <p class="text-gray-300 whitespace-pre-line">{{ despesa.observacoes }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar com informações adicionais -->
+        <div class="space-y-6">
+            <!-- Card de status -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center">
+                    <i class="fas fa-chart-pie text-blue-400 mr-2"></i>
+                    Status da Despesa
+                </h3>
+                
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">Status:</span>
+                        {% if despesa.is_ativa %}
+                            <span class="bg-green-600 text-green-100 px-2 py-1 rounded-full text-xs font-medium">Ativa</span>
+                        {% else %}
+                            <span class="bg-gray-600 text-gray-100 px-2 py-1 rounded-full text-xs font-medium">Inativa</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">Parcelas Pagas:</span>
+                        <span class="text-white font-medium">{{ parcelas_pagas }} de {{ despesa.numero_parcelas }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">Ativa em Data:</span>
+                        {% if esta_ativa %}
+                            <span class="text-green-400"><i class="fas fa-check-circle"></i> Sim</span>
+                        {% else %}
+                            <span class="text-red-400"><i class="fas fa-times-circle"></i> Não</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">Recorrente:</span>
+                        {% if despesa.is_recorrente %}
+                            <span class="text-green-400"><i class="fas fa-check-circle"></i> Sim</span>
+                        {% else %}
+                            <span class="text-gray-400"><i class="fas fa-times-circle"></i> Não</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Barra de progresso das parcelas -->
+                <div class="mt-4">
+                    <div class="flex justify-between text-sm text-gray-400 mb-1">
+                        <span>Progresso das Parcelas</span>
+                        <span>{% widthratio parcelas_pagas despesa.numero_parcelas 100 %}%</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full" 
+                             style="width: {% widthratio parcelas_pagas despesa.numero_parcelas 100 %}%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de ações rápidas -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center">
+                    <i class="fas fa-bolt text-yellow-400 mr-2"></i>
+                    Ações Rápidas
+                </h3>
+                
+                <div class="space-y-3">
+                    <a href="{% url 'financeiro:despesa_update' despesa.pk %}" 
+                       class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center justify-center transition-colors">
+                        <i class="fas fa-edit mr-2"></i>
+                        Editar Despesa
+                    </a>
+                    
+                    <a href="{% url 'financeiro:despesa_duplicar' despesa.pk %}" 
+                       class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg flex items-center justify-center transition-colors">
+                        <i class="fas fa-copy mr-2"></i>
+                        Duplicar Despesa
+                    </a>
+                    
+                    <a href="{% url 'financeiro:despesa_list' %}" 
+                       class="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg flex items-center justify-center transition-colors">
+                        <i class="fas fa-list mr-2"></i>
+                        Ver Todas as Despesas
+                    </a>
+                </div>
+            </div>
+
+            <!-- Card de informações do contrato -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center">
+                    <i class="fas fa-file-contract text-green-400 mr-2"></i>
+                    Contrato Relacionado
+                </h3>
+                
+                <div class="space-y-3 text-sm">
+                    <div>
+                        <span class="text-gray-400">Contrato:</span>
+                        <div class="text-white font-medium">{{ despesa.contrato }}</div>
+                    </div>
+                    
+                    {% if despesa.contrato.inquilino %}
+                    <div>
+                        <span class="text-gray-400">Inquilino:</span>
+                        <div class="text-white">{{ despesa.contrato.inquilino.nome }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if despesa.contrato.proprietario %}
+                    <div>
+                        <span class="text-gray-400">Proprietário:</span>
+                        <div class="text-white">{{ despesa.contrato.proprietario.nome }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if despesa.contrato.valor_aluguel %}
+                    <div>
+                        <span class="text-gray-400">Valor Aluguel:</span>
+                        <div class="text-white font-medium">R$ {{ despesa.contrato.valor_aluguel|floatformat:2 }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="pt-2">
+                        <a href="{% url 'sisimob:contrato_detail' despesa.contrato.pk %}" 
+                           class="text-blue-400 hover:text-blue-300 text-sm">
+                            <i class="fas fa-external-link-alt mr-1"></i>
+                            Ver Detalhes do Contrato
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de auditoria -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center">
+                    <i class="fas fa-history text-gray-400 mr-2"></i>
+                    Informações de Auditoria
+                </h3>
+                
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Criado em:</span>
+                        <span class="text-white">{{ despesa.data_cadastro|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Atualizado em:</span>
+                        <span class="text-white">{{ despesa.data_atualizacao|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">ID da Despesa:</span>
+                        <span class="text-white font-mono">#{{ despesa.pk }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmação -->
+<div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <h3 class="text-lg font-medium text-white mb-4">Confirmar Ação</h3>
+            <p id="confirmMessage" class="text-gray-300 mb-6"></p>
+            <div class="flex space-x-3">
+                <button onclick="closeModal()" 
+                        class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors">
+                    Cancelar
+                </button>
+                <button id="confirmButton" 
+                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors">
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Fechar dropdowns quando clicar fora
+document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('actions-dropdown');
+    if (!dropdown.closest('.relative').contains(event.target)) {
+        dropdown.classList.add('hidden');
+    }
+});
+
+// Toggle dropdown
+function toggleDropdown(id) {
+    const dropdown = document.getElementById(id);
+    dropdown.classList.toggle('hidden');
+}
+
+// Toggle status da despesa
+function toggleStatus(despesaId, despesaDescricao, statusAtual) {
+    const acao = statusAtual ? 'inativar' : 'ativar';
+    const modal = document.getElementById('confirmModal');
+    const message = document.getElementById('confirmMessage');
+    const confirmBtn = document.getElementById('confirmButton');
+    
+    message.textContent = `Tem certeza que deseja ${acao} a despesa "${despesaDescricao}"?`;
+    
+    confirmBtn.onclick = function() {
+        fetch(`/financeiro/despesas/${despesaId}/toggle-status/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao processar solicitação');
+        });
+        
+        closeModal();
+    };
+    
+    modal.classList.remove('hidden');
+}
+
+// Fechar modal
+function closeModal() {
+    document.getElementById('confirmModal').classList.add('hidden');
+}
+</script>
+{% endblock %}
