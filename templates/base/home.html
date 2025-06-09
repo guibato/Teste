@@ -1,0 +1,489 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Dashboard - Sistema Imobiliário{% endblock %}
+
+{% block page_title %}Dashboard Principal{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Dark Professional Theme */
+    .stat-card {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(71, 85, 105, 0.3);
+        transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-8px);
+        border-color: rgba(100, 116, 139, 0.4);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+    }
+    
+    .module-card {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(71, 85, 105, 0.2);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.25);
+    }
+    
+    .module-card:hover {
+        transform: translateY(-6px);
+        border-color: rgba(100, 116, 139, 0.3);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.15);
+    }
+    
+    .action-card {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.7) 100%);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(71, 85, 105, 0.2);
+        transition: all 0.3s ease;
+    }
+    
+    .action-card:hover {
+        border-color: rgba(100, 116, 139, 0.3);
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+    }
+    
+    .activity-card {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.6) 100%);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(71, 85, 105, 0.2);
+        transition: all 0.3s ease;
+    }
+    
+    .activity-card:hover {
+        border-color: rgba(100, 116, 139, 0.3);
+    }
+    
+    /* Icon Containers */
+    .icon-container-slate {
+        background: linear-gradient(135deg, #475569 0%, #334155 100%);
+    }
+    
+    .icon-container-blue {
+        background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    }
+    
+    .icon-container-emerald {
+        background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+    }
+    
+    .icon-container-violet {
+        background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+    }
+    
+    .icon-container-amber {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+    
+    /* Button styles */
+    .btn-primary {
+        background: linear-gradient(135deg, #475569 0%, #334155 100%);
+        border: 1px solid #64748b;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+        border-color: #94a3b8;
+        transform: translateY(-1px);
+    }
+    
+    .btn-secondary {
+        background: transparent;
+        border: 1px solid #475569;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-secondary:hover {
+        background: rgba(71, 85, 105, 0.2);
+        border-color: #64748b;
+    }
+    
+    /* Text colors */
+    .text-accent-blue { color: #60a5fa; }
+    .text-accent-emerald { color: #34d399; }
+    .text-accent-violet { color: #a78bfa; }
+    .text-accent-amber { color: #fbbf24; }
+    .text-accent-slate { color: #94a3b8; }
+    
+    .hover-lift:hover {
+        transform: translateY(-2px);
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.6s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="mb-12 fade-in">
+    <div class="text-center mb-10">
+        <h1 class="text-4xl font-light mb-4 text-slate-200">
+            Sistema de Gestão Imobiliária
+        </h1>
+        <p class="text-lg text-slate-400 max-w-2xl mx-auto font-light">
+            Plataforma completa para gestão de propriedades, contratos e relacionamento com clientes
+        </p>
+    </div>
+    
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <div class="stat-card rounded-xl p-6 hover-lift">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-400 text-sm font-medium">Total de Clientes</p>
+                    <p class="text-2xl font-semibold text-slate-200 mt-1">{{ total_clientes|default:"0" }}</p>
+                </div>
+                <div class="icon-container-slate p-3 rounded-lg">
+                    <i class="fas fa-users text-xl text-white"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card rounded-xl p-6 hover-lift">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-400 text-sm font-medium">Imóveis Ativos</p>
+                    <p class="text-2xl font-semibold text-slate-200 mt-1">{{ total_imoveis|default:"0" }}</p>
+                </div>
+                <div class="icon-container-emerald p-3 rounded-lg">
+                    <i class="fas fa-building text-xl text-white"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card rounded-xl p-6 hover-lift">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-400 text-sm font-medium">Contratos Vigentes</p>
+                    <p class="text-2xl font-semibold text-slate-200 mt-1">{{ total_contratos|default:"0" }}</p>
+                </div>
+                <div class="icon-container-violet p-3 rounded-lg">
+                    <i class="fas fa-file-contract text-xl text-white"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card rounded-xl p-6 hover-lift">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-400 text-sm font-medium">Receita Mensal</p>
+                    <p class="text-2xl font-semibold text-slate-200 mt-1">R$ {{ valor_mensal|default:"0" }}</p>
+                </div>
+                <div class="icon-container-blue p-3 rounded-lg">
+                    <i class="fas fa-chart-line text-xl text-white"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Modules -->
+<section class="mb-12">
+    <div class="flex items-center justify-between mb-8">
+        <h2 class="text-2xl font-light text-slate-200">Módulos do Sistema</h2>
+        <div class="flex items-center space-x-2">
+            <div class="status-indicator bg-emerald-400"></div>
+            <span class="text-sm text-slate-400">Sistema Operacional</span>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Clientes -->
+        <div class="module-card rounded-xl p-6 text-center">
+            <div class="mb-6">
+                <div class="icon-container-slate p-4 rounded-xl inline-block">
+                    <i class="fas fa-users text-2xl text-white"></i>
+                </div>
+            </div>
+            <h3 class="text-xl font-medium mb-3 text-slate-200">Clientes</h3>
+            <p class="text-slate-400 text-sm mb-6 leading-relaxed">
+                Gestão completa de proprietários, inquilinos e garantidores
+            </p>
+            <div class="space-y-3">
+                <a href="/clientes/listar/" class="block w-full btn-primary text-slate-200 py-2.5 px-4 rounded-lg text-sm font-medium">
+                    Visualizar Todos
+                </a>
+                <a href="/clientes/cadastrar/" class="block w-full btn-secondary text-slate-300 hover:text-white py-2.5 px-4 rounded-lg text-sm font-medium">
+                    Novo Cadastro
+                </a>
+            </div>
+        </div>
+
+        <!-- Imóveis -->
+        <div class="module-card rounded-xl p-6 text-center">
+            <div class="mb-6">
+                <div class="icon-container-emerald p-4 rounded-xl inline-block">
+                    <i class="fas fa-building text-2xl text-white"></i>
+                </div>
+            </div>
+            <h3 class="text-xl font-medium mb-3 text-slate-200">Imóveis</h3>
+            <p class="text-slate-400 text-sm mb-6 leading-relaxed">
+                Cadastro e controle detalhado de todas as propriedades
+            </p>
+            <div class="space-y-3">
+                <a href="/imoveis/listar/" class="block w-full btn-primary text-slate-200 py-2.5 px-4 rounded-lg text-sm font-medium">
+                    Visualizar Todos
+                </a>
+                <a href="/imoveis/cadastrar/" class="block w-full btn-secondary text-slate-300 hover:text-white py-2.5 px-4 rounded-lg text-sm font-medium">
+                    Novo Cadastro
+                </a>
+            </div>
+        </div>
+
+        <!-- Contratos -->
+        <div class="module-card rounded-xl p-6 text-center">
+            <div class="mb-6">
+                <div class="icon-container-violet p-4 rounded-xl inline-block">
+                    <i class="fas fa-file-contract text-2xl text-white"></i>
+                </div>
+            </div>
+            <h3 class="text-xl font-medium mb-3 text-slate-200">Contratos</h3>
+            <p class="text-slate-400 text-sm mb-6 leading-relaxed">
+                Administração de contratos de locação e aditivos
+            </p>
+            <div class="space-y-3">
+                <a href="/contratos/listar/" class="block w-full btn-primary text-slate-200 py-2.5 px-4 rounded-lg text-sm font-medium">
+                    Visualizar Todos
+                </a>
+                <a href="/contratos/cadastrar/" class="block w-full btn-secondary text-slate-300 hover:text-white py-2.5 px-4 rounded-lg text-sm font-medium">
+                    Novo Contrato
+                </a>
+            </div>
+        </div>
+
+        <!-- Financeiro -->
+        <div class="module-card rounded-xl p-6 text-center">
+            <div class="mb-6">
+                <div class="icon-container-blue p-4 rounded-xl inline-block">
+                    <i class="fas fa-chart-bar text-2xl text-white"></i>
+                </div>
+            </div>
+            <h3 class="text-xl font-medium mb-3 text-slate-200">Financeiro</h3>
+            <p class="text-slate-400 text-sm mb-6 leading-relaxed">
+                Controle financeiro e gestão de cobranças
+            </p>
+            <div class="space-y-3">
+                <a href="/financeiro/" class="block w-full btn-primary text-slate-200 py-2.5 px-4 rounded-lg text-sm font-medium">
+                    Dashboard
+                </a>
+                <a href="/financeiro/cobrancas/preview/" class="block w-full btn-secondary text-slate-300 hover:text-white py-2.5 px-4 rounded-lg text-sm font-medium">
+                    Gerar Cobranças
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Actions -->
+<section class="mb-12">
+    <h2 class="text-2xl font-light text-slate-200 mb-8">Ações Rápidas</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Cadastros -->
+        <div class="action-card rounded-xl p-6">
+            <h3 class="text-lg font-medium mb-6 flex items-center text-slate-200">
+                <i class="fas fa-plus text-accent-slate mr-3"></i>
+                Novos Cadastros
+            </h3>
+            <div class="space-y-4">
+                <a href="/clientes/cadastrar/" class="flex items-center p-3 rounded-lg hover:bg-slate-700/30 transition-colors">
+                    <i class="fas fa-user-plus text-accent-slate mr-3 text-sm"></i>
+                    <span class="text-slate-300 text-sm">Cliente</span>
+                </a>
+                <a href="/imoveis/cadastrar/" class="flex items-center p-3 rounded-lg hover:bg-slate-700/30 transition-colors">
+                    <i class="fas fa-home text-accent-emerald mr-3 text-sm"></i>
+                    <span class="text-slate-300 text-sm">Imóvel</span>
+                </a>
+                <a href="/contratos/cadastrar/" class="flex items-center p-3 rounded-lg hover:bg-slate-700/30 transition-colors">
+                    <i class="fas fa-file-signature text-accent-violet mr-3 text-sm"></i>
+                    <span class="text-slate-300 text-sm">Contrato</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Financeiro -->
+        <div class="action-card rounded-xl p-6">
+            <h3 class="text-lg font-medium mb-6 flex items-center text-slate-200">
+                <i class="fas fa-calculator text-accent-blue mr-3"></i>
+                Gestão Financeira
+            </h3>
+            <div class="space-y-4">
+                <a href="/financeiro/cobrancas/" class="flex items-center p-3 rounded-lg hover:bg-slate-700/30 transition-colors">
+                    <i class="fas fa-file-invoice text-accent-blue mr-3 text-sm"></i>
+                    <span class="text-slate-300 text-sm">Cobranças</span>
+                </a>
+                <a href="/financeiro/repasses/" class="flex items-center p-3 rounded-lg hover:bg-slate-700/30 transition-colors">
+                    <i class="fas fa-exchange-alt text-accent-emerald mr-3 text-sm"></i>
+                    <span class="text-slate-300 text-sm">Repasses</span>
+                </a>
+                <a href="/financeiro/saldos/" class="flex items-center p-3 rounded-lg hover:bg-slate-700/30 transition-colors">
+                    <i class="fas fa-wallet text-accent-amber mr-3 text-sm"></i>
+                    <span class="text-slate-300 text-sm">Saldos</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Operações -->
+        <div class="action-card rounded-xl p-6">
+            <h3 class="text-lg font-medium mb-6 flex items-center text-slate-200">
+                <i class="fas fa-cogs text-accent-amber mr-3"></i>
+                Operações
+            </h3>
+            <div class="space-y-4">
+                <a href="/contratos/reajustar/" class="flex items-center p-3 rounded-lg hover:bg-slate-700/30 transition-colors">
+                    <i class="fas fa-percentage text-accent-amber mr-3 text-sm"></i>
+                    <span class="text-slate-300 text-sm">Reajustes</span>
+                </a>
+                <a href="/buscar/" class="flex items-center p-3 rounded-lg hover:bg-slate-700/30 transition-colors">
+                    <i class="fas fa-search text-accent-slate mr-3 text-sm"></i>
+                    <span class="text-slate-300 text-sm">Busca Avançada</span>
+                </a>
+                <button onclick="atualizarIndices()" class="flex items-center p-3 rounded-lg hover:bg-slate-700/30 transition-colors w-full text-left">
+                    <i class="fas fa-sync text-accent-violet mr-3 text-sm"></i>
+                    <span class="text-slate-300 text-sm">Atualizar Índices</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Activity Overview -->
+<section class="mb-8">
+    <h2 class="text-2xl font-light text-slate-200 mb-8">Atividades Recentes</h2>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Pending Items -->
+        <div class="activity-card rounded-xl p-6">
+            <h3 class="text-lg font-medium mb-6 flex items-center text-slate-200">
+                <i class="fas fa-clock text-accent-amber mr-3"></i>
+                Pendências
+            </h3>
+            <div class="space-y-4">
+                {% if contratos_reajuste %}
+                    {% for contrato in contratos_reajuste %}
+                    <div class="flex items-center justify-between p-4 rounded-lg bg-slate-800/30">
+                        <div>
+                            <p class="font-medium text-slate-300 text-sm">{{ contrato.imovel.endereco_completo|truncatechars:35 }}</p>
+                            <p class="text-xs text-slate-500 mt-1">Reajuste: {{ contrato.data_vencimento_reajuste }}</p>
+                        </div>
+                        <a href="/contratos/reajustar/" class="text-accent-amber hover:text-amber-300 transition-colors">
+                            <i class="fas fa-arrow-right text-sm"></i>
+                        </a>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="text-center py-8">
+                    <i class="fas fa-check-circle text-3xl text-emerald-500 mb-3"></i>
+                    <p class="text-slate-400 text-sm">Nenhuma pendência no momento</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="activity-card rounded-xl p-6">
+            <h3 class="text-lg font-medium mb-6 flex items-center text-slate-200">
+                <i class="fas fa-file-invoice text-accent-blue mr-3"></i>
+                Movimentações Recentes
+            </h3>
+            <div class="space-y-4">
+                {% if ultimas_cobrancas %}
+                    {% for cobranca in ultimas_cobrancas %}
+                    <div class="flex items-center justify-between p-4 rounded-lg bg-slate-800/30">
+                        <div>
+                            <p class="font-medium text-slate-300 text-sm">{{ cobranca.contrato.imovel.endereco_completo|truncatechars:35 }}</p>
+                            <p class="text-xs text-slate-500 mt-1">R$ {{ cobranca.valor_total }} - {{ cobranca.data_vencimento }}</p>
+                        </div>
+                        <span class="px-3 py-1 text-xs rounded-full font-medium
+                            {% if cobranca.status == 'PAGO' %}bg-emerald-900/50 text-emerald-300 border border-emerald-700/30
+                            {% elif cobranca.status == 'PENDENTE' %}bg-amber-900/50 text-amber-300 border border-amber-700/30
+                            {% else %}bg-red-900/50 text-red-300 border border-red-700/30{% endif %}">
+                            {{ cobranca.get_status_display }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="text-center py-8">
+                    <i class="fas fa-file-invoice text-3xl text-slate-600 mb-3"></i>
+                    <p class="text-slate-400 text-sm">Nenhuma movimentação recente</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- System Status -->
+<section>
+    <div class="activity-card rounded-xl p-6">
+        <h3 class="text-lg font-medium mb-6 text-center text-slate-200">Status do Sistema</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="text-center">
+                <div class="flex items-center justify-center mb-3">
+                    <div class="status-indicator bg-emerald-400 mr-2"></div>
+                    <span class="text-emerald-300 text-sm font-medium">Sistema Online</span>
+                </div>
+                <p class="text-xs text-slate-500">Todos os serviços operacionais</p>
+            </div>
+            <div class="text-center">
+                <div class="flex items-center justify-center mb-3">
+                    <div class="status-indicator bg-blue-400 mr-2"></div>
+                    <span class="text-blue-300 text-sm font-medium">Backup Atualizado</span>
+                </div>
+                <p class="text-xs text-slate-500">Última sincronização hoje</p>
+            </div>
+            <div class="text-center">
+                <div class="flex items-center justify-center mb-3">
+                    <div class="status-indicator bg-amber-400 mr-2"></div>
+                    <span class="text-amber-300 text-sm font-medium">Índices Atualizados</span>
+                </div>
+                <p class="text-xs text-slate-500">{{ ultima_atualizacao_indices|default:"Verificar configuração" }}</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Smooth fade-in animation for cards
+    const cards = document.querySelectorAll('.stat-card, .module-card, .action-card, .activity-card');
+    cards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.classList.add('fade-in');
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+
+function refreshStats() {
+    console.log('Atualizando estatísticas...');
+}
+</script>
+{% endblock %}

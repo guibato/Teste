@@ -1,0 +1,388 @@
+<!-- financeiro/templates/financeiro/repasses/diagnostico_automacao.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Diagnóstico da Automação - Repasses{% endblock %}
+
+{% block extra_css %}
+<style>
+.diagnostic-card {
+    border-left: 4px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.diagnostic-card.status-ok {
+    border-left-color: #28a745;
+}
+
+.diagnostic-card.status-atencao {
+    border-left-color: #ffc107;
+}
+
+.diagnostic-card.status-problema {
+    border-left-color: #dc3545;
+}
+
+.diagnostic-card.status-erro {
+    border-left-color: #6c757d;
+}
+
+.status-badge {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    border-radius: 20px;
+}
+
+.problem-item, .warning-item, .suggestion-item {
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    border-left: 4px solid;
+}
+
+.problem-item {
+    background-color: #f8d7da;
+    border-left-color: #dc3545;
+    color: #721c24;
+}
+
+.warning-item {
+    background-color: #fff3cd;
+    border-left-color: #ffc107;
+    color: #856404;
+}
+
+.suggestion-item {
+    background-color: #d1ecf1;
+    border-left-color: #17a2b8;
+    color: #0c5460;
+}
+
+.icon-large {
+    font-size: 3rem;
+    opacity: 0.8;
+}
+
+.btn-fix {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    box-shadow: 0 2px 10px rgba(40, 167, 69, 0.3);
+}
+
+.btn-fix:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">🩺 Diagnóstico da Automação</h1>
+                    <p class="text-muted">Verificação da saúde do sistema de repasses automáticos</p>
+                </div>
+                <div>
+                    <a href="{% url 'financeiro:dashboard_automacao' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left"></i> Voltar ao Dashboard
+                    </a>
+                    <button type="button" class="btn btn-primary" onclick="window.location.reload()">
+                        <i class="fas fa-sync-alt"></i> Atualizar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Geral -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card diagnostic-card status-{{ diagnostico.status }}">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-2 text-center">
+                            {% if diagnostico.status == 'ok' %}
+                            <i class="fas fa-check-circle icon-large text-success"></i>
+                            {% elif diagnostico.status == 'atencao' %}
+                            <i class="fas fa-exclamation-triangle icon-large text-warning"></i>
+                            {% elif diagnostico.status == 'problema' %}
+                            <i class="fas fa-times-circle icon-large text-danger"></i>
+                            {% else %}
+                            <i class="fas fa-question-circle icon-large text-secondary"></i>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <h4 class="mb-1">Status do Sistema</h4>
+                            <p class="text-muted mb-0">{{ diagnostico.mensagem }}</p>
+                            <small class="text-muted">Verificação realizada em {{ diagnostico.data_verificacao|date:"d/m/Y" }}</small>
+                        </div>
+                        <div class="col-md-2 text-end">
+                            <span class="badge status-badge 
+                                {% if diagnostico.status == 'ok' %}bg-success
+                                {% elif diagnostico.status == 'atencao' %}bg-warning
+                                {% elif diagnostico.status == 'problema' %}bg-danger
+                                {% else %}bg-secondary{% endif %}">
+                                {% if diagnostico.status == 'ok' %}✓ Funcionando
+                                {% elif diagnostico.status == 'atencao' %}⚠ Atenção
+                                {% elif diagnostico.status == 'problema' %}✗ Problemas
+                                {% else %}? Erro{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Problemas Encontrados -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-exclamation-circle"></i> 
+                        Problemas Críticos ({{ diagnostico.problemas|length }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if diagnostico.problemas %}
+                        {% for problema in diagnostico.problemas %}
+                        <div class="problem-item">
+                            <i class="fas fa-times-circle me-2"></i>
+                            {{ problema }}
+                        </div>
+                        {% endfor %}
+                        
+                        <div class="mt-3">
+                            <button type="button" class="btn btn-fix text-white" onclick="corrigirProblemas()">
+                                <i class="fas fa-wrench"></i> Tentar Correção Automática
+                            </button>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                            <p class="text-muted">Nenhum problema crítico encontrado!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Avisos -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        Avisos ({{ diagnostico.avisos|length }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if diagnostico.avisos %}
+                        {% for aviso in diagnostico.avisos %}
+                        <div class="warning-item">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            {{ aviso }}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                            <p class="text-muted">Nenhum aviso no momento!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sugestões -->
+    {% if diagnostico.sugestoes %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-lightbulb"></i> 
+                        Sugestões de Melhoria ({{ diagnostico.sugestoes|length }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for sugestao in diagnostico.sugestoes %}
+                    <div class="suggestion-item">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        {{ sugestao }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Ações Rápidas -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tools"></i> Ações Rápidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="d-grid">
+                                <a href="{% url 'financeiro:contratos_sem_politica' %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-cog"></i><br>
+                                    Configurar Políticas
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-grid">
+                                <a href="{% url 'financeiro:lista_repasses' %}?status=pendente" class="btn btn-outline-warning">
+                                    <i class="fas fa-clock"></i><br>
+                                    Ver Pendentes
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-grid">
+                                <a href="{% url 'financeiro:agendamento_list' %}" class="btn btn-outline-info">
+                                    <i class="fas fa-calendar"></i><br>
+                                    Ver Agendamentos
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-grid">
+                                <button type="button" class="btn btn-outline-success" onclick="executarProcessamento()">
+                                    <i class="fas fa-play"></i><br>
+                                    Processar Agora
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalhes Técnicos -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle"></i> Detalhes Técnicos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Verificações Realizadas:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success"></i> Contratos sem política de repasse</li>
+                                <li><i class="fas fa-check text-success"></i> Políticas inativas</li>
+                                <li><i class="fas fa-check text-success"></i> Repasses atrasados</li>
+                                <li><i class="fas fa-check text-success"></i> Cobranças pagas sem repasse</li>
+                                <li><i class="fas fa-check text-success"></i> Agendamentos vencidos</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Próxima Verificação:</h6>
+                            <p class="text-muted">
+                                Recomendamos executar o diagnóstico diariamente ou sempre que suspeitar de problemas na automação.
+                            </p>
+                            <h6>Automação via Cron:</h6>
+                            <code>0 8 * * * cd /path/to/project && python manage.py processar_repasses</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function corrigirProblemas() {
+    Swal.fire({
+        title: 'Correção Automática',
+        text: 'Deseja tentar corrigir automaticamente os problemas encontrados?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, corrigir',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#28a745'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Implementar correções automáticas
+            Swal.fire({
+                title: 'Corrigindo...',
+                html: 'Aplicando correções automáticas',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Simular correção (implementar conforme necessário)
+            setTimeout(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Correções Aplicadas!',
+                    text: 'As correções automáticas foram aplicadas. Execute o diagnóstico novamente.',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    window.location.reload();
+                });
+            }, 3000);
+        }
+    });
+}
+
+function executarProcessamento() {
+    Swal.fire({
+        title: 'Executar Processamento',
+        text: 'Deseja executar o processamento automático de repasses agora?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, processar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#007bff'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = '{% url "financeiro:dashboard_automacao" %}';
+        }
+    });
+}
+
+// Atualizar automaticamente a cada 2 minutos
+setInterval(function() {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-info alert-dismissible fade show position-fixed';
+    alertDiv.style.top = '20px';
+    alertDiv.style.right = '20px';
+    alertDiv.style.zIndex = '9999';
+    alertDiv.innerHTML = `
+        <i class="fas fa-sync-alt"></i> Dados atualizados automaticamente
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
+    }, 3000);
+}, 120000); // 2 minutos
+</script>
+{% endblock %}

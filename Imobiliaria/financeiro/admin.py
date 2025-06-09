@@ -2,7 +2,7 @@
 from django.contrib import admin
 from .models import (
     Cobranca, Despesa, IndiceInflacao, Repasse,
-    PoliticaRepasse, AgendamentoRepasse,
+    PoliticaRepasseContrato, PoliticaRepasseGlobal, AgendamentoRepasse,
     MovimentoConta, SaldoProprietario, LembreteEnviado
 )
 
@@ -30,7 +30,7 @@ class RepasseAdmin(admin.ModelAdmin):
     list_filter = ('status', 'tipo', 'metodo_pagamento')
     search_fields = ('proprietario__nome', 'descricao')
 
-@admin.register(PoliticaRepasse)
+@admin.register(PoliticaRepasseGlobal)
 class PoliticaRepasseAdmin(admin.ModelAdmin):
     list_display = ('nome', 'periodicidade', 'dia_mes', 'dia_semana', 'ativa')
     list_filter = ('periodicidade', 'ativa')
@@ -57,3 +57,6 @@ class LembreteEnviadoAdmin(admin.ModelAdmin):
     list_display = ('cobranca', 'tipo', 'dias_antes_vencimento', 'data_envio', 'status')
     list_filter = ('tipo', 'status')
     search_fields = ('cobranca__contrato__id', 'cobranca__inquilino__nome')
+
+
+

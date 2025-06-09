@@ -1,0 +1,20 @@
+{% extends 'base/base.html' %}
+
+{% block content %}
+<h2 class="text-3xl font-bold text-gray-200 mb-8 text-center">Editar Cobrança</h2>
+<div class="max-w-4xl mx-auto p-6 bg-gray-800 rounded-lg shadow-lg">
+    <form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% csrf_token %}
+        <!-- Renderizar os campos do formulário -->
+        {{ form.as_p }}
+        <div class="col-span-full flex justify-end gap-4 mt-6">
+            <a href="{% url 'dashboard' id=cobranca.contrato.id %}" class="px-6 py-2 bg-gray-700 text-gray-200 rounded-md hover:bg-gray-600 transition-colors">
+                Cancelar
+            </a>
+            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                Salvar Alterações
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

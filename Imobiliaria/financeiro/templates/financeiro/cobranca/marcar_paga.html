@@ -1,0 +1,115 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Marcar Cobrança como Paga{% endblock %}
+{% block page_title %}Marcar como Paga - Cobrança #{{ cobranca.id }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-gray-800 rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-white mb-6">
+            <i class="fas fa-check-circle mr-2 text-green-400"></i>
+            Marcar Cobrança como Paga
+        </h2>
+        
+        <!-- Informações da Cobrança -->
+        <div class="bg-gray-700 rounded-lg p-4 mb-6">
+            <h3 class="text-lg font-medium text-white mb-3">Detalhes da Cobrança</h3>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                    <span class="text-gray-400">ID:</span>
+                    <span class="text-white font-mono">#{{ cobranca.id }}</span>
+                </div>
+                <div>
+                    <span class="text-gray-400">Valor Total:</span>
+                    <span class="text-white font-semibold">R$ {{ cobranca.valor_total|floatformat:2 }}</span>
+                </div>
+                <div>
+                    <span class="text-gray-400">Vencimento:</span>
+                    <span class="text-white">{{ cobranca.data_vencimento|date:"d/m/Y" }}</span>
+                </div>
+                <div>
+                    <span class="text-gray-400">Status Atual:</span>
+                    <span class="px-2 py-1 bg-yellow-600 text-white rounded text-xs">
+                        {{ cobranca.get_status_display }}
+                    </span>
+                </div>
+                <div class="col-span-2">
+                    <span class="text-gray-400">Descrição:</span>
+                    <span class="text-white">{{ cobranca.descricao }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Formulário -->
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">
+                    <i class="fas fa-calendar mr-1"></i>
+                    Data do Pagamento *
+                </label>
+                <input type="date" name="data_pagamento" required
+                       value="{{ hoje|date:'Y-m-d' }}"
+                       max="{{ hoje|date:'Y-m-d' }}"
+                       class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">
+                    <i class="fas fa-dollar-sign mr-1"></i>
+                    Valor Pago *
+                </label>
+                <input type="number" step="0.01" name="valor_pago" required
+                       value="{{ cobranca.valor_total }}"
+                       min="0.01"
+                       class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <div class="text-xs text-gray-400 mt-1">
+                    Valor original: R$ {{ cobranca.valor_total|floatformat:2 }}
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">
+                    <i class="fas fa-credit-card mr-1"></i>
+                    Método de Pagamento
+                </label>
+                <select name="metodo_pagamento" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    {% for valor, label in metodos_pagamento %}
+                    <option value="{{ valor }}" {% if valor == 'pix' %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">
+                    <i class="fas fa-sticky-note mr-1"></i>
+                    Observações
+                </label>
+                <textarea name="observacoes" rows="3"
+                          class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Observações sobre o pagamento..."></textarea>
+            </div>
+            
+            <div class="flex space-x-4 pt-6">
+                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors font-medium">
+                    <i class="fas fa-check mr-2"></i>Confirmar Pagamento
+                </button>
+                <a href="{% url 'financeiro:cobranca_detail' cobranca.pk %}" 
+                   class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors font-medium">
+                    <i class="fas fa-times mr-2"></i>Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Debug info - remover em produção -->
+<script>
+console.log('Dados da cobrança:', {
+    id: {{ cobranca.id }},
+    status: '{{ cobranca.status }}',
+    valor: {{ cobranca.valor_total }}
+});
+</script>
+{% endblock %}

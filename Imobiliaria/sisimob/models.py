@@ -156,20 +156,31 @@ class Imovel(models.Model):
         return ", ".join(partes)
     
     
+    # No modelo Imovel, substitua a property endereco_completo por esta versão corrigida:
+
     @property
     def endereco_completo(self):
+        """
+        Retorna o endereço no formato: endereço, número - complemento
+        """
         partes = []
+        
+        # Endereço base (sempre presente)
         if self.endereco:
             partes.append(self.endereco)
+        
+        # Adicionar número se existir
         if self.numero:
-            partes.append(str(self.numero))  # Converte o número para string, caso seja um inteiro
+            partes.append(str(self.numero))
+        
+        # Juntar endereço e número com vírgula
+        endereco_base = ", ".join(partes) if partes else ""
+        
+        # Adicionar complemento com hífen se existir
         if self.complemento:
-            partes.append(self.complemento)
-
-        # Verifica se há mais de um item na lista, e formata com o " - " apenas quando necessário
-        if len(partes) > 1:
-            return f"{partes[0]}, {partes[1]} - {partes[2]}" if len(partes) > 2 else f"{partes[0]}, {partes[1]}"
-        return ', '.join(partes)
+            return f"{endereco_base} - {self.complemento}"
+        
+        return endereco_base
 
 class Contrato(models.Model):
     class Meta:
@@ -245,7 +256,28 @@ class Contrato(models.Model):
         endereco = self.imovel.endereco or ''
         numero = self.imovel.numero or ''
         complemento = f" - {self.imovel.complemento}" if self.imovel.complemento else ''
-        return f"{self.id} - {endereco}, {numero}{complemento}"
+        
+        # Obter proprietários (ManyToMany)
+        proprietarios = self.proprietario.all()
+        if proprietarios.exists():
+            nomes_proprietarios = ", ".join([p.nome for p in proprietarios])
+            return f"#{self.id} - {nomes_proprietarios} - {endereco}, {numero}{complemento}"
+        else:
+            return f"#{self.id} - Sem proprietário - {endereco}, {numero}{complemento}"
+
+    # ALTERNATIVA: Se quiser evitar queries adicionais no dropdown
+    def get_display_name(self):
+        """Método específico para exibição em dropdowns"""
+        endereco = self.imovel.endereco or ''
+        numero = self.imovel.numero or ''
+        
+        # Para evitar N+1 queries, usar prefetch_related na view
+        proprietarios = self.proprietario.all()
+        if proprietarios:
+            nomes = ", ".join([p.nome for p in proprietarios])
+            return f"#{self.id} - {nomes} - {endereco}, {numero}"
+        else:
+            return f"#{self.id} - {endereco}, {numero}"
 
 
     def valor_taxa_administracao(self):
@@ -326,9 +358,22 @@ class Contrato(models.Model):
     
 
     def valor_aluguel_atual(self, referencia: date = None):
-        reajuste = ReajusteAluguel.obter_ultimo_reajuste(self, referencia)
-        if reajuste:
-            return reajuste.valor_reajustado
+        """
+        Retorna o valor atual do aluguel considerando reajustes.
+        Se não houver reajustes, retorna o valor_base.
+        """
+        if referencia is None:
+            referencia = date.today()
+        
+        # Buscar o último reajuste até a data de referência
+        ultimo_reajuste = self.reajustes.filter(
+            data_reajuste__lte=referencia
+        ).order_by('-data_reajuste').first()
+        
+        if ultimo_reajuste:
+            return ultimo_reajuste.valor_reajustado
+        
+        # Se não há reajustes, retorna o valor base
         return self.valor_base
 
 
@@ -360,6 +405,14 @@ class Contrato(models.Model):
         data_referencia = referencia.replace(day=1)
 
         return data_referencia >= data_proximo_reajuste
+    
+    @property 
+    def valor_aluguel(self):
+        """
+        Propriedade para manter compatibilidade com código antigo.
+        Retorna o valor atual do aluguel.
+        """
+        return self.valor_aluguel_atual()
 
 
 class Cobranca(models.Model):

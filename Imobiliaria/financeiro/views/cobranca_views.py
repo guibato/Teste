@@ -1,25 +1,41 @@
 # financeiro/views/cobranca_views.py
 """
-Views para gerenciamento de Cobranças
-====================================
+Views para gerenciamento de Cobranças - Refatoradas
+===================================================
 """
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.views.generic import ListView, CreateView, UpdateView, DetailView
-from django.urls import reverse_lazy
-from django.db.models import Q, Sum, Count
+from django.urls import reverse_lazy, reverse
 from django.http import JsonResponse
-from datetime import date, timedelta
+from django.views.decorators.http import require_http_methods
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from datetime import date
+from django.db.models import Q, Sum, Count, Case, When, DecimalField, F
+from django.utils import timezone
+from django.core.paginator import Paginator
+from django.urls import reverse_lazy
+from datetime import date, datetime, timedelta  # ← IMPORTANTE
 from decimal import Decimal
+import json
+import traceback
 
-from ..models import Cobranca, Despesa
-from ..forms.cobranca_forms import CobrancaForm, CobrancaIntegracaoAsaasForm
+from ..models import Cobranca
+from ..forms.cobranca_forms import (
+    CobrancaCreateForm, CobrancaUpdateForm, CobrancaFiltroForm,
+    CobrancaIntegracaoAsaasForm, CobrancaMarcarPagaForm
+)
+from financeiro.services.cobranca.cobranca_consulta_service import CobrancaConsultaService
+from financeiro.services.cobranca.cobranca_estatistica_service import CobrancaEstatisticaService
+from financeiro.services.cobranca.cobranca_calculadora_service import CobrancaCalculadoraService
+from financeiro.services.cobranca.asaas_integracao_service import AsaasIntegracaoService
 
 
 class CobrancaListView(ListView):
     """
-    View para listagem de cobranças com filtros e paginação
+    View para listagem de cobranças com filtros e paginação otimizada
     """
     model = Cobranca
     template_name = 'financeiro/cobranca/cobranca_list.html'
@@ -27,84 +43,42 @@ class CobrancaListView(ListView):
     paginate_by = 20
     
     def get_queryset(self):
-        """Aplica filtros na queryset baseado nos parâmetros GET"""
-        queryset = Cobranca.objects.select_related('contrato', 'inquilino').all()
-        
-        # Filtro por status
-        status = self.request.GET.get('status', 'pendente')
-        if status == 'pendente':
-            queryset = queryset.filter(status='pendente')
-        elif status == 'paga':
-            queryset = queryset.filter(status='paga')
-        elif status == 'atrasada':
-            queryset = queryset.filter(status='atrasada')
-        elif status == 'cancelada':
-            queryset = queryset.filter(status='cancelada')
-        
-        # Filtro por mês de referência
-        mes_referencia = self.request.GET.get('mes_referencia')
-        if mes_referencia:
-            try:
-                queryset = queryset.filter(mes_referencia=int(mes_referencia))
-            except ValueError:
-                pass
-        
-        # Filtro por ano de referência
-        ano_referencia = self.request.GET.get('ano_referencia')
-        if ano_referencia:
-            try:
-                queryset = queryset.filter(ano_referencia=int(ano_referencia))
-            except ValueError:
-                pass
-        
-        # Filtro por contrato
-        contrato_busca = self.request.GET.get('contrato', '').strip()
-        if contrato_busca:
-            queryset = queryset.filter(
-                Q(contrato__numero_contrato__icontains=contrato_busca) |
-                Q(contrato__imovel__endereco__icontains=contrato_busca)
-            )
-        
-        # Filtro por inquilino
-        inquilino_busca = self.request.GET.get('inquilino', '').strip()
-        if inquilino_busca:
-            queryset = queryset.filter(
-                Q(inquilino__nome__icontains=inquilino_busca) |
-                Q(inquilino__email__icontains=inquilino_busca)
-            )
-        
-        return queryset.order_by('-ano_referencia', '-mes_referencia', '-data_vencimento')
+        """Aplica filtros usando o service"""
+        filtros = self._extrair_filtros()
+        return CobrancaConsultaService.filtrar_cobrancas(filtros)
     
     def get_context_data(self, **kwargs):
-        """Adiciona dados extras ao contexto do template"""
+        """Adiciona dados extras ao contexto"""
         context = super().get_context_data(**kwargs)
         
-        # Mantém os filtros no contexto
-        context['filtro_status'] = self.request.GET.get('status', 'pendente')
-        context['filtro_mes'] = self.request.GET.get('mes_referencia', '')
-        context['filtro_ano'] = self.request.GET.get('ano_referencia', '')
-        context['filtro_contrato'] = self.request.GET.get('contrato', '')
-        context['filtro_inquilino'] = self.request.GET.get('inquilino', '')
-        
-        # Estatísticas gerais
-        context['total_cobrancas'] = Cobranca.objects.count()
-        context['cobrancas_pendentes'] = Cobranca.objects.filter(status='pendente').count()
-        context['cobrancas_pagas'] = Cobranca.objects.filter(status='paga').count()
-        context['cobrancas_atrasadas'] = Cobranca.objects.filter(status='atrasada').count()
-        
-        # Valores financeiros
-        valores = Cobranca.objects.aggregate(
-            total_pendente=Sum('valor_total', filter=Q(status='pendente')),
-            total_pago=Sum('valor_total', filter=Q(status='paga')),
-            total_atrasado=Sum('valor_total', filter=Q(status='atrasada'))
-        )
+        # Filtros atuais
+        filtros_atuais = self._extrair_filtros()
         context.update({
-            'valor_total_pendente': valores['total_pendente'] or Decimal('0.00'),
-            'valor_total_pago': valores['total_pago'] or Decimal('0.00'),
-            'valor_total_atrasado': valores['total_atrasado'] or Decimal('0.00'),
+            'filtro_status': filtros_atuais.get('status', 'pendente'),
+            'filtro_mes': filtros_atuais.get('mes', ''),
+            'filtro_ano': filtros_atuais.get('ano', ''),
+            'filtro_contrato': filtros_atuais.get('contrato', ''),
+            'filtro_inquilino': filtros_atuais.get('inquilino', ''),
         })
         
+        # Estatísticas usando service
+        estatisticas = CobrancaEstatisticaService.calcular_estatisticas(filtros_atuais)
+        context.update(estatisticas)
+        
+        # Form de filtros
+        context['form_filtros'] = CobrancaFiltroForm(initial=filtros_atuais)
+        
         return context
+    
+    def _extrair_filtros(self):
+        """Extrai filtros dos parâmetros GET"""
+        return {
+            'status': self.request.GET.get('status', 'pendente'),
+            'mes': self.request.GET.get('mes_referencia'),
+            'ano': self.request.GET.get('ano_referencia'),
+            'contrato': self.request.GET.get('contrato', '').strip(),
+            'inquilino': self.request.GET.get('inquilino', '').strip(),
+        }
 
 
 class CobrancaCreateView(CreateView):
@@ -112,36 +86,39 @@ class CobrancaCreateView(CreateView):
     View para criação de novas cobranças
     """
     model = Cobranca
-    form_class = CobrancaForm
+    form_class = CobrancaCreateForm
     template_name = 'financeiro/cobranca/cobranca_form.html'
     success_url = reverse_lazy('financeiro:cobranca_list')
     
     def form_valid(self, form):
-        """Processa o formulário válido e calcula valores automaticamente"""
-        # Calcular valores antes de salvar
-        cobranca = form.save(commit=False)
-        
-        # Atualizar valor total baseado nas despesas
-        cobranca.valor_total = cobranca.calcular_valor_total()
-        
-        # Gerar descrição automática se solicitado
-        if form.cleaned_data.get('gerar_descricao_automatica', True):
-            cobranca.descricao = cobranca.gerar_descricao_automatica()
-        
-        # Salvar a cobrança
-        cobranca.save()
-        
-        # Mensagem de sucesso
-        messages.success(
-            self.request,
-            f'Cobrança {cobranca.mes_referencia}/{cobranca.ano_referencia} '
-            f'criada com sucesso! Valor: R$ {cobranca.valor_total:,.2f}'
-        )
-        
-        return redirect(self.success_url)
+        """Processa formulário válido com logging"""
+        try:
+            cobranca = form.save()
+            
+            messages.success(
+                self.request,
+                f'Cobrança {cobranca.data_referencia_texto} criada com sucesso! '
+                f'Valor: R$ {cobranca.valor_total:,.2f}'
+            )
+            
+            # Log da ação
+            self._log_acao('criacao', cobranca)
+            
+            # Redirecionar para detail se solicitado
+            if 'save_and_view' in self.request.POST:
+                return redirect('financeiro:cobranca_detail', pk=cobranca.pk)
+            
+            return redirect(self.success_url)
+            
+        except Exception as e:
+            messages.error(
+                self.request,
+                f'Erro ao criar cobrança: {str(e)}'
+            )
+            return self.form_invalid(form)
     
     def form_invalid(self, form):
-        """Adiciona mensagem de erro quando o formulário é inválido"""
+        """Trata formulário inválido"""
         messages.error(
             self.request,
             'Erro ao criar cobrança. Verifique os dados informados.'
@@ -149,19 +126,19 @@ class CobrancaCreateView(CreateView):
         return super().form_invalid(form)
     
     def get_context_data(self, **kwargs):
-        """Adiciona título da página ao contexto"""
+        """Adiciona dados ao contexto"""
         context = super().get_context_data(**kwargs)
-        context['titulo'] = 'Nova Cobrança'
-        context['botao_submit'] = 'Criar Cobrança'
-        
-        # Contratos disponíveis para pré-popular
-        try:
-            from sisimob.models import Contrato
-            context['contratos_ativos'] = Contrato.objects.filter(ativo=True)[:10]
-        except ImportError:
-            context['contratos_ativos'] = []
-        
+        context.update({
+            'titulo': 'Nova Cobrança',
+            'botao_submit': 'Criar Cobrança',
+            'show_preview': True,
+        })
         return context
+    
+    def _log_acao(self, acao, cobranca):
+        """Log de ações para auditoria"""
+        # TODO: Implementar sistema de logs/auditoria
+        pass
 
 
 class CobrancaUpdateView(UpdateView):
@@ -169,32 +146,51 @@ class CobrancaUpdateView(UpdateView):
     View para edição de cobranças existentes
     """
     model = Cobranca
-    form_class = CobrancaForm
+    form_class = CobrancaUpdateForm
     template_name = 'financeiro/cobranca/cobranca_form.html'
     success_url = reverse_lazy('financeiro:cobranca_list')
     
-    def form_valid(self, form):
-        """Processa o formulário válido e recalcula valores"""
-        cobranca = form.save(commit=False)
-        
-        # Recalcular valor total
-        cobranca.valor_total = cobranca.calcular_valor_total()
-        
-        # Atualizar descrição se solicitado
-        if form.cleaned_data.get('gerar_descricao_automatica', False):
-            cobranca.descricao = cobranca.gerar_descricao_automatica()
-        
-        cobranca.save()
-        
-        messages.success(
-            self.request,
-            f'Cobrança {cobranca.mes_referencia}/{cobranca.ano_referencia} atualizada com sucesso!'
+    def get_object(self, queryset=None):
+        """Busca objeto com prefetch otimizado"""
+        return get_object_or_404(
+            Cobranca.objects.select_related('contrato').prefetch_related('asaas_integracao'),
+            pk=self.kwargs['pk']
         )
-        
-        return redirect(self.success_url)
+    
+    def form_valid(self, form):
+        """Processa formulário válido"""
+        try:
+            cobranca_original = Cobranca.objects.get(pk=self.object.pk)
+            cobranca = form.save()
+            
+            # Verificar se houve mudanças significativas
+            mudancas = self._detectar_mudancas(cobranca_original, cobranca)
+            
+            messages.success(
+                self.request,
+                f'Cobrança {cobranca.data_referencia_texto} atualizada com sucesso!'
+            )
+            
+            if mudancas:
+                messages.info(
+                    self.request,
+                    f'Alterações detectadas: {", ".join(mudancas)}'
+                )
+            
+            # Log da ação
+            self._log_acao('edicao', cobranca, mudancas)
+            
+            return redirect('financeiro:cobranca_detail', pk=cobranca.pk)
+            
+        except Exception as e:
+            messages.error(
+                self.request,
+                f'Erro ao atualizar cobrança: {str(e)}'
+            )
+            return self.form_invalid(form)
     
     def form_invalid(self, form):
-        """Adiciona mensagem de erro quando o formulário é inválido"""
+        """Trata formulário inválido"""
         messages.error(
             self.request,
             'Erro ao atualizar cobrança. Verifique os dados informados.'
@@ -202,15 +198,51 @@ class CobrancaUpdateView(UpdateView):
         return super().form_invalid(form)
     
     def get_context_data(self, **kwargs):
-        """Adiciona título da página ao contexto"""
+        """Adiciona dados ao contexto"""
         context = super().get_context_data(**kwargs)
-        context['titulo'] = f'Editar Cobrança - {self.object.mes_referencia}/{self.object.ano_referencia}'
-        context['botao_submit'] = 'Salvar Alterações'
         
-        # Verificar se cobrança já foi integrada com Asaas
-        context['ja_integrada'] = bool(self.object.asaas_id)
+        # Verificar restrições de edição
+        restricoes = self._verificar_restricoes_edicao()
         
+        context.update({
+            'titulo': f'Editar Cobrança - {self.object.data_referencia_texto}',
+            'botao_submit': 'Salvar Alterações',
+            'restricoes_edicao': restricoes,
+            'ja_integrada': bool(getattr(self.object, 'asaas_integracao', None)),
+        })
         return context
+    
+    def _detectar_mudancas(self, original, atual):
+        """Detecta mudanças significativas"""
+        mudancas = []
+        
+        campos_importantes = ['valor_aluguel', 'valor_total', 'data_vencimento', 'status']
+        
+        for campo in campos_importantes:
+            valor_original = getattr(original, campo)
+            valor_atual = getattr(atual, campo)
+            
+            if valor_original != valor_atual:
+                mudancas.append(campo.replace('_', ' ').title())
+        
+        return mudancas
+    
+    def _verificar_restricoes_edicao(self):
+        """Verifica restrições para edição"""
+        restricoes = []
+        
+        if hasattr(self.object, 'asaas_integracao') and self.object.asaas_integracao:
+            restricoes.append('Cobrança integrada com Asaas - alterações limitadas')
+        
+        if self.object.status == 'paga':
+            restricoes.append('Cobrança já foi paga - alterações limitadas')
+        
+        return restricoes
+    
+    def _log_acao(self, acao, cobranca, mudancas=None):
+        """Log de ações para auditoria"""
+        # TODO: Implementar sistema de logs/auditoria
+        pass
 
 
 class CobrancaDetailView(DetailView):
@@ -221,6 +253,14 @@ class CobrancaDetailView(DetailView):
     template_name = 'financeiro/cobranca/cobranca_detail.html'
     context_object_name = 'cobranca'
     
+    def get_object(self, queryset=None):
+        """Busca objeto com related otimizado"""
+        return get_object_or_404(
+            Cobranca.objects.select_related('contrato')
+                            .prefetch_related('asaas_integracao'),
+            pk=self.kwargs['pk']
+        )
+    
     def get_context_data(self, **kwargs):
         """Adiciona informações detalhadas ao contexto"""
         context = super().get_context_data(**kwargs)
@@ -229,20 +269,51 @@ class CobrancaDetailView(DetailView):
         context['detalhes_financeiros'] = self.object.get_detalhes_financeiros()
         
         # Status da cobrança
-        context['esta_atrasada'] = self.object.esta_atrasada
-        context['dias_atraso'] = self.object.dias_atraso
-        context['esta_quitada'] = self.object.is_quitada()
+        context.update({
+            'esta_atrasada': self.object.esta_atrasada,
+            'dias_atraso': self.object.dias_atraso,
+            'esta_quitada': self.object.is_quitada,
+        })
         
         # Informações de integração Asaas
-        context['tem_integracao_asaas'] = bool(self.object.asaas_id)
-        context['pode_integrar_asaas'] = self.object.pode_ser_integrada()[0]
+        asaas_integracao = getattr(self.object, 'asaas_integracao', None)
+        context.update({
+            'tem_integracao_asaas': bool(asaas_integracao and asaas_integracao.asaas_id),
+            'pode_integrar_asaas': not asaas_integracao,
+            'asaas_dados': asaas_integracao if asaas_integracao else None,
+        })
         
         # Despesas relacionadas
         context['despesas_incluidas'] = self.object.get_despesas_cobranca()
         
+        # Forms para ações rápidas
+        context['form_marcar_paga'] = CobrancaMarcarPagaForm()
+        
+        # Ações disponíveis
+        context['acoes_disponiveis'] = self._calcular_acoes_disponiveis()
+        
         return context
+    
+    def _calcular_acoes_disponiveis(self):
+        """Calcula quais ações estão disponíveis"""
+        acoes = {
+            'pode_editar': True,
+            'pode_marcar_paga': self.object.status in ['pendente', 'atrasada'],
+            'pode_cancelar': self.object.status not in ['paga', 'cancelada'],
+            'pode_integrar_asaas': (
+                not hasattr(self.object, 'asaas_integracao') or 
+                not self.object.asaas_integracao
+            ),
+            'pode_reenviar': (
+                hasattr(self.object, 'asaas_integracao') and 
+                self.object.asaas_integracao and 
+                self.object.asaas_integracao.asaas_id
+            ),
+        }
+        return acoes
 
 
+@require_http_methods(["GET", "POST"])
 def cobranca_integrar_asaas(request, pk):
     """
     View para integrar cobrança com o Asaas
@@ -250,10 +321,14 @@ def cobranca_integrar_asaas(request, pk):
     cobranca = get_object_or_404(Cobranca, pk=pk)
     
     # Verificar se pode ser integrada
-    pode_integrar, erros = cobranca.pode_ser_integrada()
+    asaas_integracao, created = AsaasIntegracao.objects.get_or_create(
+        cobranca=cobranca
+    )
+    
+    pode_integrar, erros = asaas_integracao.pode_ser_integrada()
     
     if not pode_integrar:
-        messages.error(request, f'Não é possível integrar: {", ".join(erros)}')
+        messages.error(request, f'Não é possível integrar: {"; ".join(erros)}')
         return redirect('financeiro:cobranca_detail', pk=pk)
     
     if request.method == 'POST':
@@ -261,8 +336,16 @@ def cobranca_integrar_asaas(request, pk):
         
         if form.is_valid():
             try:
-                # Integrar com Asaas
-                resultado = cobranca.gerar_cobranca_gateway()
+                # Preparar opções de integração
+                opcoes = {
+                    'formas_pagamento': form.cleaned_data['formas_pagamento'],
+                    'enviar_por_email': form.cleaned_data['enviar_por_email'],
+                    'enviar_por_whatsapp': form.cleaned_data['enviar_por_whatsapp'],
+                    'observacoes': form.cleaned_data['observacoes_cobranca'],
+                }
+                
+                # Integrar usando service
+                resultado = AsaasIntegracaoService.criar_cobranca(asaas_integracao, opcoes)
                 
                 if resultado['status'] == 'success':
                     messages.success(
@@ -273,7 +356,7 @@ def cobranca_integrar_asaas(request, pk):
                 else:
                     messages.error(
                         request,
-                        f'Erro na integração: {", ".join(resultado.get("erros", ["Erro desconhecido"]))}'
+                        f'Erro na integração: {"; ".join(resultado.get("erros", ["Erro desconhecido"]))}'
                     )
                     
             except Exception as e:
@@ -286,7 +369,8 @@ def cobranca_integrar_asaas(request, pk):
     context = {
         'cobranca': cobranca,
         'form': form,
-        'titulo': f'Integrar com Asaas - {cobranca.mes_referencia}/{cobranca.ano_referencia}'
+        'titulo': f'Integrar com Asaas - {cobranca.data_referencia_texto}',
+        'detalhes_financeiros': cobranca.get_detalhes_financeiros(),
     }
     
     return render(request, 'financeiro/cobranca/cobranca_integrar_asaas.html', context)
@@ -294,39 +378,99 @@ def cobranca_integrar_asaas(request, pk):
 
 def cobranca_marcar_paga(request, pk):
     """
-    View para marcar cobrança como paga
+    View para marcar cobrança como paga - VERSÃO CORRIGIDA
     """
     cobranca = get_object_or_404(Cobranca, pk=pk)
     
+    # Verificar se já está paga
     if cobranca.status == 'paga':
         messages.warning(request, 'Esta cobrança já está marcada como paga.')
         return redirect('financeiro:cobranca_detail', pk=pk)
     
     if request.method == 'POST':
-        data_pagamento = request.POST.get('data_pagamento')
-        
         try:
-            if data_pagamento:
-                from datetime import datetime
-                data_pagamento = datetime.strptime(data_pagamento, '%Y-%m-%d').date()
-            else:
-                data_pagamento = date.today()
+            # Extrair dados do formulário
+            data_pagamento = request.POST.get('data_pagamento')
+            valor_pago = request.POST.get('valor_pago')
+            metodo_pagamento = request.POST.get('metodo_pagamento', 'transferencia')
+            observacoes = request.POST.get('observacoes', '')
+            
+            # Debug para ver os dados recebidos
+            print(f"📝 Dados recebidos: data={data_pagamento}, valor={valor_pago}, metodo={metodo_pagamento}")
+            
+            # Validações
+            if not data_pagamento:
+                messages.error(request, 'Data de pagamento é obrigatória.')
+                context = {'cobranca': cobranca, 'hoje': timezone.now().date()}
+                return render(request, 'financeiro/cobranca/marcar_paga.html', context)
+            
+            if not valor_pago:
+                messages.error(request, 'Valor pago é obrigatório.')
+                context = {'cobranca': cobranca, 'hoje': timezone.now().date()}
+                return render(request, 'financeiro/cobranca/marcar_paga.html', context)
+            
+            # Converter dados - AGORA COM IMPORT CORRETO
+            try:
+                data_pagamento_obj = datetime.strptime(data_pagamento, '%Y-%m-%d').date()
+                valor_pago_decimal = Decimal(str(valor_pago))
+                print(f"✅ Conversões OK: data={data_pagamento_obj}, valor={valor_pago_decimal}")
+            except (ValueError, TypeError) as e:
+                print(f"❌ Erro na conversão: {e}")
+                messages.error(request, f'Dados inválidos: {str(e)}')
+                context = {'cobranca': cobranca, 'hoje': timezone.now().date()}
+                return render(request, 'financeiro/cobranca/marcar_paga.html', context)
+            
+            # Verificar se valor é positivo
+            if valor_pago_decimal <= 0:
+                messages.error(request, 'Valor pago deve ser maior que zero.')
+                context = {'cobranca': cobranca, 'hoje': timezone.now().date()}
+                return render(request, 'financeiro/cobranca/marcar_paga.html', context)
             
             # Marcar como paga
-            cobranca.marcar_como_paga(data_pagamento)
+            print(f"🔄 Marcando cobrança {cobranca.id} como paga...")
+            cobranca.status = 'paga'
+            cobranca.data_pagamento = data_pagamento_obj
             
-            messages.success(
-                request,
-                f'Cobrança marcada como paga! '
-                f'Repasse automático criado para o proprietário.'
-            )
+            # Adicionar observações se fornecidas
+            if observacoes:
+                obs_atual = cobranca.observacoes or ''
+                obs_pagamento = f"\n[{timezone.now().strftime('%d/%m/%Y %H:%M')}] Pagamento registrado: {metodo_pagamento.title()}"
+                if observacoes:
+                    obs_pagamento += f" - {observacoes}"
+                cobranca.observacoes = obs_atual + obs_pagamento
+            
+            # Salvar alterações
+            cobranca.save()
+            print(f"✅ Cobrança {cobranca.id} salva com sucesso!")
+            
+            messages.success(request, f'Cobrança #{cobranca.id} marcada como paga com sucesso!')
+            return redirect('financeiro:cobranca_detail', pk=pk)
             
         except Exception as e:
-            messages.error(request, f'Erro ao marcar como paga: {str(e)}')
+            print(f"❌ Erro inesperado: {e}")
+            traceback.print_exc()
+            messages.error(request, f'Erro inesperado: {str(e)}')
+            context = {'cobranca': cobranca, 'hoje': timezone.now().date()}
+            return render(request, 'financeiro/cobranca/marcar_paga.html', context)
     
-    return redirect('financeiro:cobranca_detail', pk=pk)
+    # GET - Mostrar formulário
+    context = {
+        'cobranca': cobranca,
+        'hoje': timezone.now().date(),
+        'metodos_pagamento': [
+            ('transferencia', 'Transferência Bancária'),
+            ('pix', 'PIX'),
+            ('dinheiro', 'Dinheiro'),
+            ('cartao', 'Cartão'),
+            ('cheque', 'Cheque'),
+            ('deposito', 'Depósito'),
+        ]
+    }
+    
+    return render(request, 'financeiro/cobranca/marcar_paga.html', context)
 
 
+@require_http_methods(["POST"])
 def cobranca_cancelar(request, pk):
     """
     View para cancelar uma cobrança
@@ -341,114 +485,102 @@ def cobranca_cancelar(request, pk):
         messages.error(request, 'Não é possível cancelar uma cobrança já paga.')
         return redirect('financeiro:cobranca_detail', pk=pk)
     
-    # Cancelar cobrança
-    cobranca.status = 'cancelada'
-    cobranca.save()
+    try:
+        motivo = request.POST.get('motivo_cancelamento', '')
+        cobranca.cancelar(motivo)
+        
+        messages.success(request, 'Cobrança cancelada com sucesso!')
+        
+        # Response AJAX se solicitado
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': True, 'message': 'Cobrança cancelada'})
+            
+    except Exception as e:
+        messages.error(request, f'Erro ao cancelar cobrança: {str(e)}')
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': str(e)})
     
-    messages.success(request, 'Cobrança cancelada com sucesso!')
-    
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({'success': True, 'message': 'Cobrança cancelada'})
-    
-    return redirect('financeiro:cobranca_list')
+    return redirect('financeiro:cobranca_detail', pk=pk)
 
 
 def cobranca_gerar_lote(request):
     """
-    View para gerar cobranças em lote
+    View para gerar cobranças em lote (método tradicional)
     """
+    from financeiro.services.cobranca.cobranca_criador_service import CobrancaCriadorService
+    from ..forms.cobranca_forms import CobrancaLoteForm
+    
     if request.method == 'POST':
-        mes_referencia = request.POST.get('mes_referencia')
-        ano_referencia = request.POST.get('ano_referencia')
-        data_vencimento = request.POST.get('data_vencimento')
+        form = CobrancaLoteForm(request.POST)
         contratos_selecionados = request.POST.getlist('contratos')
         
-        try:
-            mes_referencia = int(mes_referencia)
-            ano_referencia = int(ano_referencia)
-            data_vencimento = date.fromisoformat(data_vencimento)
-            
-            cobrancas_criadas = 0
-            erros = []
-            
-            # Importar modelo de contrato
+        if form.is_valid() and contratos_selecionados:
             try:
-                from sisimob.models import Contrato
+                # Preparar dados para criação em lote
+                dados_base = {
+                    'mes_referencia': form.cleaned_data['mes_referencia'],
+                    'ano_referencia': form.cleaned_data['ano_referencia'],
+                    'data_vencimento': form.cleaned_data['data_vencimento'],
+                    'incluir_despesas': form.cleaned_data['incluir_despesas_automatico'],
+                    'gerar_descricao_automatica': form.cleaned_data['gerar_descricao_automatica'],
+                }
                 
-                contratos = Contrato.objects.filter(
-                    id__in=contratos_selecionados,
-                    ativo=True
-                )
+                lista_dados = []
+                for contrato_id in contratos_selecionados:
+                    dados_cobranca = dados_base.copy()
+                    dados_cobranca['contrato_id'] = int(contrato_id)
+                    lista_dados.append(dados_cobranca)
                 
-                for contrato in contratos:
-                    # Verificar se já existe cobrança
-                    if Cobranca.objects.filter(
-                        contrato=contrato,
-                        mes_referencia=mes_referencia,
-                        ano_referencia=ano_referencia
-                    ).exists():
-                        erros.append(f'Cobrança já existe para {contrato}')
-                        continue
-                    
-                    try:
-                        # Criar cobrança
-                        cobranca = Cobranca.objects.create(
-                            contrato=contrato,
-                            inquilino=contrato.inquilino,
-                            mes_referencia=mes_referencia,
-                            ano_referencia=ano_referencia,
-                            valor_aluguel=contrato.valor_aluguel or Decimal('0.00'),
-                            data_vencimento=data_vencimento,
-                            status='pendente'
-                        )
-                        
-                        # Calcular valor total incluindo despesas
-                        cobranca.atualizar_valor_total()
-                        
-                        # Gerar descrição automática
-                        cobranca.descricao = cobranca.gerar_descricao_automatica()
-                        cobranca.save()
-                        
-                        cobrancas_criadas += 1
-                        
-                    except Exception as e:
-                        erros.append(f'Erro ao criar cobrança para {contrato}: {str(e)}')
+                # Criar cobranças usando service
+                resultado = CobrancaCriadorService.criar_cobrancas_lote(lista_dados)
                 
-                # Mensagens de resultado
-                if cobrancas_criadas > 0:
+                if resultado['success']:
                     messages.success(
                         request,
-                        f'{cobrancas_criadas} cobranças criadas com sucesso!'
-                    )
-                
-                if erros:
-                    messages.warning(
-                        request,
-                        f'Alguns erros ocorreram: {"; ".join(erros[:5])}'
+                        f'{resultado["cobrancas_criadas"]} cobranças criadas com sucesso!'
                     )
                     
-            except ImportError:
-                messages.error(request, 'Erro ao importar modelo de Contrato')
-                
-        except (ValueError, TypeError) as e:
-            messages.error(request, f'Dados inválidos: {str(e)}')
+                    if resultado['erros']:
+                        messages.warning(
+                            request,
+                            f'Alguns erros ocorreram: {"; ".join(resultado["erros"][:3])}'
+                        )
+                else:
+                    messages.error(
+                        request,
+                        f'Erro ao criar cobranças: {"; ".join(resultado["erros"][:3])}'
+                    )
+                    
+            except Exception as e:
+                messages.error(request, f'Erro inesperado: {str(e)}')
+        else:
+            messages.error(request, 'Dados inválidos ou nenhum contrato selecionado.')
+    else:
+        form = CobrancaLoteForm()
     
     # Buscar contratos ativos para o formulário
     try:
         from sisimob.models import Contrato
-        contratos_ativos = Contrato.objects.filter(ativo=True).order_by('numero_contrato')
+        contratos_ativos = Contrato.objects.select_related(
+        'imovel',      # ForeignKey ✅
+        'fiador'       # ForeignKey ✅
+    ).prefetch_related(
+        'inquilino',   # ManyToManyField ✅
+        'proprietario' # ManyToManyField ✅
+    ).filter(ativo=True)
     except ImportError:
         contratos_ativos = []
     
     context = {
+        'form': form,
         'contratos_ativos': contratos_ativos,
-        'mes_atual': date.today().month,
-        'ano_atual': date.today().year,
     }
     
     return render(request, 'financeiro/cobranca/cobranca_gerar_lote.html', context)
 
 
+@require_http_methods(["GET"])
 def cobranca_api_despesas_contrato(request, contrato_id):
     """
     API para buscar despesas de um contrato (AJAX)
@@ -457,29 +589,46 @@ def cobranca_api_despesas_contrato(request, contrato_id):
         from sisimob.models import Contrato
         contrato = get_object_or_404(Contrato, pk=contrato_id)
         
-        # Buscar despesas ativas pagas pelo inquilino
-        despesas = Despesa.objects.filter(
-            contrato=contrato,
-            is_ativa=True,
-            paga_por='inquilino'
-        ).order_by('tipo__nome')
+        # Usar service para buscar despesas
+        mes = int(request.GET.get('mes', date.today().month))
+        ano = int(request.GET.get('ano', date.today().year))
+        
+        despesas = CobrancaCalculadoraService.buscar_despesas_periodo(contrato, mes, ano)
+        valor_aluguel = CobrancaCalculadoraService.calcular_valor_aluguel(contrato, mes, ano)
         
         despesas_data = []
         for despesa in despesas:
             despesas_data.append({
                 'id': despesa.pk,
-                'tipo_nome': despesa.tipo.nome,
-                'descricao': despesa.descricao or despesa.get_descricao_padrao(),
+                'tipo_nome': getattr(despesa.tipo, 'nome', 'Despesa') if hasattr(despesa, 'tipo') else 'Despesa',
+                'descricao': getattr(despesa, 'descricao', '') or 'Sem descrição',
                 'valor_parcela': float(despesa.calcular_valor_parcela()),
-                'periodicidade': despesa.get_periodicidade_display(),
-                'ativa_em_data': despesa.parcela_ativa_em_data()
+                'periodicidade': getattr(despesa, 'periodicidade', 'Mensal'),
+                'ativa_em_data': True,  # Já filtrado pelo service
             })
+        
+        # Dados do inquilino
+        inquilino_nome = ''
+        inquilino_email = ''
+        
+        if hasattr(contrato, 'inquilino'):
+            if hasattr(contrato.inquilino, 'all'):
+                # Relacionamento ManyToMany
+                inquilino = contrato.inquilino.first()
+            else:
+                # Relacionamento ForeignKey
+                inquilino = contrato.inquilino
+            
+            if inquilino:
+                inquilino_nome = inquilino.nome
+                inquilino_email = getattr(inquilino, 'email', '')
         
         return JsonResponse({
             'success': True,
             'despesas': despesas_data,
-            'valor_aluguel': float(contrato.valor_aluguel or 0),
-            'inquilino_nome': contrato.inquilino.nome if contrato.inquilino else ''
+            'valor_aluguel': float(valor_aluguel),
+            'inquilino_nome': inquilino_nome,
+            'inquilino_email': inquilino_email,
         })
         
     except Exception as e:
@@ -487,3 +636,109 @@ def cobranca_api_despesas_contrato(request, contrato_id):
             'success': False,
             'error': str(e)
         })
+
+
+@require_http_methods(["GET"])
+@method_decorator(cache_page(60 * 5), name='dispatch')  # Cache por 5 minutos
+def cobranca_dashboard_stats(request):
+    """
+    API para estatísticas do dashboard (com cache)
+    """
+    try:
+        # Filtros do request
+        filtros = {
+            'mes': request.GET.get('mes'),
+            'ano': request.GET.get('ano'),
+            'status': request.GET.get('status'),
+        }
+        
+        # Remover filtros vazios
+        filtros = {k: v for k, v in filtros.items() if v}
+        
+        # Calcular estatísticas usando service
+        stats = CobrancaEstatisticaService.calcular_estatisticas(filtros)
+        
+        # Converter Decimal para float para JSON
+        for key, value in stats.items():
+            if hasattr(value, 'quantize'):  # É um Decimal
+                stats[key] = float(value)
+        
+        return JsonResponse({
+            'success': True,
+            'stats': stats
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+
+@require_http_methods(["POST"])
+def cobranca_webhook_asaas(request):
+    """
+    Endpoint para receber webhooks do Asaas
+    """
+    try:
+        import json
+        
+        dados_webhook = json.loads(request.body)
+        asaas_id = dados_webhook.get('payment', {}).get('id')
+        
+        if not asaas_id:
+            return JsonResponse({'status': 'error', 'message': 'ID do pagamento não encontrado'})
+        
+        # Buscar integração
+        try:
+            asaas_integracao = AsaasIntegracao.objects.get(asaas_id=asaas_id)
+        except AsaasIntegracao.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Cobrança não encontrada'})
+        
+        # Processar webhook usando service
+        resultado = AsaasIntegracaoService.processar_webhook(asaas_integracao, dados_webhook)
+        
+        return JsonResponse(resultado)
+        
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Erro ao processar webhook: {str(e)}'
+        })
+
+
+# === FUNÇÕES DE COMPATIBILIDADE ===
+# Mantidas para compatibilidade com código existente
+
+def gerar_cobrancas_manualmente(ids_contratos, mes, ano):
+    """Função de compatibilidade - usar CobrancaCriadorService"""
+    from ..services.cobranca_criador_service import CobrancaCriadorService
+    
+    dados_base = {
+        'mes_referencia': int(mes),
+        'ano_referencia': int(ano),
+        'data_vencimento': date.today(),  # Ajustar conforme necessário
+        'incluir_despesas': True,
+        'gerar_descricao_automatica': True,
+    }
+    
+    lista_dados = []
+    for contrato_id in ids_contratos:
+        dados_cobranca = dados_base.copy()
+        dados_cobranca['contrato_id'] = contrato_id
+        lista_dados.append(dados_cobranca)
+    
+    resultado = CobrancaCriadorService.criar_cobrancas_lote(lista_dados)
+    return resultado['cobrancas_criadas']
+
+
+def listar_cobrancas_ordenadas():
+    """Função de compatibilidade"""
+    return CobrancaConsultaService.filtrar_cobrancas({})
+
+
+def marcar_cobranca_como_paga(cobranca_id, data_pagamento):
+    """Função de compatibilidade"""
+    cobranca = get_object_or_404(Cobranca, pk=cobranca_id)
+    cobranca.marcar_como_paga(data_pagamento)
+    return cobranca

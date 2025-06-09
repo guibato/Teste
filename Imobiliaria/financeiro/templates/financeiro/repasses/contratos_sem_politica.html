@@ -1,0 +1,437 @@
+<!-- financeiro/templates/financeiro/repasses/contratos_sem_politica.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Contratos sem Política de Repasse{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-900 py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-white">Contratos sem Política de Repasse</h1>
+                    <p class="mt-2 text-gray-400">Configure políticas específicas para contratos ativos</p>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="{% url 'financeiro:politica_contrato_list' %}" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500">
+                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Ver Políticas Existentes
+                    </a>
+                    <button onclick="criarPoliticasLote()" 
+                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-green-500">
+                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Criar Políticas em Lote
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estatísticas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-sm p-4">
+                <div class="flex items-center">
+                    <div class="flex items-end">
+                        <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500">
+                            <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            Filtrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Lista de Contratos -->
+        <div class="bg-gray-800 border border-gray-700 shadow overflow-hidden sm:rounded-md">
+            {% if contratos %}
+            <!-- Seleção em Lote -->
+            <div class="px-4 py-3 border-b border-gray-700 bg-gray-750">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="select-all" 
+                               class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700 rounded">
+                        <label for="select-all" class="ml-2 text-sm text-gray-300">
+                            Selecionar todos (<span id="selected-count">0</span> selecionados)
+                        </label>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="criarPoliticasSelecionados()" 
+                                class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                id="btn-criar-lote" disabled>
+                            <svg class="-ml-1 mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Criar Políticas
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <ul role="list" class="divide-y divide-gray-700">
+                {% for contrato in contratos %}
+                <li class="hover:bg-gray-750 transition-colors duration-200">
+                    <div class="px-4 py-4 flex items-center justify-between">
+                        <div class="flex items-center">
+                            <!-- Checkbox -->
+                            <input type="checkbox" name="contrato_ids" value="{{ contrato.id }}" 
+                                   class="contrato-checkbox h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700 rounded">
+                            
+                            <!-- Info do Contrato -->
+                            <div class="ml-4">
+                                <div class="flex items-center">
+                                    <div class="text-sm font-medium text-white">
+                                        {{ contrato.proprietario.nome }}
+                                    </div>
+                                    <div class="ml-2">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900 text-blue-200 border border-blue-700">
+                                            Contrato #{{ contrato.id }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="text-sm text-gray-400">
+                                    {{ contrato.imovel.endereco }}
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    Tipo: {{ contrato.get_tipo_display }} | 
+                                    Aluguel: R$ {{ contrato.valor_aluguel|floatformat:2 }} |
+                                    Status: {{ contrato.get_status_display }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Valores e Ações -->
+                        <div class="flex items-center space-x-4">
+                            <div class="text-right">
+                                <div class="text-sm font-medium text-white">
+                                    R$ {{ contrato.valor_aluguel|floatformat:2 }}
+                                </div>
+                                <div class="text-xs text-gray-400">
+                                    Valor do aluguel
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-2">
+                                <a href="{% url 'financeiro:politica_contrato_create' %}?contrato={{ contrato.id }}" 
+                                   class="text-green-400 hover:text-green-300 text-sm font-medium">
+                                    Criar Política
+                                </a>
+                                
+                                <button onclick="simularPolitica({{ contrato.id }})" 
+                                        class="text-blue-400 hover:text-blue-300 text-sm font-medium">
+                                    Simular
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            
+            {% else %}
+            <!-- Estado vazio -->
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-white">Todos os contratos têm política configurada!</h3>
+                <p class="mt-1 text-sm text-gray-400">Parabéns! Todos os contratos ativos já possuem políticas de repasse.</p>
+                <div class="mt-6">
+                    <a href="{% url 'financeiro:politica_contrato_list' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500">
+                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Ver Políticas Existentes
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Paginação -->
+        {% if is_paginated %}
+        <div class="mt-6 flex items-center justify-between">
+            <div class="flex-1 flex justify-between sm:hidden">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}" class="relative inline-flex items-center px-4 py-2 border border-gray-600 text-sm font-medium rounded-md text-gray-300 bg-gray-800 hover:bg-gray-700">
+                        Anterior
+                    </a>
+                {% endif %}
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-600 text-sm font-medium rounded-md text-gray-300 bg-gray-800 hover:bg-gray-700">
+                        Próximo
+                    </a>
+                {% endif %}
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-400">
+                        Mostrando
+                        <span class="font-medium">{{ page_obj.start_index }}</span>
+                        a
+                        <span class="font-medium">{{ page_obj.end_index }}</span>
+                        de
+                        <span class="font-medium">{{ page_obj.paginator.count }}</span>
+                        resultados
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        {% if page_obj.has_previous %}
+                            <a href="?page=1" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-600 bg-gray-800 text-sm font-medium text-gray-300 hover:bg-gray-700">
+                                <span class="sr-only">Primeira</span>
+                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <span class="relative inline-flex items-center px-4 py-2 border border-indigo-500 bg-indigo-600 text-sm font-medium text-white">
+                                    {{ num }}
+                                </span>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <a href="?page={{ num }}" class="relative inline-flex items-center px-4 py-2 border border-gray-600 bg-gray-800 text-sm font-medium text-gray-300 hover:bg-gray-700">
+                                    {{ num }}
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.paginator.num_pages }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-600 bg-gray-800 text-sm font-medium text-gray-300 hover:bg-gray-700">
+                                <span class="sr-only">Última</span>
+                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                        {% endif %}
+                    </nav>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Call to Action -->
+        {% if total_sem_politica > 0 %}
+        <div class="mt-8 bg-yellow-900 border border-yellow-700 rounded-lg p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-yellow-200">
+                        <strong>{{ total_sem_politica }} contrato{{ total_sem_politica|pluralize }} sem política:</strong> 
+                        Configure políticas específicas para garantir repasses automáticos eficientes.
+                        <a href="{% url 'financeiro:politica_global_list' %}" class="underline font-medium hover:text-yellow-100">
+                            Ver políticas globais disponíveis
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal de Simulação -->
+<div id="simulationModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 overflow-y-auto h-full w-full hidden">
+    <div class="relative top-20 mx-auto p-5 border border-gray-600 w-96 shadow-lg rounded-md bg-gray-800">
+        <div class="mt-3 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-900 border border-blue-600">
+                <svg class="h-6 w-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-medium text-white mt-4">Simulação de Repasse</h3>
+            <div class="mt-2 px-7 py-3">
+                <div id="simulationResults" class="text-left">
+                    <!-- Resultados da simulação aparecerão aqui -->
+                </div>
+            </div>
+            <div class="items-center px-4 py-3">
+                <button onclick="closeSimulationModal()" class="px-4 py-2 bg-gray-600 text-gray-200 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-gray-500">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gerenciar seleção de checkboxes
+    const selectAllCheckbox = document.getElementById('select-all');
+    const contratoCheckboxes = document.querySelectorAll('.contrato-checkbox');
+    const selectedCountSpan = document.getElementById('selected-count');
+    const btnCriarLote = document.getElementById('btn-criar-lote');
+
+    function updateSelectedCount() {
+        const selected = document.querySelectorAll('.contrato-checkbox:checked');
+        selectedCountSpan.textContent = selected.length;
+        btnCriarLote.disabled = selected.length === 0;
+        
+        // Atualizar estado do select-all
+        if (selected.length === 0) {
+            selectAllCheckbox.indeterminate = false;
+            selectAllCheckbox.checked = false;
+        } else if (selected.length === contratoCheckboxes.length) {
+            selectAllCheckbox.indeterminate = false;
+            selectAllCheckbox.checked = true;
+        } else {
+            selectAllCheckbox.indeterminate = true;
+        }
+    }
+
+    // Event listeners
+    selectAllCheckbox.addEventListener('change', function() {
+        contratoCheckboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+        updateSelectedCount();
+    });
+
+    contratoCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectedCount);
+    });
+
+    // Inicializar
+    updateSelectedCount();
+});
+
+function criarPoliticasLote() {
+    // Implementar criação de políticas em lote
+    alert('Funcionalidade de criação em lote será implementada em breve.');
+}
+
+function criarPoliticasSelecionados() {
+    const selected = document.querySelectorAll('.contrato-checkbox:checked');
+    if (selected.length === 0) {
+        alert('Selecione pelo menos um contrato.');
+        return;
+    }
+
+    const contratoIds = Array.from(selected).map(cb => cb.value);
+    
+    if (confirm(`Deseja criar políticas padrão para os ${contratoIds.length} contratos selecionados?`)) {
+        // Implementar criação para selecionados
+        console.log('Criar políticas para contratos:', contratoIds);
+        alert('Funcionalidade será implementada em breve.');
+    }
+}
+
+function simularPolitica(contratoId) {
+    // Simular política para o contrato
+    fetch(`/financeiro/repasses/ajax/calcular-valores/?contrato_id=${contratoId}`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const html = `
+                <div class="bg-gray-700 rounded p-3 text-sm space-y-2">
+                    <div><strong>Simulação de Repasse:</strong></div>
+                    <div>Valor Base: R$ ${data.valor_base.toFixed(2)}</div>
+                    <div>Taxa Admin (${data.taxa_admin_percentual}%): R$ ${data.valor_taxa_admin.toFixed(2)}</div>
+                    <div><strong>Valor Líquido: R$ ${data.valor_liquido.toFixed(2)}</strong></div>
+                    ${data.tem_politica_contrato ? 
+                        '<div class="text-blue-400 text-xs">✓ Baseado na política específica do contrato</div>' : 
+                        '<div class="text-yellow-400 text-xs">⚠️ Usando configurações globais padrão</div>'
+                    }
+                    ${data.acima_minimo ? 
+                        '<div class="text-green-400 text-xs">✓ Acima do valor mínimo</div>' : 
+                        '<div class="text-red-400 text-xs">⚠️ Abaixo do valor mínimo</div>'
+                    }
+                </div>
+            `;
+            document.getElementById('simulationResults').innerHTML = html;
+            document.getElementById('simulationModal').classList.remove('hidden');
+        } else {
+            alert('Erro ao simular: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Erro ao simular política');
+        console.error(error);
+    });
+}
+
+function closeSimulationModal() {
+    document.getElementById('simulationModal').classList.add('hidden');
+}
+</script>
+{% endblock %>="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.728-.833-2.498 0L4.316 15.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-400">Sem Política</p>
+                        <p class="text-2xl font-bold text-yellow-400">{{ total_sem_politica|default:0 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-sm p-4">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-400">Total Contratos Ativos</p>
+                        <p class="text-2xl font-bold text-white">{{ total_contratos_ativos|default:0 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-sm p-4">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-400">Cobertura</p>
+                        <p class="text-2xl font-bold text-green-400">
+                            {% if total_contratos_ativos > 0 %}
+                                {{ total_contratos_ativos|add:total_sem_politica|sub:total_sem_politica|mul:100|div:total_contratos_ativos|floatformat:0 }}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="bg-gray-800 border border-gray-700 shadow rounded-lg mb-6">
+            <div class="px-4 py-5 sm:p-6">
+                <form method="get" class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                    
+                    <!-- Proprietário -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300">Proprietário</label>
+                        {{ form.proprietario }}
+                    </div>
+
+                    <!-- Busca e Botão -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300">Buscar</label>
+                        {{ form.search }}
+                    </div>
+
+                    <div class

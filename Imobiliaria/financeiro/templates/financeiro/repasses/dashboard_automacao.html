@@ -1,0 +1,381 @@
+<!-- financeiro/templates/financeiro/repasses/dashboard_automacao.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard de Automação - Repasses{% endblock %}
+
+{% block extra_css %}
+<style>
+.card-stat {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+}
+
+.card-stat h3 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 0;
+}
+
+.card-warning {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.card-success {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+.btn-processar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s ease;
+}
+
+.btn-processar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+.status-ok { background-color: #28a745; }
+.status-warning { background-color: #ffc107; }
+.status-error { background-color: #dc3545; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">🤖 Dashboard de Automação</h1>
+                    <p class="text-muted">Monitore e controle a automação de repasses</p>
+                </div>
+                <div>
+                    {% if pode_processar %}
+                    <button type="button" class="btn btn-primary btn-processar me-2" onclick="processarAutomatico()">
+                        <i class="fas fa-play"></i> Processar Agora
+                    </button>
+                    {% endif %}
+                    <a href="{% url 'financeiro:diagnostico_automacao' %}" class="btn btn-outline-info">
+                        <i class="fas fa-stethoscope"></i> Diagnóstico
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if erro %}
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle"></i>
+        <strong>Erro no sistema:</strong> {{ erro }}
+    </div>
+    {% endif %}
+
+    <!-- Cards de Estatísticas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card card-stat">
+                <div class="card-body text-center">
+                    <i class="fas fa-file-contract fa-2x mb-2"></i>
+                    <h3>{{ relatorio.contratos.total }}</h3>
+                    <p class="mb-0">Contratos Ativos</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card {% if relatorio.contratos.percentual_cobertura >= 80 %}card-success{% else %}card-warning{% endif %}">
+                <div class="card-body text-center">
+                    <i class="fas fa-cog fa-2x mb-2"></i>
+                    <h3>{{ relatorio.contratos.percentual_cobertura|floatformat:0 }}%</h3>
+                    <p class="mb-0">Com Política</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-stat">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-check fa-2x mb-2"></i>
+                    <h3>{{ relatorio.agendamentos.pendentes }}</h3>
+                    <p class="mb-0">Agendamentos</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card {% if relatorio.repasses.atrasados > 0 %}card-warning{% else %}card-success{% endif %}">
+                <div class="card-body text-center">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                    <h3>{{ relatorio.repasses.atrasados }}</h3>
+                    <p class="mb-0">Atrasados</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertas -->
+    {% if relatorio.repasses.atrasados > 0 %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        <strong>Atenção!</strong> Existem {{ relatorio.repasses.atrasados }} repasses atrasados que precisam ser processados.
+        <a href="{% url 'financeiro:lista_repasses' %}?status=pendente" class="alert-link">Ver repasses pendentes</a>
+    </div>
+    {% endif %}
+
+    {% if relatorio.contratos.sem_politica > 0 %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        Existem {{ relatorio.contratos.sem_politica }} contratos sem política configurada.
+        <a href="{% url 'financeiro:contratos_sem_politica' %}" class="alert-link">Configurar políticas</a>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Próximos Agendamentos -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calendar-alt"></i> Próximos Agendamentos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if proximos_agendamentos %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Proprietário</th>
+                                    <th>Valor</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for agendamento in proximos_agendamentos %}
+                                <tr>
+                                    <td>{{ agendamento.data_agendada|date:"d/m/Y" }}</td>
+                                    <td>{{ agendamento.proprietario.nome|truncatechars:20 }}</td>
+                                    <td>R$ {{ agendamento.valor_previsto|floatformat:2 }}</td>
+                                    <td>
+                                        {% if agendamento.data_agendada <= today %}
+                                        <span class="badge bg-warning">Vencido</span>
+                                        {% else %}
+                                        <span class="badge bg-primary">Agendado</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Nenhum agendamento próximo encontrado.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Últimos Repasses Automáticos -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-robot"></i> Últimos Repasses Automáticos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if ultimos_repasses %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Proprietário</th>
+                                    <th>Valor</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for repasse in ultimos_repasses %}
+                                <tr>
+                                    <td>{{ repasse.data_criacao|date:"d/m H:i" }}</td>
+                                    <td>{{ repasse.proprietario.nome|truncatechars:20 }}</td>
+                                    <td>R$ {{ repasse.valor_liquido|floatformat:2 }}</td>
+                                    <td>
+                                        {% if repasse.status == 'efetuado' %}
+                                        <span class="badge bg-success">Efetuado</span>
+                                        {% elif repasse.status == 'pendente' %}
+                                        <span class="badge bg-warning">Pendente</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ repasse.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Nenhum repasse automático recente.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico de Status (placeholder) -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar"></i> Resumo por Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="border rounded p-3">
+                                <h4 class="text-success">{{ relatorio.repasses.pendentes }}</h4>
+                                <p class="text-muted mb-0">Pendentes</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded p-3">
+                                <h4 class="text-primary">{{ relatorio.agendamentos.pendentes }}</h4>
+                                <p class="text-muted mb-0">Agendados</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded p-3">
+                                <h4 class="text-warning">{{ relatorio.repasses.atrasados }}</h4>
+                                <p class="text-muted mb-0">Atrasados</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação -->
+<div class="modal fade" id="modalProcessar" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Processamento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Deseja executar o processamento automático de repasses?</p>
+                <p class="text-muted">Isso irá:</p>
+                <ul class="text-muted">
+                    <li>Processar agendamentos vencidos</li>
+                    <li>Criar novos agendamentos baseados nas políticas</li>
+                    <li>Gerar repasses diretos quando aplicável</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="confirmarProcessamento()">
+                    <i class="fas fa-play"></i> Processar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function processarAutomatico() {
+    $('#modalProcessar').modal('show');
+}
+
+function confirmarProcessamento() {
+    $('#modalProcessar').modal('hide');
+    
+    // Mostrar loading
+    Swal.fire({
+        title: 'Processando...',
+        html: 'Executando automação de repasses',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+    
+    // Fazer requisição
+    fetch('{% url "financeiro:processar_automatico" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.text())
+    .then(data => {
+        Swal.close();
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'Processamento Concluído!',
+            text: 'A automação foi executada com sucesso.',
+            confirmButtonText: 'OK'
+        }).then(() => {
+            // Recarregar a página para mostrar os resultados
+            window.location.reload();
+        });
+    })
+    .catch(error => {
+        Swal.close();
+        
+        Swal.fire({
+            icon: 'error',
+            title: 'Erro no Processamento',
+            text: 'Ocorreu um erro durante o processamento. Verifique os logs.',
+            confirmButtonText: 'OK'
+        });
+        
+        console.error('Erro:', error);
+    });
+}
+
+// Auto-refresh dos dados a cada 5 minutos
+setInterval(function() {
+    fetch('{% url "financeiro:dashboard_automacao_ajax" %}')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Atualizar cards se necessário
+            updateDashboardCards(data.relatorio);
+        }
+    })
+    .catch(error => console.log('Erro no auto-refresh:', error));
+}, 300000); // 5 minutos
+
+function updateDashboardCards(relatorio) {
+    // Função para atualizar os cards dinamicamente
+    // Implementar conforme necessário
+}
+
+// Tooltip para informações adicionais
+$(document).ready(function() {
+    $('[data-bs-toggle="tooltip"]').tooltip();
+});
+</script>
+{% endblock %}

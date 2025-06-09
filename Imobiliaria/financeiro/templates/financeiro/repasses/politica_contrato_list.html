@@ -1,0 +1,595 @@
+<!-- financeiro/templates/financeiro/repasses/politica_contrato_list.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Políticas por Contrato{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-900 py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-white">Políticas por Contrato</h1>
+                    <p class="mt-2 text-gray-400">Gerencie políticas específicas de repasse para cada contrato</p>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="{% url 'financeiro:contratos_sem_politica' %}" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500">
+                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.728-.833-2.498 0L4.316 15.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                        Contratos sem Política
+                    </a>
+                    <a href="{% url 'financeiro:politica_contrato_create' %}" 
+                       class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-500">
+                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Nova Política
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estatísticas -->
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+            <div class="bg-gray-800 border border-gray-700 overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-400 truncate">Total Políticas</dt>
+                                <dd class="text-lg font-semibold text-white">{{ stats.total_politicas|default:0 }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 border border-gray-700 overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-400 truncate">Ativas</dt>
+                                <dd class="text-lg font-semibold text-green-400">{{ stats.politicas_ativas|default:0 }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 border border-gray-700 overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.728-.833-2.498 0L4.316 15.5c-.77.833.192 2.5 1.732 2.5z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-400 truncate">Sem Política</dt>
+                                <dd class="text-lg font-semibold text-yellow-400">{{ stats.contratos_sem_politica|default:0 }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 border border-gray-700 overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-400 truncate">Mensal</dt>
+                                <dd class="text-lg font-semibold text-purple-400">
+                                    {% for p in stats.por_periodicidade %}
+                                        {% if p.periodicidade == 'mensal' %}{{ p.count }}{% endif %}
+                                    {% endfor %}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Políticas -->
+        <div class="bg-gray-800 border border-gray-700 shadow overflow-hidden sm:rounded-md">
+            {% if politicas %}
+            <ul role="list" class="divide-y divide-gray-700">
+                {% for politica in politicas %}
+                <li class="hover:bg-gray-750 transition-colors duration-200">
+                    <div class="px-4 py-4 flex items-center justify-between">
+                        <div class="flex items-center">
+                            <!-- Status Icon -->
+                            <div class="flex-shrink-0">
+                                {% if politica.ativa %}
+                                    <div class="w-10 h-10 bg-green-900 border border-green-600 rounded-full flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                {% else %}
+                                    <div class="w-10 h-10 bg-gray-700 border border-gray-600 rounded-full flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Informações da Política -->
+                            <div class="ml-4">
+                                <div class="flex items-center">
+                                    <div class="text-sm font-medium text-white">
+                                        {% for proprietario in politica.contrato.proprietario.all %}
+                                            {{ proprietario.nome }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <div class="ml-2">
+                                        {% if politica.ativa %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900 text-green-200 border border-green-700">
+                                                Ativa
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-gray-300 border border-gray-600">
+                                                Inativa
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <!-- Badge da Periodicidade -->
+                                    <div class="ml-2">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium 
+                                            {% if politica.periodicidade == 'mensal' %}bg-purple-900 text-purple-200 border border-purple-700
+                                            {% elif politica.periodicidade == 'semanal' %}bg-blue-900 text-blue-200 border border-blue-700
+                                            {% elif politica.periodicidade == 'quinzenal' %}bg-indigo-900 text-indigo-200 border border-indigo-700
+                                            {% else %}bg-yellow-900 text-yellow-200 border border-yellow-700{% endif %}">
+                                            {{ politica.get_periodicidade_display }}
+                                        </span>
+                                    </div>
+                                    <!-- Badge do Tipo de Dias -->
+                                    <div class="ml-2">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium 
+                                            {% if politica.tipo_dias == 'uteis' %}bg-cyan-900 text-cyan-200 border border-cyan-700
+                                            {% else %}bg-orange-900 text-orange-200 border border-orange-700{% endif %}">
+                                            {{ politica.get_tipo_dias_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="text-sm text-gray-400">
+                                    Contrato #{{ politica.contrato.id }} - {{ politica.contrato.imovel.endereco|truncatechars:50 }}
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    Taxa: {% if politica.taxa_admin_personalizada %}{{ politica.taxa_admin_personalizada }}{% else %}{{ politica.contrato.valor_taxa_administracao_percentual|default:"8.00" }}{% endif %}% | 
+                                    Valor mín: R$ {{ politica.valor_minimo_repasse|floatformat:2|default:"0.00" }}
+                                </div>
+                                {% if politica.observacoes %}
+                                    <div class="text-xs text-gray-500 mt-1">
+                                        {{ politica.observacoes|truncatechars:80 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Valores e Ações -->
+                        <div class="flex items-center space-x-4">
+                            <div class="text-right">
+                                <div class="text-sm font-medium text-white">
+                                    R$ {{ politica.contrato.valor_base|floatformat:2 }}
+                                </div>
+                                <div class="text-xs text-gray-400">
+                                    Valor base
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-2">
+                                <button onclick="togglePolitica({{ politica.pk }})" 
+                                        class="text-{% if politica.ativa %}yellow{% else %}green{% endif %}-400 hover:text-{% if politica.ativa %}yellow{% else %}green{% endif %}-300 text-sm font-medium">
+                                    {% if politica.ativa %}Desativar{% else %}Ativar{% endif %}
+                                </button>
+                                
+                                <button onclick="testarPolitica({{ politica.pk }})" 
+                                        class="text-blue-400 hover:text-blue-300 text-sm font-medium">
+                                    Testar
+                                </button>
+                                
+                                <a href="{% url 'financeiro:politica_contrato_update' politica.pk %}" 
+                                   class="text-indigo-400 hover:text-indigo-300 text-sm font-medium">
+                                    Editar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            
+            {% else %}
+            <!-- Estado vazio -->
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-white">Nenhuma política por contrato encontrada</h3>
+                <p class="mt-1 text-sm text-gray-400">Comece criando políticas específicas para seus contratos.</p>
+                <div class="mt-6">
+                    <a href="{% url 'financeiro:politica_contrato_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500">
+                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Nova Política
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Call to Action -->
+        {% if stats.contratos_sem_politica > 0 %}
+        <div class="mt-8 bg-yellow-900 border border-yellow-700 rounded-lg p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-yellow-200">
+                        <strong>{{ stats.contratos_sem_politica }} contrato{{ stats.contratos_sem_politica|pluralize }} sem política:</strong> 
+                        Configure políticas específicas para garantir repasses automáticos.
+                        <a href="{% url 'financeiro:contratos_sem_politica' %}" class="underline font-medium hover:text-yellow-100">
+                            Ver contratos
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal de Teste - NOVO DESIGN -->
+<div id="testModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-10 mx-auto p-0 border border-gray-600 w-full max-w-2xl shadow-lg rounded-lg bg-gray-800">
+        <!-- Header do Modal -->
+        <div class="flex items-center justify-between p-6 border-b border-gray-700">
+            <h3 class="text-xl font-semibold text-white">Simulação da Política</h3>
+            <button onclick="closeTestModal()" class="text-gray-400 hover:text-gray-200">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Conteúdo do Modal -->
+        <div class="p-6">
+            <div id="testResults" class="space-y-4">
+                <!-- Resultados do teste aparecerão aqui -->
+                <div class="flex items-center justify-center py-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    <span class="ml-2 text-gray-400">Simulando política...</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer do Modal -->
+        <div class="flex justify-end p-6 border-t border-gray-700">
+            <button onclick="closeTestModal()" class="px-4 py-2 bg-gray-600 text-gray-200 text-sm font-medium rounded-md hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-gray-500 transition-colors">
+                Fechar
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Função para obter CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function togglePolitica(politicaId) {
+    if (confirm('Deseja alterar o status desta política?')) {
+        fetch(`/financeiro/repasses/politicas/contrato/${politicaId}/toggle/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+            }
+        }).then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Erro ao alterar status da política');
+            }
+        }).catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao alterar status da política');
+        });
+    }
+}
+
+function testarPolitica(politicaId) {
+    // Mostrar modal e loading
+    const modal = document.getElementById('testModal');
+    const resultsDiv = document.getElementById('testResults');
+    
+    modal.classList.remove('hidden');
+    resultsDiv.innerHTML = `
+        <div class="flex items-center justify-center py-8">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <span class="ml-2 text-gray-400">Simulando política...</span>
+        </div>
+    `;
+    
+    // Fazer requisição
+    fetch(`/financeiro/repasses/politicas/contrato/${politicaId}/testar/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        
+        if (data.success && data.simulacao) {
+            const sim = data.simulacao;
+            
+            // Verificar se os dados estão válidos
+            const valorBruto = sim.valor_bruto || 0;
+            const valorLiquido = sim.valor_liquido || 0;
+            const taxaAdmin = sim.taxa_admin || 0;
+            const valorTaxaAdmin = sim.valor_taxa_admin || 0;
+            const valorMinimo = sim.valor_minimo || 0;
+            const proximaData = sim.proxima_data || 'N/A';
+            const ativa = sim.ativa ? 'Sim' : 'Não';
+            const acimaMinimo = sim.acima_minimo ? 'Sim' : 'Não';
+            const periodicidade = sim.periodicidade || 'N/A';
+            const tipoDias = sim.tipo_dias || 'N/A';
+            
+            resultsDiv.innerHTML = `
+                <div class="bg-gray-700 border border-gray-600 rounded-lg p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-green-900 border border-green-600 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <h4 class="ml-3 text-lg font-semibold text-white">Simulação Concluída</h4>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-3">
+                            <div class="bg-gray-800 rounded p-3">
+                                <div class="text-sm text-gray-400">Valor Bruto</div>
+                                <div class="text-lg font-semibold text-white">R$ ${valorBruto.toFixed(2)}</div>
+                            </div>
+                            
+                            <div class="bg-gray-800 rounded p-3">
+                                <div class="text-sm text-gray-400">Taxa Administrativa</div>
+                                <div class="text-lg font-semibold text-orange-400">${taxaAdmin.toFixed(2)}% (R$ ${valorTaxaAdmin.toFixed(2)})</div>
+                            </div>
+                            
+                            <div class="bg-gray-800 rounded p-3">
+                                <div class="text-sm text-gray-400">Valor Líquido</div>
+                                <div class="text-lg font-semibold text-green-400">R$ ${valorLiquido.toFixed(2)}</div>
+                            </div>
+                            
+                            <div class="bg-gray-800 rounded p-3">
+                                <div class="text-sm text-gray-400">Valor Mínimo</div>
+                                <div class="text-lg font-semibold text-gray-300">R$ ${valorMinimo.toFixed(2)}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="bg-gray-800 rounded p-3">
+                                <div class="text-sm text-gray-400">Próxima Data</div>
+                                <div class="text-lg font-semibold text-blue-400">${proximaData}</div>
+                            </div>
+                            
+                            <div class="bg-gray-800 rounded p-3">
+                                <div class="text-sm text-gray-400">Periodicidade</div>
+                                <div class="text-lg font-semibold text-purple-400">${periodicidade}</div>
+                            </div>
+                            
+                            <div class="bg-gray-800 rounded p-3">
+                                <div class="text-sm text-gray-400">Tipo de Dias</div>
+                                <div class="text-lg font-semibold text-cyan-400">${tipoDias}</div>
+                            </div>
+                            
+                            <div class="bg-gray-800 rounded p-3">
+                                <div class="text-sm text-gray-400">Status da Política</div>
+                                <div class="text-lg font-semibold ${sim.ativa ? 'text-green-400' : 'text-red-400'}">${ativa}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Indicador de Viabilidade -->
+                    <div class="mt-4 p-3 rounded-lg ${sim.acima_minimo ? 'bg-green-900 border border-green-700' : 'bg-yellow-900 border border-yellow-700'}">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 ${sim.acima_minimo ? 'text-green-400' : 'text-yellow-400'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${sim.acima_minimo ? 'M5 13l4 4L19 7' : 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.728-.833-2.498 0L4.316 15.5c-.77.833.192 2.5 1.732 2.5z'}"></path>
+                            </svg>
+                            <span class="ml-2 text-sm font-medium ${sim.acima_minimo ? 'text-green-200' : 'text-yellow-200'}">
+                                ${sim.acima_minimo ? '✅ Valor acima do mínimo exigido' : '⚠️ Valor abaixo do mínimo exigido'}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    ${sim.observacoes ? `
+                        <div class="mt-4 p-3 bg-blue-900 border border-blue-700 rounded-lg">
+                            <div class="text-sm text-blue-200">
+                                <strong>Observações:</strong> ${sim.observacoes}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        } else {
+            // Erro retornado pela API
+            const errorMsg = data.error || 'Erro desconhecido na simulação';
+            resultsDiv.innerHTML = `
+                <div class="bg-red-900 border border-red-700 rounded-lg p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-red-800 border border-red-600 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </div>
+                        <h4 class="ml-3 text-lg font-semibold text-white">Erro na Simulação</h4>
+                    </div>
+                    
+                    <div class="bg-red-800 rounded p-4">
+                        <p class="text-red-200 font-medium">${errorMsg}</p>
+                        <p class="text-red-300 text-sm mt-2">
+                            Verifique se o contrato possui valor configurado e se a política está correta.
+                        </p>
+                    </div>
+                    
+                    <div class="mt-4 text-sm text-red-300">
+                        <strong>Possíveis causas:</strong>
+                        <ul class="list-disc list-inside mt-2 space-y-1">
+                            <li>Contrato sem valor base configurado</li>
+                            <li>Política com configurações inválidas</li>
+                            <li>Erro de conexão com o servidor</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Erro na requisição:', error);
+        resultsDiv.innerHTML = `
+            <div class="bg-red-900 border border-red-700 rounded-lg p-6">
+                <div class="flex items-center mb-4">
+                    <div class="w-10 h-10 bg-red-800 border border-red-600 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h4 class="ml-3 text-lg font-semibold text-white">Erro de Conexão</h4>
+                </div>
+                
+                <div class="bg-red-800 rounded p-4">
+                    <p class="text-red-200 font-medium">Não foi possível conectar com o servidor.</p>
+                    <p class="text-red-300 text-sm mt-2">Erro: ${error.message}</p>
+                </div>
+                
+                <div class="mt-4 text-sm text-red-300">
+                    <strong>Tente:</strong>
+                    <ul class="list-disc list-inside mt-2 space-y-1">
+                        <li>Recarregar a página</li>
+                        <li>Verificar sua conexão com a internet</li>
+                        <li>Contatar o suporte técnico</li>
+                    </ul>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function closeTestModal() {
+    document.getElementById('testModal').classList.add('hidden');
+}
+
+// Fechar modal ao clicar fora dele
+document.getElementById('testModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeTestModal();
+    }
+});
+
+// Fechar modal com ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeTestModal();
+    }
+});
+</script>
+
+<style>
+/* Estilos adicionais para melhorar a apresentação */
+.hover\\:bg-gray-750:hover {
+    background-color: rgb(55, 65, 81);
+}
+
+/* Animação suave para o modal */
+#testModal {
+    transition: opacity 0.3s ease-in-out;
+}
+
+#testModal.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#testModal:not(.hidden) {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Scrollbar personalizada para o modal */
+#testModal::-webkit-scrollbar {
+    width: 6px;
+}
+
+#testModal::-webkit-scrollbar-track {
+    background: #374151;
+}
+
+#testModal::-webkit-scrollbar-thumb {
+    background: #6B7280;
+    border-radius: 3px;
+}
+
+#testModal::-webkit-scrollbar-thumb:hover {
+    background: #9CA3AF;
+}
+</style>
+{% endblock %}

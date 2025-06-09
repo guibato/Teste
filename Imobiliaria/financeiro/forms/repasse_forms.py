@@ -2,328 +2,450 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from decimal import Decimal
-from datetime import date, timedelta
+from datetime import date
+from ..models.repasse import Repasse, PoliticaRepasseContrato, PoliticaRepasseGlobal
+from sisimob.models import Contrato, Cliente
 
-from ..models.repasse import Repasse, PoliticaRepasse, AgendamentoRepasse
+try:
+    from ..models.cobranca import Cobranca
+except ImportError:
+    Cobranca = None
 
 
 class RepasseForm(forms.ModelForm):
+    """Form para criar/editar repasses"""
+    
     class Meta:
         model = Repasse
         fields = [
-            'proprietario', 'contrato', 'cobranca', 'valor', 'valor_desconto',
+            'proprietario', 'contrato', 'cobranca', 'valor', 'valor_desconto', 
             'valor_taxa_admin', 'data_prevista', 'mes_referencia', 'ano_referencia',
             'tipo', 'metodo_pagamento', 'descricao', 'observacoes'
         ]
         widgets = {
             'proprietario': forms.Select(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
             }),
             'contrato': forms.Select(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
             }),
             'cobranca': forms.Select(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
             }),
             'valor': forms.NumberInput(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500',
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                 'step': '0.01',
                 'min': '0'
             }),
             'valor_desconto': forms.NumberInput(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500',
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                 'step': '0.01',
                 'min': '0'
             }),
             'valor_taxa_admin': forms.NumberInput(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500',
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                 'step': '0.01',
                 'min': '0'
             }),
             'data_prevista': forms.DateInput(attrs={
-                'type': 'date',
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                'type': 'date'
             }),
-            'mes_referencia': forms.NumberInput(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500',
-                'min': '1',
-                'max': '12'
+            'mes_referencia': forms.Select(attrs={
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
             }),
             'ano_referencia': forms.NumberInput(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500',
-                'min': '2020'
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                'min': '2020',
+                'max': '2030'
             }),
             'tipo': forms.Select(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
             }),
             'metodo_pagamento': forms.Select(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
             }),
             'descricao': forms.Textarea(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500',
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                 'rows': 3
             }),
             'observacoes': forms.Textarea(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500',
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                 'rows': 3
             }),
         }
-
-    def clean_valor(self):
-        valor = self.cleaned_data.get('valor')
-        if valor and valor <= 0:
-            raise ValidationError("O valor deve ser maior que zero.")
-        return valor
-
-    def clean_data_prevista(self):
-        data_prevista = self.cleaned_data.get('data_prevista')
-        if data_prevista and data_prevista < date.today() - timedelta(days=30):
-            raise ValidationError("Data prevista não pode ser muito antiga.")
-        return data_prevista
-
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Configurar choices para mês
+        self.fields['mes_referencia'].choices = [
+            ('', 'Selecione o mês')
+        ] + [(i, f'{i:02d} - {mes}') for i, mes in enumerate([
+            '', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+        ], 0) if i > 0]
+        
+        # Filtrar proprietários
+        self.fields['proprietario'].queryset = Cliente.objects.filter(
+            tipo='proprietario'
+        ).order_by('nome')
+        
+        # Filtrar contratos ativos
+        self.fields['contrato'].queryset = Contrato.objects.filter(
+            ativo=True
+        ).select_related('proprietario', 'imovel').order_by(
+            'proprietario__nome', 'imovel__endereco'
+        )
+        
+        # Configurar cobrança se disponível
+        if Cobranca:
+            self.fields['cobranca'].queryset = Cobranca.objects.filter(
+                status='paga'
+            ).select_related('contrato').order_by('-data_pagamento')
+            self.fields['cobranca'].required = False
+        else:
+            self.fields['cobranca'].widget = forms.HiddenInput()
+        
+        # Valores padrão
+        if not self.instance.pk:
+            self.fields['ano_referencia'].initial = date.today().year
+            self.fields['mes_referencia'].initial = date.today().month
+            self.fields['data_prevista'].initial = date.today()
+            self.fields['valor_desconto'].initial = Decimal('0.00')
+            self.fields['valor_taxa_admin'].initial = Decimal('0.00')
+    
     def clean(self):
         cleaned_data = super().clean()
         valor = cleaned_data.get('valor', Decimal('0'))
         valor_desconto = cleaned_data.get('valor_desconto', Decimal('0'))
         valor_taxa_admin = cleaned_data.get('valor_taxa_admin', Decimal('0'))
-
-        if valor_desconto + valor_taxa_admin >= valor:
-            raise ValidationError("A soma dos descontos não pode ser maior ou igual ao valor total.")
-
-        mes = cleaned_data.get('mes_referencia')
-        ano = cleaned_data.get('ano_referencia')
-        if mes and (mes < 1 or mes > 12):
-            raise ValidationError("Mês de referência deve estar entre 1 e 12.")
         
-        if ano and ano < 2020:
-            raise ValidationError("Ano de referência deve ser válido.")
-
+        # Validar que descontos não excedem o valor
+        if valor_desconto + valor_taxa_admin >= valor:
+            raise ValidationError('A soma dos descontos não pode ser maior ou igual ao valor bruto.')
+        
+        # Validar que o valor líquido é positivo
+        valor_liquido = valor - valor_desconto - valor_taxa_admin
+        if valor_liquido <= 0:
+            raise ValidationError('O valor líquido deve ser maior que zero.')
+        
         return cleaned_data
 
 
-class ProcessarRepasseForm(forms.Form):
-    metodo_pagamento = forms.ChoiceField(
-        choices=Repasse.METODO_PAGAMENTO_CHOICES,
-        widget=forms.Select(attrs={
-            'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'
-        }),
-        label='Método de Pagamento'
-    )
+class PoliticaRepasseContratoForm(forms.ModelForm):
+    """Form para políticas específicas por contrato"""
     
-    observacoes = forms.CharField(
-        required=False,
-        widget=forms.Textarea(attrs={
-            'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500',
-            'rows': 3,
-            'placeholder': 'Observações sobre o processamento...'
-        }),
-        label='Observações'
-    )
-    
-    comprovante = forms.FileField(
-        required=False,
-        widget=forms.FileInput(attrs={
-            'class': 'mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100',
-            'accept': '.pdf,.jpg,.jpeg,.png'
-        }),
-        label='Comprovante'
-    )
-
-    def clean_comprovante(self):
-        comprovante = self.cleaned_data.get('comprovante')
-        if comprovante:
-            # Validar tamanho (5MB max)
-            if comprovante.size > 5 * 1024 * 1024:
-                raise ValidationError("Arquivo muito grande. Máximo 5MB.")
-            
-            # Validar tipo
-            allowed_types = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg']
-            if comprovante.content_type not in allowed_types:
-                raise ValidationError("Tipo de arquivo não permitido. Use PDF, JPG ou PNG.")
-        
-        return comprovante
-
-
-class PoliticaRepasseForm(forms.ModelForm):
     class Meta:
-        model = PoliticaRepasse
+        model = PoliticaRepasseContrato
         fields = [
-            'nome', 'ativa', 'periodicidade', 'dia_mes', 'dia_semana',
+            'contrato', 'ativa', 'periodicidade', 'tipo_dias', 'dia_mes', 'dia_semana',
             'dias_apos_recebimento', 'percentual_adiantamento', 'taxa_adiantamento',
-            'valor_minimo_repasse'
+            'valor_minimo_repasse', 'taxa_admin_personalizada', 'considerar_feriados',
+            'antecipar_fds_feriados', 'observacoes'
         ]
         widgets = {
-            'nome': forms.TextInput(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500',
-                'placeholder': 'Ex: Repasse Mensal Padrão'
+            'contrato': forms.Select(attrs={
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
             }),
             'ativa': forms.CheckboxInput(attrs={
-                'class': 'h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded'
+                'class': 'h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700 rounded'
             }),
             'periodicidade': forms.Select(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+            }),
+            'tipo_dias': forms.Select(attrs={
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
             }),
             'dia_mes': forms.NumberInput(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500',
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                 'min': '1',
-                'max': '31',
-                'placeholder': 'Ex: 5 (dia 5 do mês)'
+                'max': '31'
             }),
             'dia_semana': forms.Select(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
             }),
             'dias_apos_recebimento': forms.NumberInput(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500',
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                 'min': '0',
                 'max': '30'
             }),
             'percentual_adiantamento': forms.NumberInput(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500',
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                 'step': '0.01',
                 'min': '0',
                 'max': '100'
             }),
             'taxa_adiantamento': forms.NumberInput(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500',
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                 'step': '0.01',
-                'min': '0'
+                'min': '0',
+                'max': '100'
             }),
             'valor_minimo_repasse': forms.NumberInput(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500',
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                 'step': '0.01',
                 'min': '0'
             }),
+            'taxa_admin_personalizada': forms.NumberInput(attrs={
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                'step': '0.01',
+                'min': '0',
+                'max': '100'
+            }),
+            'considerar_feriados': forms.CheckboxInput(attrs={
+                'class': 'h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700 rounded'
+            }),
+            'antecipar_fds_feriados': forms.CheckboxInput(attrs={
+                'class': 'h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700 rounded'
+            }),
+            'observacoes': forms.Textarea(attrs={
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                'rows': 3
+            }),
         }
-
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Mostrar campos condicionalmente via JavaScript
-        self.fields['dia_mes'].required = False
-        self.fields['dia_semana'].required = False
-
+        
+        # Filtrar contratos disponíveis
+        if not self.instance.pk:
+            self.fields['contrato'].queryset = Contrato.objects.filter(
+                ativo=True,
+                politica_repasse__isnull=True
+            ).select_related('proprietario', 'imovel').order_by(
+                'proprietario__nome', 'imovel__endereco'
+            )
+        else:
+            # Para edição, incluir o contrato atual
+            self.fields['contrato'].queryset = Contrato.objects.filter(
+                models.Q(id=self.instance.contrato.id) |
+                models.Q(ativo=True, politica_repasse__isnull=True)
+            ).select_related('proprietario', 'imovel').order_by(
+                'proprietario__nome', 'imovel__endereco'
+            )
+        
+        # Valores padrão
+        if not self.instance.pk:
+            self.fields['ativa'].initial = True
+            self.fields['tipo_dias'].initial = 'uteis'
+            self.fields['dias_apos_recebimento'].initial = 2
+            self.fields['considerar_feriados'].initial = True
+            self.fields['antecipar_fds_feriados'].initial = True
+    
     def clean(self):
         cleaned_data = super().clean()
         periodicidade = cleaned_data.get('periodicidade')
         dia_mes = cleaned_data.get('dia_mes')
         dia_semana = cleaned_data.get('dia_semana')
-
+        
+        # Validar campos obrigatórios baseados na periodicidade
         if periodicidade == 'mensal' and not dia_mes:
-            raise ValidationError("Para periodicidade mensal, é necessário informar o dia do mês.")
+            raise ValidationError('Para periodicidade mensal, o dia do mês é obrigatório.')
         
         if periodicidade == 'semanal' and not dia_semana:
-            raise ValidationError("Para periodicidade semanal, é necessário informar o dia da semana.")
-
+            raise ValidationError('Para periodicidade semanal, o dia da semana é obrigatório.')
+        
+        # Validar dia do mês
         if dia_mes and (dia_mes < 1 or dia_mes > 31):
-            raise ValidationError("Dia do mês deve estar entre 1 e 31.")
-
-        percentual = cleaned_data.get('percentual_adiantamento', Decimal('0'))
-        if percentual > 100:
-            raise ValidationError("Percentual de adiantamento não pode ser maior que 100%.")
-
+            raise ValidationError('Dia do mês deve estar entre 1 e 31.')
+        
         return cleaned_data
 
 
-class FiltroRepasseForm(forms.Form):
-    status = forms.ChoiceField(
-        choices=[('', 'Todos')] + Repasse.STATUS_CHOICES,
-        required=False,
-        widget=forms.Select(attrs={
-            'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
-        })
-    )
+class PoliticaRepasseGlobalForm(forms.ModelForm):
+    """Form para políticas globais"""
     
-    proprietario = forms.CharField(
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
-            'placeholder': 'Buscar proprietário...'
-        })
-    )
-    
-    mes_referencia = forms.ChoiceField(
-        choices=[('', 'Todos')] + [(i, f'{i:02d}') for i in range(1, 13)],
-        required=False,
-        widget=forms.Select(attrs={
-            'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
-        })
-    )
-    
-    ano_referencia = forms.ChoiceField(
-        required=False,
-        widget=forms.Select(attrs={
-            'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
-        })
-    )
-    
-    data_inicio = forms.DateField(
-        required=False,
-        widget=forms.DateInput(attrs={
-            'type': 'date',
-            'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
-        })
-    )
-    
-    data_fim = forms.DateField(
-        required=False,
-        widget=forms.DateInput(attrs={
-            'type': 'date',
-            'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
-        })
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Gerar opções de ano dinamicamente
-        current_year = date.today().year
-        year_choices = [('', 'Todos')] + [(year, str(year)) for year in range(current_year - 2, current_year + 2)]
-        self.fields['ano_referencia'].choices = year_choices
-
-
-class AgendamentoRepasseForm(forms.ModelForm):
     class Meta:
-        model = AgendamentoRepasse
+        model = PoliticaRepasseGlobal
         fields = [
-            'proprietario', 'contrato', 'politica', 'data_agendada',
-            'valor_previsto', 'mes_referencia', 'ano_referencia'
+            'nome', 'ativa', 'periodicidade', 'tipo_dias', 'dia_mes', 'dia_semana',
+            'dias_apos_recebimento', 'percentual_adiantamento', 'taxa_adiantamento',
+            'valor_minimo_repasse', 'taxa_admin_padrao', 'considerar_feriados',
+            'antecipar_fds_feriados'
         ]
         widgets = {
-            'proprietario': forms.Select(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'
+            'nome': forms.TextInput(attrs={
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
             }),
-            'contrato': forms.Select(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'
+            'ativa': forms.CheckboxInput(attrs={
+                'class': 'h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700 rounded'
             }),
-            'politica': forms.Select(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'
+            'periodicidade': forms.Select(attrs={
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
             }),
-            'data_agendada': forms.DateInput(attrs={
-                'type': 'date',
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'
+            'tipo_dias': forms.Select(attrs={
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
             }),
-            'valor_previsto': forms.NumberInput(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500',
+            'dia_mes': forms.NumberInput(attrs={
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                'min': '1',
+                'max': '31'
+            }),
+            'dia_semana': forms.Select(attrs={
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+            }),
+            'dias_apos_recebimento': forms.NumberInput(attrs={
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                'min': '0',
+                'max': '30'
+            }),
+            'percentual_adiantamento': forms.NumberInput(attrs={
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                'step': '0.01',
+                'min': '0',
+                'max': '100'
+            }),
+            'taxa_adiantamento': forms.NumberInput(attrs={
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                'step': '0.01',
+                'min': '0',
+                'max': '100'
+            }),
+            'valor_minimo_repasse': forms.NumberInput(attrs={
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
                 'step': '0.01',
                 'min': '0'
             }),
-            'mes_referencia': forms.NumberInput(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500',
-                'min': '1',
-                'max': '12'
+            'taxa_admin_padrao': forms.NumberInput(attrs={
+                'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+                'step': '0.01',
+                'min': '0',
+                'max': '100'
             }),
-            'ano_referencia': forms.NumberInput(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500',
-                'min': '2020'
+            'considerar_feriados': forms.CheckboxInput(attrs={
+                'class': 'h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700 rounded'
+            }),
+            'antecipar_fds_feriados': forms.CheckboxInput(attrs={
+                'class': 'h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700 rounded'
             }),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Valores padrão
+        if not self.instance.pk:
+            self.fields['ativa'].initial = True
+            self.fields['tipo_dias'].initial = 'uteis'
+            self.fields['dias_apos_recebimento'].initial = 2
+            self.fields['taxa_admin_padrao'].initial = Decimal('8.00')
+            self.fields['considerar_feriados'].initial = True
+            self.fields['antecipar_fds_feriados'].initial = True
 
-    def clean_data_agendada(self):
-        data = self.cleaned_data.get('data_agendada')
-        if data and data < date.today():
-            raise ValidationError("Data agendada não pode ser no passado.")
-        return data
 
-    def clean_valor_previsto(self):
-        valor = self.cleaned_data.get('valor_previsto')
-        if valor and valor <= 0:
-            raise ValidationError("Valor previsto deve ser maior que zero.")
-        return valor
+class ProcessarRepasseForm(forms.Form):
+    """Form para processar um repasse"""
+    
+    metodo_pagamento = forms.ChoiceField(
+        choices=Repasse.METODO_PAGAMENTO_CHOICES,
+        widget=forms.Select(attrs={
+            'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+        }),
+        required=True,
+        label='Método de Pagamento'
+    )
+    
+    comprovante = forms.FileField(
+        widget=forms.FileInput(attrs={
+            'class': 'sr-only',
+            'accept': '.pdf,.jpg,.jpeg,.png'
+        }),
+        required=False,
+        label='Comprovante'
+    )
+    
+    observacoes = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+            'rows': 3,
+            'placeholder': 'Observações sobre o processamento...'
+        }),
+        required=False,
+        label='Observações'
+    )
+
+
+class ConfiguracaoPoliticasForm(forms.Form):
+    """Form para configurações globais do sistema"""
+    
+    taxa_admin_global = forms.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        initial=Decimal('8.00'),
+        widget=forms.NumberInput(attrs={
+            'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+            'step': '0.01',
+            'min': '0',
+            'max': '100'
+        }),
+        label='Taxa de Administração Global (%)'
+    )
+    
+    valor_minimo_global = forms.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        initial=Decimal('0.00'),
+        widget=forms.NumberInput(attrs={
+            'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+            'step': '0.01',
+            'min': '0'
+        }),
+        label='Valor Mínimo Global (R$)'
+    )
+    
+    email_notificacoes = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+        }),
+        required=False,
+        label='E-mail para Notificações'
+    )
+    
+    criar_automatico_na_cobranca = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={
+            'class': 'h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700 rounded'
+        }),
+        required=False,
+        initial=True,
+        label='Criar repasse automaticamente quando cobrança for paga'
+    )
+    
+    dias_uteis_padrao = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={
+            'class': 'h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700 rounded'
+        }),
+        required=False,
+        initial=True,
+        label='Usar dias úteis como padrão para novas políticas'
+    )
+    
+    considerar_feriados_padrao = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={
+            'class': 'h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700 rounded'
+        }),
+        required=False,
+        initial=True,
+        label='Considerar feriados por padrão'
+    )
+
+
+class FiltroContratosForm(forms.Form):
+    """Form para filtrar contratos"""
+    
+    proprietario = forms.ModelChoiceField(
+        queryset=Cliente.objects.filter(tipo='proprietario').order_by('nome'),
+        widget=forms.Select(attrs={
+            'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+        }),
+        required=False,
+        empty_label='Todos os proprietários'
+    )
+    
+    search = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'class': 'mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm',
+            'placeholder': 'Buscar por proprietário ou endereço...'
+        }),
+        required=False
+    )

@@ -1,0 +1,145 @@
+{% extends 'base/base.html' %}
+{% block content %}
+<h2 class="text-3xl font-bold text-gray-100 mb-8 text-center">Reajustar Contrato de Aluguel</h2>
+<div class="max-w-4xl mx-auto p-6 bg-gray-800 rounded-lg shadow-lg">
+    <form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% csrf_token %}
+        <!-- Mensagens de erro globais -->
+        {% if form.non_field_errors %}
+        <div class="col-span-full p-4 bg-red-900 text-red-200 rounded-lg">
+            {% for error in form.non_field_errors %}
+            {{ error }}
+            {% endfor %}
+        </div>
+        {% endif %}
+        <!-- Contrato -->
+        <div>
+            <label class="block text-sm font-medium text-gray-200 mb-2">Contrato ID</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804C1.29 5.106 0 6.559 0 8.12v3.76c0 1.561.29 3.012 1.5 4.316C2.557 17.71 3.745 18 5.5 18c1.755 0 3.443-.29 5-.804V4.804z" />
+                    </svg>
+                </span>
+                <input type="text" class="block w-full pl-10 pr-3 py-2 border border-gray-700 bg-gray-900 text-white rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value="{{ contrato.id }}" readonly>
+            </div>
+        </div>
+        <!-- Imóvel -->
+        <div>
+            <label class="block text-sm font-medium text-gray-200 mb-2">Imóvel</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" />
+                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
+                    </svg>
+                </span>
+                <input type="text" class="block w-full pl-10 pr-3 py-2 border border-gray-700 bg-gray-900 text-white rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value="{{ contrato.imovel.endereco_resumido }}" readonly>
+            </div>
+        </div>
+        <!-- Valor Atual -->
+        <div>
+            <label class="block text-sm font-medium text-gray-200 mb-2">Valor Atual</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M8.445 14.832A1 1 0 0010 14v-2.798c0-.407-.28-.783-.674-1.008C8.928 10.033 8 9.418 8 8.649V7.32c0-.407.28-.783.674-1.008C9.072 6.145 10 5.53 10 4.761V3a1 1 0 00-1.555-.832l-2 2.914A1 1 0 006 7v1.32c0 .407-.28.783-.674 1.008C4.928 9.967 4 10.582 4 11.351v1.299c0 .407.28.783.674 1.008C5.072 13.855 6 14.47 6 15.239V17a1 1 0 001.555.832l2-2.914A1 1 0 0010 14v-1.202zM14 11a1 1 0 100-2 1 1 0 000 2z" />
+                    </svg>
+                </span>
+                <input type="text" class="block w-full pl-10 pr-3 py-2 border border-gray-700 bg-gray-900 text-white rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value="{{ contrato.valor_base_aluguel|floatformat:2 }}" readonly>
+            </div>
+        </div>
+        <!-- Fator Acumulado -->
+        <div>
+            <label class="block text-sm font-medium text-gray-200 mb-2">Fator Acumulado</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M8.445 14.832A1 1 0 0010 14v-2.798c0-.407-.28-.783-.674-1.008C8.928 10.033 8 9.418 8 8.649V7.32c0-.407.28-.783.674-1.008C9.072 6.145 10 5.53 10 4.761V3a1 1 0 00-1.555-.832l-2 2.914A1 1 0 006 7v1.32c0 .407-.28.783-.674 1.008C4.928 9.967 4 10.582 4 11.351v1.299c0 .407.28.783.674 1.008C5.072 13.855 6 14.47 6 15.239V17a1 1 0 001.555.832l2-2.914A1 1 0 0010 14v-1.202zM14 11a1 1 0 100-2 1 1 0 000 2z" />
+                    </svg>
+                </span>
+                <input type="text" class="block w-full pl-10 pr-3 py-2 border border-gray-700 bg-gray-900 text-white rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value="{{ fator_acumulado|floatformat:4 }}" readonly>
+            </div>
+        </div>
+        <!-- Valor Projetado -->
+        <div>
+            <label class="block text-sm font-medium text-gray-200 mb-2">Valor Projetado</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M8.445 14.832A1 1 0 0010 14v-2.798c0-.407-.28-.783-.674-1.008C8.928 10.033 8 9.418 8 8.649V7.32c0-.407.28-.783.674-1.008C9.072 6.145 10 5.53 10 4.761V3a1 1 0 00-1.555-.832l-2 2.914A1 1 0 006 7v1.32c0 .407-.28.783-.674 1.008C4.928 9.967 4 10.582 4 11.351v1.299c0 .407.28.783.674 1.008C5.072 13.855 6 14.47 6 15.239V17a1 1 0 001.555.832l2-2.914A1 1 0 0010 14v-1.202zM14 11a1 1 0 100-2 1 1 0 000 2z" />
+                    </svg>
+                </span>
+                <input type="text" class="block w-full pl-10 pr-3 py-2 border border-gray-700 bg-gray-900 text-white rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value="{{ valor_projetado|floatformat:2 }}" readonly>
+            </div>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-200 mb-2">Data Inicial</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                    
+                </span>
+                <input type="text" class="block w-full pl-10 pr-3 py-2 border border-gray-700 bg-gray-900 text-white rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value="{{ contrato.data_inicio }}" readonly>
+            </div>
+        </div>
+        <!-- Indices Utilizados -->
+        <div>
+            <label class="block text-sm font-medium text-gray-200 mb-2">Índices Utilizados</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" />
+                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                    </svg>
+                </span>
+                <textarea class="block w-full pl-10 pr-3 py-2 border border-gray-700 bg-gray-900 text-white rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm" rows="12" readonly>
+{% for indice in indices %}
+{{ indice.data_referencia|date:"Y-m" }}: {{ indice.valor|floatformat:2 }}%
+{% endfor %}
+                </textarea>
+            </div>
+        </div>
+        <!-- Data de Início -->
+        <div>
+            <label class="block text-sm font-medium text-gray-200 mb-2">Data de Início do Reajuste</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                    </svg>
+                </span>
+                <input type="date" name="data_inicio" id="id_data_inicio" class="block w-full pl-10 pr-3 py-2 border border-gray-700 bg-gray-900 text-white rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value="{{ data_inicio }}">
+            </div>
+            {% if form.data_inicio.errors %}
+            <span class="text-red-400 text-sm">{{ form.data_inicio.errors|join:", " }}</span>
+            {% endif %}
+        </div>
+        <!-- Valor Manual -->
+        <div>
+            <label for="tipo_valor_manual">Tipo de Reajuste:</label>
+            <select name="tipo_valor_manual" id="tipo_valor_manual" class="block w-full pl-10 pr-3 py-2 border border-gray-700 bg-gray-900 text-white rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            <option value="percentual">Percentual (%)</option>
+            <option value="fator">Fator (ex: 1.05)</option>
+            <option value="fixo">Valor Final (R$)</option>
+            </select>
+
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                    
+                </span>
+                <input type="text" name="valor_manual" id="id_valor_manual" class="block w-full pl-10 pr-3 py-2 border border-gray-700 bg-gray-900 text-white rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm" value="{{ valor_manual|default_if_none:'' }}">
+            </div>
+            <p class="text-gray-400 text-xs mt-1">Deixe em branco para usar os índices.</p>
+        </div>
+        <!-- Botões de Ação -->
+        <div class="col-span-full flex justify-end gap-4 mt-6">
+            <a href="{% url 'reajustar_contratos' %}" class="px-6 py-2 bg-gray-700 text-gray-200 rounded-md hover:bg-gray-600 transition-colors">
+                Voltar
+            </a>
+            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                Reajustar Contrato
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

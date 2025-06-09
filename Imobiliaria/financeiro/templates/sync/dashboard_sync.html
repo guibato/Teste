@@ -1,0 +1,848 @@
+<!-- financeiro/templates/financeiro/sync/dashboard_sync.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sincronização Asaas - Palestra Imóveis{% endblock %}
+{% block page_title %}Sincronização Asaas{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sync-card {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+    
+    .status-executando {
+        background: linear-gradient(90deg, #f59e0b, #d97706);
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    .status-concluido {
+        background: linear-gradient(90deg, #10b981, #059669);
+    }
+    
+    .status-erro {
+        background: linear-gradient(90deg, #ef4444, #dc2626);
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    
+    .progress-ring {
+        transition: stroke-dasharray 0.35s;
+        transform: rotate(-90deg);
+        transform-origin: 50% 50%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header com Ações Rápidas -->
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-white mb-2">Sincronização com Asaas</h2>
+            <p class="text-gray-400">Gerencie a integração e sincronização de dados com o Asaas</p>
+        </div>
+        
+        <div class="flex flex-wrap gap-3">
+            <button onclick="abrirModalSincronizacao()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center">
+                <i class="fas fa-sync mr-2"></i>
+                Nova Sincronização
+            </button>
+            <button onclick="verificarStatus()" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors flex items-center">
+                <i class="fas fa-refresh mr-2"></i>
+                Atualizar Status
+            </button>
+        </div>
+    </div>
+
+    <!-- Cards de Estatísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Última Sincronização -->
+        <div class="sync-card rounded-xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-3 bg-blue-500/20 rounded-lg">
+                    <i class="fas fa-clock text-2xl text-blue-400"></i>
+                </div>
+                <span id="status-ultima-sync" class="px-3 py-1 rounded-full text-xs font-medium status-concluido text-white">
+                    Concluída
+                </span>
+            </div>
+            <h3 class="text-lg font-semibold text-white mb-1">Última Sincronização</h3>
+            <p id="data-ultima-sync" class="text-gray-400 text-sm">15/01/2025 14:30</p>
+            <p id="resultado-ultima-sync" class="text-2xl font-bold text-white mt-2">
+                127 <span class="text-sm text-gray-400">cobranças</span>
+            </p>
+        </div>
+
+        <!-- Sincronizações Hoje -->
+        <div class="sync-card rounded-xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-3 bg-green-500/20 rounded-lg">
+                    <i class="fas fa-calendar-day text-2xl text-green-400"></i>
+                </div>
+            </div>
+            <h3 class="text-lg font-semibold text-white mb-1">Sincronizações Hoje</h3>
+            <p class="text-gray-400 text-sm">Execuções realizadas</p>
+            <p id="sync-hoje" class="text-2xl font-bold text-white mt-2">3</p>
+        </div>
+
+        <!-- Total de Cobranças -->
+        <div class="sync-card rounded-xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-3 bg-purple-500/20 rounded-lg">
+                    <i class="fas fa-file-invoice-dollar text-2xl text-purple-400"></i>
+                </div>
+            </div>
+            <h3 class="text-lg font-semibold text-white mb-1">Cobranças Sincronizadas</h3>
+            <p class="text-gray-400 text-sm">Total no sistema</p>
+            <p id="total-cobrancas" class="text-2xl font-bold text-white mt-2">2,847</p>
+        </div>
+
+        <!-- Status Geral -->
+        <div class="sync-card rounded-xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-3 bg-emerald-500/20 rounded-lg">
+                    <i class="fas fa-heartbeat text-2xl text-emerald-400"></i>
+                </div>
+                <div class="w-12 h-12">
+                    <svg class="w-full h-full" viewBox="0 0 42 42">
+                        <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="rgba(16, 185, 129, 0.2)" stroke-width="3"/>
+                        <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#10b981" stroke-width="3" 
+                                stroke-dasharray="95 5" class="progress-ring"/>
+                    </svg>
+                </div>
+            </div>
+            <h3 class="text-lg font-semibold text-white mb-1">Saúde da Integração</h3>
+            <p class="text-gray-400 text-sm">Taxa de sucesso</p>
+            <p class="text-2xl font-bold text-emerald-400 mt-2">95%</p>
+        </div>
+    </div>
+
+    <!-- Sincronização em Tempo Real -->
+    <div id="sync-em-andamento" class="hidden">
+        <div class="sync-card rounded-xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mr-3"></div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-white">Sincronização em Andamento</h3>
+                        <p class="text-gray-400 text-sm">Aguarde enquanto processamos os dados...</p>
+                    </div>
+                </div>
+                <button onclick="cancelarSincronizacao()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors">
+                    Cancelar
+                </button>
+            </div>
+            
+            <!-- Barra de Progresso -->
+            <div class="mb-4">
+                <div class="flex justify-between text-sm text-gray-400 mb-2">
+                    <span id="progresso-texto">Iniciando...</span>
+                    <span id="progresso-porcentagem">0%</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-2">
+                    <div id="barra-progresso" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <!-- Log em Tempo Real -->
+            <div class="bg-gray-800 rounded-lg p-4 max-h-64 overflow-y-auto">
+                <div id="log-sincronizacao" class="text-sm text-gray-300 font-mono space-y-1">
+                    <!-- Logs serão inseridos aqui via JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Histórico de Sincronizações -->
+    <div class="sync-card rounded-xl p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-semibold text-white">Histórico de Sincronizações</h3>
+            <div class="flex gap-2">
+                <select id="filtro-tipo" class="bg-gray-700 text-white rounded-lg px-3 py-2 text-sm">
+                    <option value="">Todos os tipos</option>
+                    <option value="cobrancas">Cobranças</option>
+                    <option value="clientes">Clientes</option>
+                    <option value="webhook">Webhook</option>
+                </select>
+                <select id="filtro-status" class="bg-gray-700 text-white rounded-lg px-3 py-2 text-sm">
+                    <option value="">Todos os status</option>
+                    <option value="concluido">Concluído</option>
+                    <option value="erro">Erro</option>
+                    <option value="executando">Executando</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Tabela de Histórico -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b border-gray-700">
+                        <th class="text-left py-3 px-4 font-medium text-gray-400">Data/Hora</th>
+                        <th class="text-left py-3 px-4 font-medium text-gray-400">Tipo</th>
+                        <th class="text-left py-3 px-4 font-medium text-gray-400">Período</th>
+                        <th class="text-left py-3 px-4 font-medium text-gray-400">Status</th>
+                        <th class="text-left py-3 px-4 font-medium text-gray-400">Resultado</th>
+                        <th class="text-left py-3 px-4 font-medium text-gray-400">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-historico">
+                    <!-- Dados serão carregados via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginação -->
+        <div class="flex items-center justify-between mt-6">
+            <div class="text-sm text-gray-400">
+                Mostrando <span id="range-inicio">1</span>-<span id="range-fim">10</span> de <span id="total-registros">25</span> registros
+            </div>
+            <div class="flex gap-2">
+                <button id="btn-anterior" onclick="paginaAnterior()" class="px-3 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50">
+                    Anterior
+                </button>
+                <button id="btn-proximo" onclick="proximaPagina()" class="px-3 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50">
+                    Próximo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configurações de Sincronização -->
+    <div class="sync-card rounded-xl p-6">
+        <h3 class="text-xl font-semibold text-white mb-6">Configurações da Sincronização</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Sincronização Automática -->
+            <div>
+                <h4 class="text-lg font-medium text-white mb-4">Sincronização Automática</h4>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <label class="text-gray-300">Ativar sincronização automática</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="sync-automatica" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-300 mb-2">Frequência</label>
+                        <select id="frequencia-sync" class="w-full bg-gray-700 text-white rounded-lg px-3 py-2">
+                            <option value="hourly">A cada hora</option>
+                            <option value="daily" selected>Diariamente</option>
+                            <option value="weekly">Semanalmente</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-300 mb-2">Horário preferencial</label>
+                        <input type="time" id="horario-sync" value="08:00" class="w-full bg-gray-700 text-white rounded-lg px-3 py-2">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configurações Avançadas -->
+            <div>
+                <h4 class="text-lg font-medium text-white mb-4">Configurações Avançadas</h4>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-gray-300 mb-2">Dias para sincronização retroativa</label>
+                        <input type="number" id="dias-retro" value="7" min="1" max="90" class="w-full bg-gray-700 text-white rounded-lg px-3 py-2">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-300 mb-2">Timeout por requisição (segundos)</label>
+                        <input type="number" id="timeout-req" value="30" min="10" max="120" class="w-full bg-gray-700 text-white rounded-lg px-3 py-2">
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <label class="text-gray-300">Notificar erros por email</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="notificar-erros" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-end mt-6">
+            <button onclick="salvarConfiguracoes()" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">
+                Salvar Configurações
+            </button>
+        </div>
+    </div>
+
+    <!-- Status da API Asaas -->
+    <div class="sync-card rounded-xl p-6">
+        <h3 class="text-xl font-semibold text-white mb-6">Status da API Asaas</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="text-center">
+                <div id="status-api-icon" class="w-16 h-16 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center">
+                    <i class="fas fa-check text-2xl text-green-400"></i>
+                </div>
+                <h4 class="text-lg font-medium text-white mb-2">Conectividade</h4>
+                <p id="status-api-texto" class="text-green-400">Online</p>
+                <p class="text-xs text-gray-400 mt-1">Última verificação: há 2 min</p>
+            </div>
+            
+            <div class="text-center">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-500/20 flex items-center justify-center">
+                    <i class="fas fa-tachometer-alt text-2xl text-blue-400"></i>
+                </div>
+                <h4 class="text-lg font-medium text-white mb-2">Latência</h4>
+                <p id="latencia-api" class="text-blue-400">125ms</p>
+                <p class="text-xs text-gray-400 mt-1">Tempo médio de resposta</p>
+            </div>
+            
+            <div class="text-center">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-purple-500/20 flex items-center justify-center">
+                    <i class="fas fa-chart-bar text-2xl text-purple-400"></i>
+                </div>
+                <h4 class="text-lg font-medium text-white mb-2">Rate Limit</h4>
+                <p id="rate-limit" class="text-purple-400">450/500</p>
+                <p class="text-xs text-gray-400 mt-1">Requisições/hora</p>
+            </div>
+        </div>
+        
+        <div class="flex justify-center mt-6">
+            <button onclick="testarConexaoAsaas()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center">
+                <i class="fas fa-plug mr-2"></i>
+                Testar Conexão
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Nova Sincronização -->
+<div id="modal-sincronizacao" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center">
+    <div class="bg-gray-800 rounded-xl p-6 w-full max-w-md mx-4">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-semibold text-white">Nova Sincronização</h3>
+            <button onclick="fecharModalSincronizacao()" class="text-gray-400 hover:text-white transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-gray-300 mb-2">Tipo de Sincronização</label>
+                <select id="modal-tipo" class="w-full bg-gray-700 text-white rounded-lg px-3 py-2">
+                    <option value="cobrancas">Cobranças</option>
+                    <option value="clientes">Clientes</option>
+                    <option value="completa">Sincronização Completa</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-gray-300 mb-2">Data de Início</label>
+                <input type="date" id="modal-data-inicio" class="w-full bg-gray-700 text-white rounded-lg px-3 py-2">
+            </div>
+            
+            <div>
+                <label class="block text-gray-300 mb-2">Data de Fim</label>
+                <input type="date" id="modal-data-fim" class="w-full bg-gray-700 text-white rounded-lg px-3 py-2">
+            </div>
+            
+            <div class="flex items-center justify-between">
+                <label class="text-gray-300">Forçar atualização</label>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="modal-forcar" class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                </label>
+            </div>
+        </div>
+        
+        <div class="flex gap-3 mt-6">
+            <button onclick="fecharModalSincronizacao()" class="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors">
+                Cancelar
+            </button>
+            <button onclick="iniciarSincronizacao()" class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+                Iniciar
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Variáveis globais
+let paginaAtual = 1;
+let registrosPorPagina = 10;
+let sincronizacaoAtiva = false;
+let intervalAtualizar = null;
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', function() {
+    carregarDashboard();
+    carregarHistorico();
+    configurarEventos();
+    verificarSincronizacaoAtiva();
+    
+    // Definir datas padrão no modal
+    const hoje = new Date();
+    const seteDiasAtras = new Date(hoje.getTime() - 7 * 24 * 60 * 60 * 1000);
+    
+    document.getElementById('modal-data-inicio').value = seteDiasAtras.toISOString().split('T')[0];
+    document.getElementById('modal-data-fim').value = hoje.toISOString().split('T')[0];
+});
+
+// Funções do Dashboard
+async function carregarDashboard() {
+    try {
+        const response = await fetch('/financeiro/sync/api/dashboard/');
+        const data = await response.json();
+        
+        // Atualizar estatísticas
+        if (data.ultima_sync) {
+            document.getElementById('data-ultima-sync').textContent = data.ultima_sync.data;
+            document.getElementById('resultado-ultima-sync').innerHTML = 
+                `${data.ultima_sync.total} <span class="text-sm text-gray-400">cobranças</span>`;
+            
+            const statusElement = document.getElementById('status-ultima-sync');
+            statusElement.className = `px-3 py-1 rounded-full text-xs font-medium status-${data.ultima_sync.status} text-white`;
+            statusElement.textContent = data.ultima_sync.status_display;
+        }
+        
+        document.getElementById('sync-hoje').textContent = data.sync_hoje || 0;
+        document.getElementById('total-cobrancas').textContent = formatarNumero(data.total_cobrancas || 0);
+        
+        // Atualizar status da API
+        atualizarStatusAPI(data.api_status);
+        
+    } catch (error) {
+        console.error('Erro ao carregar dashboard:', error);
+        showToast('Erro ao carregar dados do dashboard', 'error');
+    }
+}
+
+async function carregarHistorico() {
+    try {
+        const filtroTipo = document.getElementById('filtro-tipo').value;
+        const filtroStatus = document.getElementById('filtro-status').value;
+        
+        const params = new URLSearchParams({
+            page: paginaAtual,
+            per_page: registrosPorPagina
+        });
+        
+        if (filtroTipo) params.append('tipo', filtroTipo);
+        if (filtroStatus) params.append('status', filtroStatus);
+        
+        const response = await fetch(`/financeiro/sync/api/historico/?${params}`);
+        const data = await response.json();
+        
+        renderizarTabelaHistorico(data.results);
+        atualizarPaginacao(data.count);
+        
+    } catch (error) {
+        console.error('Erro ao carregar histórico:', error);
+        showToast('Erro ao carregar histórico', 'error');
+    }
+}
+
+function renderizarTabelaHistorico(registros) {
+    const tbody = document.getElementById('tabela-historico');
+    tbody.innerHTML = '';
+    
+    registros.forEach(registro => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-gray-700 hover:bg-gray-800/50 transition-colors';
+        
+        tr.innerHTML = `
+            <td class="py-3 px-4 text-gray-300">
+                ${registro.data_execucao}<br>
+                <small class="text-gray-500">${registro.duracao || 'N/A'}</small>
+            </td>
+            <td class="py-3 px-4">
+                <span class="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs">
+                    ${registro.tipo_display}
+                </span>
+            </td>
+            <td class="py-3 px-4 text-gray-300">
+                ${registro.data_inicio} até<br>
+                ${registro.data_fim}
+            </td>
+            <td class="py-3 px-4">
+                <span class="px-2 py-1 rounded text-xs status-${registro.status} text-white">
+                    ${registro.status_display}
+                </span>
+            </td>
+            <td class="py-3 px-4 text-gray-300">
+                <div class="text-sm">
+                    <div>Processadas: ${registro.cobrancas_processadas}</div>
+                    <div class="text-green-400">Criadas: ${registro.cobrancas_criadas}</div>
+                    <div class="text-blue-400">Atualizadas: ${registro.cobrancas_atualizadas}</div>
+                    ${registro.erros > 0 ? `<div class="text-red-400">Erros: ${registro.erros}</div>` : ''}
+                </div>
+            </td>
+            <td class="py-3 px-4">
+                <div class="flex gap-2">
+                    <button onclick="verDetalhes(${registro.id})" class="text-blue-400 hover:text-blue-300" title="Ver detalhes">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    ${registro.status === 'erro' ? `
+                        <button onclick="reexecutar(${registro.id})" class="text-green-400 hover:text-green-300" title="Reexecutar">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                    ` : ''}
+                    <button onclick="downloadLog(${registro.id})" class="text-gray-400 hover:text-gray-300" title="Download log">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+            </td>
+        `;
+        
+        tbody.appendChild(tr);
+    });
+}
+
+// Funções de Sincronização
+async function iniciarSincronizacao() {
+    const tipo = document.getElementById('modal-tipo').value;
+    const dataInicio = document.getElementById('modal-data-inicio').value;
+    const dataFim = document.getElementById('modal-data-fim').value;
+    const forcar = document.getElementById('modal-forcar').checked;
+    
+    if (!dataInicio || !dataFim) {
+        showToast('Por favor, preencha as datas', 'warning');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/financeiro/sync/api/iniciar/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({
+                tipo,
+                data_inicio: dataInicio,
+                data_fim: dataFim,
+                forcar_atualizacao: forcar
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            fecharModalSincronizacao();
+            mostrarSincronizacaoEmAndamento();
+            showToast('Sincronização iniciada com sucesso', 'success');
+            
+            // Iniciar polling para acompanhar progresso
+            iniciarMonitoramento(data.sync_id);
+        } else {
+            showToast(data.error || 'Erro ao iniciar sincronização', 'error');
+        }
+    } catch (error) {
+        console.error('Erro ao iniciar sincronização:', error);
+        showToast('Erro ao iniciar sincronização', 'error');
+    }
+}
+
+function mostrarSincronizacaoEmAndamento() {
+    document.getElementById('sync-em-andamento').classList.remove('hidden');
+    sincronizacaoAtiva = true;
+}
+
+function ocultarSincronizacaoEmAndamento() {
+    document.getElementById('sync-em-andamento').classList.add('hidden');
+    sincronizacaoAtiva = false;
+}
+
+function iniciarMonitoramento(syncId) {
+    if (intervalAtualizar) {
+        clearInterval(intervalAtualizar);
+    }
+    
+    intervalAtualizar = setInterval(async () => {
+        try {
+            const response = await fetch(`/financeiro/sync/api/status/${syncId}/`);
+            const data = await response.json();
+            
+            atualizarProgresso(data);
+            
+            if (data.status !== 'executando') {
+                clearInterval(intervalAtualizar);
+                ocultarSincronizacaoEmAndamento();
+                carregarDashboard();
+                carregarHistorico();
+                
+                if (data.status === 'concluido') {
+                    showToast('Sincronização concluída com sucesso', 'success');
+                } else if (data.status === 'erro') {
+                    showToast('Sincronização finalizada com erros', 'error');
+                }
+            }
+        } catch (error) {
+            console.error('Erro ao monitorar sincronização:', error);
+        }
+    }, 2000);
+}
+
+function atualizarProgresso(data) {
+    const porcentagem = data.progresso || 0;
+    const texto = data.status_texto || 'Processando...';
+    
+    document.getElementById('progresso-porcentagem').textContent = `${porcentagem}%`;
+    document.getElementById('progresso-texto').textContent = texto;
+    document.getElementById('barra-progresso').style.width = `${porcentagem}%`;
+    
+    // Atualizar log se disponível
+    if (data.logs && data.logs.length > 0) {
+        const logContainer = document.getElementById('log-sincronizacao');
+        logContainer.innerHTML = '';
+        
+        data.logs.forEach(log => {
+            const logLine = document.createElement('div');
+            logLine.className = `text-${log.level === 'error' ? 'red' : log.level === 'warning' ? 'yellow' : 'gray'}-300`;
+            logLine.textContent = `${log.timestamp} - ${log.message}`;
+            logContainer.appendChild(logLine);
+        });
+        
+        // Scroll para o final
+        logContainer.scrollTop = logContainer.scrollHeight;
+    }
+}
+
+// Funções auxiliares
+function abrirModalSincronizacao() {
+    document.getElementById('modal-sincronizacao').classList.remove('hidden');
+    document.getElementById('modal-sincronizacao').classList.add('flex');
+}
+
+function fecharModalSincronizacao() {
+    document.getElementById('modal-sincronizacao').classList.add('hidden');
+    document.getElementById('modal-sincronizacao').classList.remove('flex');
+}
+
+async function verificarStatus() {
+    showLoading();
+    try {
+        await carregarDashboard();
+        await carregarHistorico();
+        showToast('Status atualizado', 'success');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function testarConexaoAsaas() {
+    showLoading();
+    try {
+        const response = await fetch('/financeiro/sync/api/testar-conexao/');
+        const data = await response.json();
+        
+        if (data.success) {
+            showToast('Conexão com Asaas funcionando corretamente', 'success');
+            atualizarStatusAPI(data.status);
+        } else {
+            showToast('Falha na conexão com Asaas: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showToast('Erro ao testar conexão', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function atualizarStatusAPI(status) {
+    const icon = document.getElementById('status-api-icon');
+    const texto = document.getElementById('status-api-texto');
+    
+    if (status && status.online) {
+        icon.className = 'w-16 h-16 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center';
+        icon.innerHTML = '<i class="fas fa-check text-2xl text-green-400"></i>';
+        texto.textContent = 'Online';
+        texto.className = 'text-green-400';
+    } else {
+        icon.className = 'w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center';
+        icon.innerHTML = '<i class="fas fa-times text-2xl text-red-400"></i>';
+        texto.textContent = 'Offline';
+        texto.className = 'text-red-400';
+    }
+    
+    if (status?.latencia) {
+        document.getElementById('latencia-api').textContent = status.latencia + 'ms';
+    }
+    
+    if (status?.rate_limit) {
+        document.getElementById('rate-limit').textContent = status.rate_limit;
+    }
+}
+
+function configurarEventos() {
+    // Filtros
+    document.getElementById('filtro-tipo').addEventListener('change', () => {
+        paginaAtual = 1;
+        carregarHistorico();
+    });
+    
+    document.getElementById('filtro-status').addEventListener('change', () => {
+        paginaAtual = 1;
+        carregarHistorico();
+    });
+}
+
+function verificarSincronizacaoAtiva() {
+    // Verificar se há alguma sincronização em andamento
+    fetch('/financeiro/sync/api/status-ativo/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.ativo) {
+                mostrarSincronizacaoEmAndamento();
+                iniciarMonitoramento(data.sync_id);
+            }
+        })
+        .catch(console.error);
+}
+
+// Funções utilitárias
+function formatarNumero(num) {
+    return new Intl.NumberFormat('pt-BR').format(num);
+}
+
+function getCsrfToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+}
+
+function paginaAnterior() {
+    if (paginaAtual > 1) {
+        paginaAtual--;
+        carregarHistorico();
+    }
+}
+
+function proximaPagina() {
+    paginaAtual++;
+    carregarHistorico();
+}
+
+function atualizarPaginacao(totalRegistros) {
+    const totalPaginas = Math.ceil(totalRegistros / registrosPorPagina);
+    const inicio = (paginaAtual - 1) * registrosPorPagina + 1;
+    const fim = Math.min(paginaAtual * registrosPorPagina, totalRegistros);
+    
+    document.getElementById('range-inicio').textContent = inicio;
+    document.getElementById('range-fim').textContent = fim;
+    document.getElementById('total-registros').textContent = totalRegistros;
+    
+    document.getElementById('btn-anterior').disabled = paginaAtual <= 1;
+    document.getElementById('btn-proximo').disabled = paginaAtual >= totalPaginas;
+}
+
+async function salvarConfiguracoes() {
+    const configuracoes = {
+        sync_automatica: document.getElementById('sync-automatica').checked,
+        frequencia: document.getElementById('frequencia-sync').value,
+        horario: document.getElementById('horario-sync').value,
+        dias_retro: parseInt(document.getElementById('dias-retro').value),
+        timeout_req: parseInt(document.getElementById('timeout-req').value),
+        notificar_erros: document.getElementById('notificar-erros').checked
+    };
+    
+    try {
+        const response = await fetch('/financeiro/sync/api/configuracoes/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify(configuracoes)
+        });
+        
+        if (response.ok) {
+            showToast('Configurações salvas com sucesso', 'success');
+        } else {
+            showToast('Erro ao salvar configurações', 'error');
+        }
+    } catch (error) {
+        console.error('Erro ao salvar configurações:', error);
+        showToast('Erro ao salvar configurações', 'error');
+    }
+}
+
+async function verDetalhes(syncId) {
+    try {
+        const response = await fetch(`/financeiro/sync/api/detalhes/${syncId}/`);
+        const data = await response.json();
+        
+        // Criar modal de detalhes (implementar conforme necessário)
+        mostrarModalDetalhes(data);
+    } catch (error) {
+        console.error('Erro ao carregar detalhes:', error);
+        showToast('Erro ao carregar detalhes', 'error');
+    }
+}
+
+async function reexecutar(syncId) {
+    if (!confirm('Deseja reexecutar esta sincronização?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/financeiro/sync/api/reexecutar/${syncId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrfToken()
+            }
+        });
+        
+        if (response.ok) {
+            showToast('Sincronização reexecutada', 'success');
+            carregarHistorico();
+        } else {
+            showToast('Erro ao reexecutar sincronização', 'error');
+        }
+    } catch (error) {
+        console.error('Erro ao reexecutar:', error);
+        showToast('Erro ao reexecutar sincronização', 'error');
+    }
+}
+
+function downloadLog(syncId) {
+    window.open(`/financeiro/sync/api/download-log/${syncId}/`, '_blank');
+}
+
+function cancelarSincronizacao() {
+    if (!confirm('Deseja cancelar a sincronização em andamento?')) {
+        return;
+    }
+    
+    fetch('/financeiro/sync/api/cancelar/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrfToken()
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            if (intervalAtualizar) {
+                clearInterval(intervalAtualizar);
+            }
+            ocultarSincronizacaoEmAndamento();
+            showToast('Sincronização cancelada', 'warning');
+        }
+    })
+    .catch(error => {
+        console.error('Erro ao cancelar:', error);
+        showToast('Erro ao cancelar sincronização', 'error');
+    });
+}
+
+function mostrarModalDetalhes(data) {
+    // Implementar modal de detalhes aqui
+    console.log('Detalhes da sincronização:', data);
+    // Por enquanto, apenas mostra no console
+    // Você pode implementar um modal completo conforme necessário
+}
+</script>
+
+{% endblock %}

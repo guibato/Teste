@@ -1,0 +1,289 @@
+<!-- financeiro/templates/financeiro/repasses/politica_global_list.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Políticas Globais{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-900 py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-white">Políticas Globais</h1>
+                    <p class="mt-2 text-gray-400">Templates de políticas que podem ser aplicados a múltiplos contratos</p>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="{% url 'financeiro:politica_contrato_list' %}" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500">
+                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Políticas por Contrato
+                    </a>
+                    <a href="{% url 'financeiro:politica_global_create' %}" 
+                       class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-500">
+                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Nova Política Global
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Políticas Globais -->
+        <div class="bg-gray-800 border border-gray-700 shadow overflow-hidden sm:rounded-md">
+            {% if politicas %}
+            <ul role="list" class="divide-y divide-gray-700">
+                {% for politica in politicas %}
+                <li class="hover:bg-gray-750 transition-colors duration-200">
+                    <div class="px-4 py-4 flex items-center justify-between">
+                        <div class="flex items-center">
+                            <!-- Status Icon -->
+                            <div class="flex-shrink-0">
+                                {% if politica.ativa %}
+                                    <div class="w-10 h-10 bg-green-900 border border-green-600 rounded-full flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                {% else %}
+                                    <div class="w-10 h-10 bg-gray-700 border border-gray-600 rounded-full flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Informações da Política -->
+                            <div class="ml-4">
+                                <div class="flex items-center">
+                                    <div class="text-sm font-medium text-white">
+                                        {{ politica.nome }}
+                                    </div>
+                                    <div class="ml-2">
+                                        {% if politica.ativa %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900 text-green-200 border border-green-700">
+                                                Ativa
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-gray-300 border border-gray-600">
+                                                Inativa
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <!-- Badge da Periodicidade -->
+                                    <div class="ml-2">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium 
+                                            {% if politica.periodicidade == 'mensal' %}bg-purple-900 text-purple-200 border border-purple-700
+                                            {% elif politica.periodicidade == 'semanal' %}bg-blue-900 text-blue-200 border border-blue-700
+                                            {% elif politica.periodicidade == 'quinzenal' %}bg-indigo-900 text-indigo-200 border border-indigo-700
+                                            {% else %}bg-yellow-900 text-yellow-200 border border-yellow-700{% endif %}">
+                                            {{ politica.get_periodicidade_display }}
+                                        </span>
+                                    </div>
+                                    <!-- Badge do Tipo de Dias -->
+                                    <div class="ml-2">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium 
+                                            {% if politica.tipo_dias == 'uteis' %}bg-cyan-900 text-cyan-200 border border-cyan-700
+                                            {% else %}bg-orange-900 text-orange-200 border border-orange-700{% endif %}">
+                                            {{ politica.get_tipo_dias_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="text-sm text-gray-400">
+                                    Taxa padrão: {{ politica.taxa_admin_padrao }}% | 
+                                    Valor mín: R$ {{ politica.valor_minimo_repasse|floatformat:2 }}
+                                    {% if politica.dia_mes %} | Dia {{ politica.dia_mes }}{% endif %}
+                                    {% if politica.dia_semana %} | {{ politica.get_dia_semana_display }}{% endif %}
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    Criada: {{ politica.data_criacao|date:"d/m/Y H:i" }} | 
+                                    Atualizada: {{ politica.data_atualizacao|date:"d/m/Y H:i" }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Ações -->
+                        <div class="flex items-center space-x-4">
+                            <div class="text-right">
+                                <div class="text-sm font-medium text-white">
+                                    {{ politica.get_periodicidade_display }}
+                                </div>
+                                <div class="text-xs text-gray-400">
+                                    {% if politica.dias_apos_recebimento %}{{ politica.dias_apos_recebimento }} dias após{% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-2">
+                                <button onclick="aplicarPolitica({{ politica.pk }})" 
+                                        class="text-green-400 hover:text-green-300 text-sm font-medium">
+                                    Aplicar
+                                </button>
+                                
+                                <a href="{% url 'financeiro:politica_global_update' politica.pk %}" 
+                                   class="text-indigo-400 hover:text-indigo-300 text-sm font-medium">
+                                    Editar
+                                </a>
+                                
+                                <button onclick="duplicarPolitica({{ politica.pk }})" 
+                                        class="text-blue-400 hover:text-blue-300 text-sm font-medium">
+                                    Duplicar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            
+            {% else %}
+            <!-- Estado vazio -->
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-white">Nenhuma política global encontrada</h3>
+                <p class="mt-1 text-sm text-gray-400">Comece criando políticas que podem ser aplicadas a múltiplos contratos.</p>
+                <div class="mt-6">
+                    <a href="{% url 'financeiro:politica_global_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500">
+                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Criar Primeira Política
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Informações de Ajuda -->
+        <div class="mt-8 bg-blue-900 border border-blue-700 rounded-lg p-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-blue-200">Como usar Políticas Globais</h3>
+                    <div class="mt-2 text-sm text-blue-100">
+                        <ul class="list-disc list-inside space-y-1">
+                            <li><strong>Templates:</strong> Servem como modelos para criar políticas específicas por contrato</li>
+                            <li><strong>Aplicação em lote:</strong> Podem ser aplicadas a múltiplos contratos de uma vez</li>
+                            <li><strong>Fallback:</strong> Contratos sem política específica usarão a política global ativa como padrão</li>
+                            <li><strong>Flexibilidade:</strong> Cada contrato pode ter sua própria política que sobrescreve a global</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Aplicação -->
+<div id="applyModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 overflow-y-auto h-full w-full hidden">
+    <div class="relative top-20 mx-auto p-5 border border-gray-600 w-96 shadow-lg rounded-md bg-gray-800">
+        <div class="mt-3 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-900 border border-green-600">
+                <svg class="h-6 w-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-medium text-white mt-4">Aplicar Política</h3>
+            <div class="mt-2 px-7 py-3">
+                <p class="text-sm text-gray-400 mb-4">
+                    Deseja aplicar esta política a todos os contratos que não possuem política específica?
+                </p>
+                <div id="applyInfo" class="text-left bg-gray-700 rounded p-3 text-sm">
+                    <!-- Informações da aplicação aparecerão aqui -->
+                </div>
+            </div>
+            <div class="items-center px-4 py-3">
+                <button onclick="confirmarAplicacao()" class="px-4 py-2 bg-green-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-green-500">
+                    Confirmar Aplicação
+                </button>
+                <button onclick="closeApplyModal()" class="mt-3 px-4 py-2 bg-gray-600 text-gray-200 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-gray-500">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentPoliticaId = null;
+
+function aplicarPolitica(politicaId) {
+    currentPoliticaId = politicaId;
+    
+    // Buscar informações sobre contratos sem política
+    fetch('/financeiro/repasses/ajax/contratos-sem-politica/')
+    .then(response => response.json())
+    .then(data => {
+        const info = `
+            <div>
+                <strong>Contratos elegíveis:</strong> ${data.count || 0}
+            </div>
+            <div class="mt-2 text-xs text-gray-400">
+                Esta política será aplicada a todos os contratos ativos que não possuem política específica.
+            </div>
+        `;
+        document.getElementById('applyInfo').innerHTML = info;
+        document.getElementById('applyModal').classList.remove('hidden');
+    })
+    .catch(() => {
+        // Fallback se não conseguir buscar os dados
+        document.getElementById('applyInfo').innerHTML = `
+            <div>Esta política será aplicada a contratos sem política específica.</div>
+        `;
+        document.getElementById('applyModal').classList.remove('hidden');
+    });
+}
+
+function closeApplyModal() {
+    document.getElementById('applyModal').classList.add('hidden');
+    currentPoliticaId = null;
+}
+
+function confirmarAplicacao() {
+    if (currentPoliticaId) {
+        fetch('/financeiro/repasses/contratos/aplicar-politica-lote/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                politica_global_id: currentPoliticaId,
+                aplicar_todos: true
+            })
+        }).then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`Política aplicada com sucesso a ${data.criados} contratos!`);
+                closeApplyModal();
+            } else {
+                alert('Erro ao aplicar política: ' + data.error);
+            }
+        }).catch(error => {
+            alert('Erro ao aplicar política');
+            console.error(error);
+        });
+    }
+}
+
+function duplicarPolitica(politicaId) {
+    if (confirm('Deseja criar uma cópia desta política?')) {
+        // Redirecionar para criação com parâmetros da política atual
+        window.location.href = `/financeiro/repasses/politicas/global/nova/?duplicar=${politicaId}`;
+    }
+}
+</script>
+{% endblock %}

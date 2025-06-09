@@ -1,0 +1,805 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto p-4">
+    <div class="bg-gray text-white p-6 rounded-lg mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-2xl font-bold mb-2">Editar Contrato</h2>
+                <p class="text-gray-300">Atualize as informações do contrato</p>
+            </div>
+            <div class="text-right">
+                <p class="text-sm text-gray-400">Contrato ID: #{{ object.id }}</p>
+                <p class="text-sm text-gray-400">Status: 
+                    {% if object.ativo %}
+                        <span class="text-green-400">Ativo</span>
+                    {% else %}
+                        <span class="text-red-400">Inativo</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-gray-700 p-6 rounded-lg border border-gray-700 shadow-md">
+        <form method="post" id="contrato-edit-form" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="bg-red-600 text-white p-4 rounded-lg mb-4">
+                <ul>
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <li>{{ field }}: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            
+            <!-- Seção: Informações Básicas -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-white mb-4 border-b border-gray-600 pb-2">
+                    <svg class="inline w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm8 8v2a1 1 0 01-1 1H6a1 1 0 01-1-1v-2h10zM7 16h6v-2H7v2z" clip-rule="evenodd"/>
+                    </svg>
+                    Informações Básicas
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- Status Ativo -->
+                    <div class="flex flex-col">
+                        <label for="{{ form.ativo.id_for_label }}" class="font-medium text-white mb-2">
+                            Status do Contrato
+                        </label>
+                        <div class="flex items-center space-x-2">
+                            {{ form.ativo }}
+                            <span class="text-sm text-gray-300">Ativo</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Cláusula 12 meses -->
+                    <div class="flex flex-col">
+                        <label for="{{ form.clausula_12meses.id_for_label }}" class="font-medium text-white mb-2">
+                            Cláusula 12 Meses
+                        </label>
+                        <div class="flex items-center space-x-2">
+                            {{ form.clausula_12meses }}
+                            <span class="text-sm text-gray-300">Aplicar cláusula</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Tipo de Contrato -->
+                    <div class="flex flex-col">
+                        <label for="{{ form.tipo_contrato.id_for_label }}" class="font-medium text-white mb-2">
+                            Tipo de Contrato
+                        </label>
+                        {{ form.tipo_contrato }}
+                    </div>
+                    
+                    <!-- Multa Contratual -->
+                    <div class="flex flex-col">
+                        <label for="{{ form.multa_contratual.id_for_label }}" class="font-medium text-white mb-2">
+                            Multa Contratual
+                        </label>
+                        {{ form.multa_contratual }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção: Partes do Contrato -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-white mb-4 border-b border-gray-600 pb-2">
+                    <svg class="inline w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                    </svg>
+                    Partes do Contrato
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Proprietário -->
+                    <div class="flex flex-col">
+                        <label for="{{ form.proprietario.id_for_label }}" class="font-medium text-white mb-2">
+                            Proprietário
+                        </label>
+                        {{ form.proprietario }}
+                    </div>
+                    
+                    <!-- Inquilino -->
+                    <div class="flex flex-col">
+                        <label for="{{ form.inquilino.id_for_label }}" class="font-medium text-white mb-2">
+                            Inquilino
+                        </label>
+                        {{ form.inquilino }}
+                    </div>
+                    
+                    <!-- Imóvel -->
+                    <div class="flex flex-col">
+                        <label for="{{ form.imovel.id_for_label }}" class="font-medium text-white mb-2">
+                            Imóvel
+                        </label>
+                        {{ form.imovel }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção: Vigência do Contrato -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-white mb-4 border-b border-gray-600 pb-2">
+                    <svg class="inline w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                    </svg>
+                    Vigência do Contrato
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- Data de Início -->
+                    <div class="flex flex-col">
+                        <label for="data_inicio" class="font-medium text-white mb-2">
+                            Data de Início
+                        </label>
+                        <input type="date" 
+                               name="data_inicio" 
+                               id="data_inicio" 
+                               value="{{ form.data_inicio.value|default_if_none:''|date:'Y-m-d' }}"
+                               required
+                               class="bg-gray-800 text-gray-100 p-3 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full transition-all">
+                    </div>
+                    
+                    <!-- Data de Fim -->
+                    <div class="flex flex-col">
+                        <label for="data_fim" class="font-medium text-white mb-2">
+                            Data de Fim
+                        </label>
+                        <input type="date" 
+                               name="data_fim" 
+                               id="data_fim" 
+                               value="{{ form.data_fim.value|default_if_none:''|date:'Y-m-d' }}"
+                               required
+                               class="bg-gray-800 text-gray-100 p-3 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full transition-all">
+                    </div>
+                    
+                    <!-- Carência -->
+                    <div class="flex flex-col">
+                        <label for="carencia" class="font-medium text-white mb-2">
+                            Carência (dias)
+                        </label>
+                        <input type="number" 
+                               name="carencia" 
+                               id="carencia" 
+                               value="{{ form.carencia.value|default:0 }}"
+                               min="0"
+                               class="bg-gray-800 text-gray-100 p-3 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full transition-all">
+                    </div>
+                    
+                    <!-- Fator de Reajuste -->
+                    <div class="flex flex-col">
+                        <label for="{{ form.fator_reajuste.id_for_label }}" class="font-medium text-white mb-2">
+                            Reajuste
+                        </label>
+                        {{ form.fator_reajuste }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção: Informações de Pagamento -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-white mb-4 border-b border-gray-600 pb-2">
+                    <svg class="inline w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+                        <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/>
+                    </svg>
+                    Informações de Pagamento
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Tipo de Pagamento -->
+                    <div class="flex flex-col">
+                        <label for="{{ form.tipo_pagamento.id_for_label }}" class="font-medium text-white mb-2">
+                            Tipo de Aluguel
+                        </label>
+                        {{ form.tipo_pagamento }}
+                    </div>
+                    
+                    <!-- Valor do Pacote -->
+                    <div class="flex flex-col" id="valor_pacote_field" style="display: none;">
+                        <label for="id_valor_pacote" class="font-medium text-white mb-2">
+                            Valor do Pacote
+                        </label>
+                        <input type="text" 
+                               name="valor_pacote" 
+                               id="id_valor_pacote" 
+                               value="{{ form.valor_pacote.value|default_if_none:'' }}"
+                               class="currency-input bg-gray-800 text-gray-100 p-3 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full transition-all">
+                    </div>
+                    
+                    <!-- Valor do Aluguel -->
+                    <div class="flex flex-col" id="valor_aluguel_field">
+                        <label for="id_valor_aluguel" class="font-medium text-white mb-2">
+                            Valor do Aluguel
+                        </label>
+                        <input type="text" 
+                               name="valor_aluguel" 
+                               id="id_valor_aluguel" 
+                               value="{{ form.valor_aluguel.value|default_if_none:'' }}"
+                               class="currency-input bg-gray-800 text-gray-100 p-3 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full transition-all">
+                    </div>
+                    
+                    <!-- Dia de Pagamento -->
+                    <div class="flex flex-col">
+                        <label for="{{ form.dia_pagamento.id_for_label }}" class="font-medium text-white mb-2">
+                            Dia de Pagamento
+                        </label>
+                        {{ form.dia_pagamento }}
+                    </div>
+                </div>
+                
+                <!-- Campos adicionais para despesas separadas -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4" id="despesas-separadas-fields">
+                    <!-- Condomínio -->
+                    <div class="flex flex-col" id="valor_condominio_field">
+                        <label for="id_valor_condominio" class="font-medium text-white mb-2">
+                            Condomínio
+                        </label>
+                        <input type="text" 
+                               name="condominio" 
+                               id="id_valor_condominio" 
+                               value="{{ form.valor_condominio.value|default_if_none:'' }}"
+                               class="currency-input bg-gray-800 text-gray-100 p-3 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full transition-all">
+                    </div>
+                    
+                    <!-- IPTU -->
+                    <div class="flex flex-col" id="valor_iptu_field">
+                        <label for="id_valor_iptu" class="font-medium text-white mb-2">
+                            IPTU
+                        </label>
+                        <input type="text" 
+                               name="iptu" 
+                               id="id_valor_iptu" 
+                               value="{{ form.valor_iptu.value|default_if_none:'' }}"
+                               class="currency-input bg-gray-800 text-gray-100 p-3 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full transition-all">
+                    </div>
+                    
+                    <!-- Outros -->
+                    <div class="flex flex-col" id="valor_outros_field">
+                        <label for="id_valor_outros" class="font-medium text-white mb-2">
+                            Outros
+                        </label>
+                        <input type="text" 
+                               name="outros" 
+                               id="id_valor_outros" 
+                               value="{{ form.valor_outros.value|default_if_none:'' }}"
+                               class="currency-input bg-gray-800 text-gray-100 p-3 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full transition-all">
+                    </div>
+                </div>
+                
+                <!-- Taxa de Administração -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <!-- Tipo de Taxa -->
+                    <div class="flex flex-col">
+                        <label for="{{ form.tipo_taxa.id_for_label }}" class="font-medium text-white mb-2">
+                            Tipo de Taxa
+                        </label>
+                        {{ form.tipo_taxa }}
+                    </div>
+                    
+                    <!-- Valor da Taxa -->
+                    <div class="flex flex-col">
+                        <label for="id_valor_taxa_admin" class="font-medium text-white mb-2">
+                            Valor da Taxa de Administração
+                        </label>
+                        <input type="text" 
+                               name="valor_taxa_admin" 
+                               id="id_valor_taxa_admin" 
+                               value="{{ form.valor_taxa_admin.value|default_if_none:'' }}"
+                               class="taxa-value bg-gray-800 text-gray-100 p-3 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full transition-all">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção: Garantias -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-white mb-4 border-b border-gray-600 pb-2">
+                    <svg class="inline w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    Garantias
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Tipo de Garantia -->
+                    <div class="flex flex-col">
+                        <label for="{{ form.garantia.id_for_label }}" class="font-medium text-white mb-2">
+                            Garantia
+                        </label>
+                        {{ form.garantia }}
+                    </div>
+                    
+                    <!-- Fiador -->
+                    <div class="flex flex-col" id="fiador_field" style="display: none;">
+                        <label for="{{ form.fiador.id_for_label }}" class="font-medium text-white mb-2">
+                            Fiador
+                        </label>
+                        {{ form.fiador }}
+                    </div>
+                    
+                    <!-- Valor da Caução -->
+                    <div class="flex flex-col">
+                        <label for="id_valor_caucao" class="font-medium text-white mb-2">
+                            Valor Caução
+                        </label>
+                        <input type="text" 
+                               name="valor_caucao" 
+                               id="id_valor_caucao" 
+                               value="{{ form.valor_caucao.value|default_if_none:'' }}"
+                               class="currency-input bg-gray-800 text-gray-100 p-3 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full transition-all">
+                    </div>
+                </div>
+                
+                <!-- Campos para Seguro/Apólices -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div class="flex flex-col" id="seguradora_caucao_field" style="display: none;">
+                        <label for="id_seguradora_caucao" class="font-medium text-white mb-2">
+                            Seguradora
+                        </label>
+                        <input type="text" 
+                               name="seguradora_caucao" 
+                               id="id_seguradora_caucao"
+                               class="bg-gray-800 text-gray-100 p-3 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full transition-all">
+                    </div>
+                    
+                    <div class="flex flex-col" id="apolice_caucao_field" style="display: none;">
+                        <label for="id_apolice_caucao" class="font-medium text-white mb-2">
+                            Número da Apólice
+                        </label>
+                        <input type="text" 
+                               name="apolice_caucao" 
+                               id="id_apolice_caucao"
+                               class="bg-gray-800 text-gray-100 p-3 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full transition-all">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção: Seguro Contra Incêndio -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-white mb-4 border-b border-gray-600 pb-2">
+                    <svg class="inline w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd"/>
+                    </svg>
+                    Seguro Contra Incêndio
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Seguradora -->
+                    <div class="flex flex-col">
+                        <label for="{{ form.seguradora_incendio.id_for_label }}" class="font-medium text-white mb-2">
+                            Seguradora
+                        </label>
+                        {{ form.seguradora_incendio }}
+                    </div>
+                    
+                    <!-- Valor do Seguro -->
+                    <div class="flex flex-col">
+                        <label for="id_valor_seguro_incendio" class="font-medium text-white mb-2">
+                            Valor do Seguro Contra Incêndio
+                        </label>
+                        <input type="text" 
+                               name="valor_seguro_incendio" 
+                               id="id_valor_seguro_incendio" 
+                               value="{{ form.valor_seguro_incendio.value|default_if_none:'' }}"
+                               class="currency-input bg-gray-800 text-gray-100 p-3 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full transition-all">
+                    </div>
+                    
+                    <!-- Vencimento -->
+                    <div class="flex flex-col">
+                        <label for="vencimento_seguro_incendio" class="font-medium text-white mb-2">
+                            Vencimento do Seguro
+                        </label>
+                        <input type="date" 
+                               name="vencimento_seguro_incendio"
+                               id="vencimento_seguro_incendio" 
+                               value="{{ form.vencimento_seguro_incendio.value|default_if_none:''|date:'Y-m-d' }}"
+                               class="bg-gray-800 text-gray-100 p-3 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full transition-all">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botões de Ação -->
+            <div class="flex justify-between items-center pt-6 border-t border-gray-600">
+                <a href="{% url 'listar_contratos' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
+                    </svg>
+                    Voltar
+                </a>
+                
+                <div class="flex gap-3">
+                    {% if object.id %}
+                    <a href="{% url 'dashboard' id=object.id %}" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                        </svg>
+                        Dashboard
+                    </a>
+                    {% endif %}
+                    
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg transition-colors duration-200 flex items-center font-medium">
+                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        Salvar Alterações
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Aplicar classes aos inputs
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        if (!input.classList.contains('bg-gray-800')) {
+            input.classList.add(
+                'bg-gray-800', 'text-gray-100', 'p-3', 'rounded-lg', 'border', 
+                'border-gray-600', 'focus:outline-none', 'focus:ring-2', 
+                'focus:ring-blue-500', 'w-full', 'transition-all'
+            );
+        }
+        
+        input.addEventListener('focus', () => {
+            input.classList.add('border-blue-500', 'bg-gray-700');
+        });
+        
+        input.addEventListener('blur', () => {
+            input.classList.remove('border-blue-500', 'bg-gray-700');
+        });
+    });
+
+    // Controle de visibilidade - Tipo de Pagamento
+    function updatePaymentFields() {
+        const tipoPagamento = document.querySelector('#id_tipo_pagamento');
+        const valorAluguelField = document.querySelector('#valor_aluguel_field');
+        const valorPacoteField = document.querySelector('#valor_pacote_field');
+        const despesasSeparadasFields = document.querySelector('#despesas-separadas-fields');
+        
+        if (!tipoPagamento) return;
+        
+        if (tipoPagamento.value === 'PACOTE') {
+            valorAluguelField.style.display = 'none';
+            valorPacoteField.style.display = 'block';
+            despesasSeparadasFields.style.display = 'none';
+        } else if (tipoPagamento.value === 'DESPESAS_SEPARADAS') {
+            valorAluguelField.style.display = 'block';
+            valorPacoteField.style.display = 'none';
+            despesasSeparadasFields.style.display = 'grid';
+        } else {
+            valorAluguelField.style.display = 'none';
+            valorPacoteField.style.display = 'none';
+            despesasSeparadasFields.style.display = 'none';
+        }
+    }
+
+    // Controle de visibilidade - Garantias
+    function updateGarantiaFields() {
+        const garantiaField = document.querySelector('#id_garantia');
+        const fiadorField = document.querySelector('#fiador_field');
+        const seguradoraField = document.querySelector('#seguradora_caucao_field');
+        const apoliceField = document.querySelector('#apolice_caucao_field');
+        
+        if (!garantiaField) return;
+        
+        const garantiaValue = garantiaField.value.toUpperCase();
+        
+        // Ocultar todos primeiro
+        if (fiadorField) fiadorField.style.display = 'none';
+        if (seguradoraField) seguradoraField.style.display = 'none';
+        if (apoliceField) apoliceField.style.display = 'none';
+        
+        // Mostrar campos relevantes
+        if (garantiaValue === 'FIADOR') {
+            if (fiadorField) fiadorField.style.display = 'block';
+        } else if (garantiaValue === 'SEGURO_FIANCA' || garantiaValue === 'CAPITALIZAÇÃO') {
+            if (seguradoraField) seguradoraField.style.display = 'block';
+            if (apoliceField) apoliceField.style.display = 'block';
+        }
+    }
+
+    // Formatação de campos monetários
+    function formatCurrency(input) {
+        let value = input.value.replace(/\D/g, '');
+        value = (value / 100).toFixed(2);
+        value = value.replace('.', ',');
+        value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+        input.value = 'R$ ' + value;
+    }
+
+    function unformatCurrency(input) {
+        input.value = input.value.replace(/\D/g, '');
+    }
+
+    // Aplicar formatação aos campos monetários
+    const currencyInputs = document.querySelectorAll('.currency-input');
+    currencyInputs.forEach(input => {
+        // Formatar valor inicial se não estiver formatado
+        if (input.value && !input.value.includes('R)) {
+            const numValue = parseFloat(input.value);
+            if (!isNaN(numValue) && numValue > 0) {
+                input.value = (numValue * 100).toString();
+                formatCurrency(input);
+            }
+        }
+
+        input.addEventListener('input', function() {
+            formatCurrency(this);
+        });
+
+        input.addEventListener('focus', function() {
+            unformatCurrency(this);
+        });
+
+        input.addEventListener('blur', function() {
+            if (this.value) {
+                formatCurrency(this);
+            }
+        });
+    });
+
+    // Formatação da taxa de administração
+    function updateTaxaFormat() {
+        const tipoTaxaInput = document.querySelector('#id_tipo_taxa');
+        const valorTaxaInput = document.querySelector('#id_valor_taxa_admin');
+        
+        if (!tipoTaxaInput || !valorTaxaInput) return;
+
+        const tipoTaxa = tipoTaxaInput.value;
+        
+        if (tipoTaxa === 'percentual') {
+            // Mostrar como porcentagem
+            valorTaxaInput.placeholder = 'Ex: 10.5';
+            if (valorTaxaInput.value && !valorTaxaInput.value.includes('%')) {
+                const numValue = parseFloat(valorTaxaInput.value);
+                if (!isNaN(numValue)) {
+                    valorTaxaInput.value = numValue + '%';
+                }
+            }
+        } else if (tipoTaxa === 'valor') {
+            // Mostrar como valor monetário
+            valorTaxaInput.placeholder = 'Ex: 150.00';
+            if (valorTaxaInput.value && valorTaxaInput.value.includes('%')) {
+                valorTaxaInput.value = valorTaxaInput.value.replace('%', '');
+            }
+        }
+    }
+
+    // Inicializar controles
+    updatePaymentFields();
+    updateGarantiaFields();
+    updateTaxaFormat();
+    
+    // Event listeners
+    const tipoPagamentoSelect = document.querySelector('#id_tipo_pagamento');
+    if (tipoPagamentoSelect) {
+        tipoPagamentoSelect.addEventListener('change', updatePaymentFields);
+    }
+    
+    const garantiaSelect = document.querySelector('#id_garantia');
+    if (garantiaSelect) {
+        garantiaSelect.addEventListener('change', updateGarantiaFields);
+    }
+
+    const tipoTaxaSelect = document.querySelector('#id_tipo_taxa');
+    if (tipoTaxaSelect) {
+        tipoTaxaSelect.addEventListener('change', updateTaxaFormat);
+    }
+
+    // Validação de datas
+    const dataInicio = document.getElementById('data_inicio');
+    const dataFim = document.getElementById('data_fim');
+    
+    function validateDates() {
+        if (dataInicio.value && dataFim.value) {
+            const inicio = new Date(dataInicio.value);
+            const fim = new Date(dataFim.value);
+            
+            if (fim <= inicio) {
+                dataFim.setCustomValidity('A data de fim deve ser posterior à data de início');
+                dataFim.classList.add('border-red-500');
+            } else {
+                dataFim.setCustomValidity('');
+                dataFim.classList.remove('border-red-500');
+            }
+        }
+    }
+    
+    if (dataInicio && dataFim) {
+        dataInicio.addEventListener('change', validateDates);
+        dataFim.addEventListener('change', validateDates);
+    }
+
+    // Remover formatação antes de enviar
+    const form = document.getElementById('contrato-edit-form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            currencyInputs.forEach(input => {
+                unformatCurrency(input);
+            });
+            
+            const valorTaxaInput = document.querySelector('#id_valor_taxa_admin');
+            if (valorTaxaInput) {
+                const tipoTaxa = document.querySelector('#id_tipo_taxa').value;
+                if (tipoTaxa === 'percentual') {
+                    // Para percentual, remover apenas o símbolo %
+                    valorTaxaInput.value = valorTaxaInput.value.replace('%', '');
+                } else {
+                    // Para valor fixo, remover formatação de moeda
+                    unformatCurrency(valorTaxaInput);
+                }
+            }
+        });
+    }
+
+    // Formatação inicial para campos que já têm valores
+    window.addEventListener('load', function() {
+        // Formatar campos monetários que já têm valores
+        currencyInputs.forEach(input => {
+            if (input.value && !input.value.includes('R)) {
+                const numValue = parseFloat(input.value);
+                if (!isNaN(numValue) && numValue > 0) {
+                    input.value = (numValue * 100).toString();
+                    formatCurrency(input);
+                }
+            }
+        });
+
+        // Atualizar formato da taxa se já tem valor
+        const valorTaxaInput = document.querySelector('#id_valor_taxa_admin');
+        const tipoTaxaInput = document.querySelector('#id_tipo_taxa');
+        
+        if (valorTaxaInput && valorTaxaInput.value && tipoTaxaInput) {
+            const tipoTaxa = tipoTaxaInput.value;
+            if (tipoTaxa === 'percentual' && !valorTaxaInput.value.includes('%')) {
+                const numValue = parseFloat(valorTaxaInput.value);
+                if (!isNaN(numValue)) {
+                    valorTaxaInput.value = numValue + '%';
+                }
+            }
+        }
+    });
+});
+</script>
+
+<style>
+/* Estilos para melhorar a aparência */
+.tooltip {
+    position: relative;
+}
+
+.tooltip:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #1f2937;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 1000;
+    border: 1px solid #374151;
+}
+
+.tooltip:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(100%);
+    border: 4px solid transparent;
+    border-top-color: #1f2937;
+    z-index: 1001;
+}
+
+/* Animações suaves */
+.transition-all {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Estados de foco aprimorados */
+input:focus, select:focus, textarea:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Melhor aparência para checkboxes */
+input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    accent-color: #3b82f6;
+}
+
+/* Estados de validação */
+.border-red-500 {
+    border-color: #ef4444 !important;
+}
+
+.border-green-500 {
+    border-color: #10b981 !important;
+}
+
+/* Responsividade aprimorada */
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .md\:col-span-2,
+    .md\:col-span-3,
+    .md\:col-span-4 {
+        grid-column: span 1;
+    }
+    
+    .flex {
+        flex-direction: column;
+    }
+    
+    .justify-between {
+        justify-content: center;
+    }
+    
+    .gap-3 {
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+}
+
+/* Estilo para campos desabilitados */
+input:disabled, select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Indicador de carregamento */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Melhor contraste para labels */
+label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+/* Estilo para seções */
+h3 {
+    display: flex;
+    align-items: center;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #4b5563;
+}
+
+/* Estilo para o formulário */
+#contrato-edit-form {
+    max-width: none;
+}
+
+/* Melhor espaçamento entre seções */
+.mb-8 {
+    margin-bottom: 2rem;
+}
+
+/* Hover effects para botões */
+button:hover, a:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Focus visible para acessibilidade */
+button:focus-visible, a:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+</style>
+{% endblock %}

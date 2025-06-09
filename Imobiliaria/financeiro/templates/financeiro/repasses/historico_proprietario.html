@@ -1,0 +1,440 @@
+<!-- financeiro/templates/financeiro/repasses/historico_proprietario.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Histórico - {{ proprietario.nome }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-900 py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-white">Histórico de Repasses</h1>
+                    <p class="mt-2 text-gray-400">{{ proprietario.nome }}</p>
+                    <div class="mt-2 text-sm text-gray-400">
+                        {% if proprietario.email %}{{ proprietario.email }}{% endif %}
+                        {% if proprietario.telefone %} | {{ proprietario.telefone }}{% endif %}
+                    </div>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="{% url 'financeiro:lista_repasses' %}" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500">
+                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Voltar para Repasses
+                    </a>
+                    <button onclick="exportarHistorico()" 
+                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-500">
+                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Exportar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estatísticas do Proprietário -->
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+            <div class="bg-gray-800 border border-gray-700 overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-400 truncate">Total Recebido</dt>
+                                <dd class="text-lg font-semibold text-green-400">R$ {{ stats.total_recebido|floatformat:2 }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 border border-gray-700 overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-400 truncate">Pendente</dt>
+                                <dd class="text-lg font-semibold text-yellow-400">R$ {{ stats.total_pendente|floatformat:2 }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 border border-gray-700 overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-400 truncate">Total Repasses</dt>
+                                <dd class="text-lg font-semibold text-white">{{ stats.total_repasses }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 border border-gray-700 overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-400 truncate">Com Política</dt>
+                                <dd class="text-lg font-semibold text-white">{{ stats.contratos_com_politica }}/{{ stats.contratos_com_politica|add:stats.contratos_sem_politica }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="bg-gray-800 border border-gray-700 shadow rounded-lg mb-6">
+            <div class="px-4 py-5 sm:p-6">
+                <form method="get" class="grid grid-cols-1 gap-6 sm:grid-cols-4">
+                    
+                    <!-- Ano -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300">Ano</label>
+                        <select name="ano" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option value="">Todos</option>
+                            {% for ano_opt in anos_disponiveis %}
+                                <option value="{{ ano_opt }}" {% if filtros.ano == ano_opt|stringformat:"s" %}selected{% endif %}>{{ ano_opt }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Mês -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300">Mês</label>
+                        <select name="mes" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option value="">Todos</option>
+                            {% for mes_num, mes_nome in meses_disponiveis %}
+                                <option value="{{ mes_num }}" {% if filtros.mes == mes_num|stringformat:"s" %}selected{% endif %}>{{ mes_nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Status -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300">Status</label>
+                        <select name="status" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option value="">Todos</option>
+                            <option value="pendente" {% if filtros.status == 'pendente' %}selected{% endif %}>Pendente</option>
+                            <option value="efetuado" {% if filtros.status == 'efetuado' %}selected{% endif %}>Efetuado</option>
+                            <option value="cancelado" {% if filtros.status == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                        </select>
+                    </div>
+
+                    <!-- Botão -->
+                    <div class="flex items-end">
+                        <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500">
+                            <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            Filtrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Gráfico de Evolução Mensal -->
+        {% if repasses_mensais %}
+        <div class="bg-gray-800 border border-gray-700 shadow rounded-lg mb-8">
+            <div class="px-6 py-4 border-b border-gray-700">
+                <h3 class="text-lg font-medium text-white">Evolução dos Repasses (últimos 12 meses)</h3>
+            </div>
+            <div class="px-6 py-4">
+                <div id="monthlyChart" class="h-64"></div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Lista de Repasses -->
+        <div class="bg-gray-800 border border-gray-700 shadow overflow-hidden sm:rounded-md">
+            {% if repasses %}
+            <ul role="list" class="divide-y divide-gray-700">
+                {% for repasse in repasses %}
+                <li class="hover:bg-gray-750 transition-colors duration-200">
+                    <div class="px-4 py-4 flex items-center justify-between">
+                        <div class="flex items-center">
+                            <!-- Status Icon -->
+                            <div class="flex-shrink-0">
+                                {% if repasse.status == 'pendente' %}
+                                    {% if repasse.esta_atrasado %}
+                                        <div class="w-10 h-10 bg-red-900 border border-red-600 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.728-.833-2.498 0L4.316 15.5c-.77.833.192 2.5 1.732 2.5z" />
+                                            </svg>
+                                        </div>
+                                    {% else %}
+                                        <div class="w-10 h-10 bg-yellow-900 border border-yellow-600 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                    {% endif %}
+                                {% elif repasse.status == 'efetuado' %}
+                                    <div class="w-10 h-10 bg-green-900 border border-green-600 rounded-full flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                {% else %}
+                                    <div class="w-10 h-10 bg-gray-700 border border-gray-600 rounded-full flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Informações do Repasse -->
+                            <div class="ml-4">
+                                <div class="flex items-center">
+                                    <div class="text-sm font-medium text-white">
+                                        Repasse #{{ repasse.id }}
+                                    </div>
+                                    <div class="ml-2">
+                                        {% if repasse.status == 'pendente' %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-900 text-yellow-200 border border-yellow-700">
+                                                Pendente
+                                                {% if repasse.esta_atrasado %}
+                                                    ({{ repasse.dias_atraso }} dias atraso)
+                                                {% endif %}
+                                            </span>
+                                        {% elif repasse.status == 'efetuado' %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900 text-green-200 border border-green-700">
+                                                Efetuado
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-gray-300 border border-gray-600">
+                                                Cancelado
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="text-sm text-gray-400">
+                                    {{ repasse.contrato.imovel.endereco|truncatechars:50 }}
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    Ref: {{ repasse.mes_referencia|stringformat:"02d" }}/{{ repasse.ano_referencia }} | 
+                                    Previsto: {{ repasse.data_prevista|date:"d/m/Y" }}
+                                    {% if repasse.data_efetivacao %}
+                                        | Efetuado: {{ repasse.data_efetivacao|date:"d/m/Y" }}
+                                    {% endif %}
+                                    {% if repasse.metodo_pagamento %}
+                                        | {{ repasse.get_metodo_pagamento_display }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Valores e Ações -->
+                        <div class="flex items-center space-x-4">
+                            <div class="text-right">
+                                <div class="text-sm font-medium text-white">
+                                    R$ {{ repasse.valor_liquido|floatformat:2 }}
+                                </div>
+                                <div class="text-xs text-gray-400">
+                                    Bruto: R$ {{ repasse.valor|floatformat:2 }}
+                                    {% if repasse.valor_taxa_admin > 0 %}
+                                        | Taxa: R$ {{ repasse.valor_taxa_admin|floatformat:2 }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-2">
+                                <a href="{% url 'financeiro:repasse_detail' repasse.pk %}" 
+                                   class="text-indigo-400 hover:text-indigo-300 text-sm font-medium">
+                                    Ver
+                                </a>
+                                
+                                {% if repasse.status == 'pendente' %}
+                                    <a href="{% url 'financeiro:processar_repasse' repasse.pk %}" 
+                                       class="text-green-400 hover:text-green-300 text-sm font-medium">
+                                        Processar
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            
+            {% else %}
+            <!-- Estado vazio -->
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-white">Nenhum repasse encontrado</h3>
+                <p class="mt-1 text-sm text-gray-400">Ajuste os filtros ou crie um novo repasse.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Paginação -->
+        {% if is_paginated %}
+        <div class="mt-6 flex items-center justify-between">
+            <div class="flex-1 flex justify-between sm:hidden">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" class="relative inline-flex items-center px-4 py-2 border border-gray-600 text-sm font-medium rounded-md text-gray-300 bg-gray-800 hover:bg-gray-700">
+                        Anterior
+                    </a>
+                {% endif %}
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-600 text-sm font-medium rounded-md text-gray-300 bg-gray-800 hover:bg-gray-700">
+                        Próximo
+                    </a>
+                {% endif %}
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-400">
+                        Mostrando
+                        <span class="font-medium">{{ page_obj.start_index }}</span>
+                        a
+                        <span class="font-medium">{{ page_obj.end_index }}</span>
+                        de
+                        <span class="font-medium">{{ page_obj.paginator.count }}</span>
+                        resultados
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        {% if page_obj.has_previous %}
+                            <a href="?page=1&{{ request.GET.urlencode }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-600 bg-gray-800 text-sm font-medium text-gray-300 hover:bg-gray-700">
+                                <span class="sr-only">Primeira</span>
+                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <span class="relative inline-flex items-center px-4 py-2 border border-indigo-500 bg-indigo-600 text-sm font-medium text-white">
+                                    {{ num }}
+                                </span>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <a href="?page={{ num }}&{{ request.GET.urlencode }}" class="relative inline-flex items-center px-4 py-2 border border-gray-600 bg-gray-800 text-sm font-medium text-gray-300 hover:bg-gray-700">
+                                    {{ num }}
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-600 bg-gray-800 text-sm font-medium text-gray-300 hover:bg-gray-700">
+                                <span class="sr-only">Última</span>
+                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                        {% endif %}
+                    </nav>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+{% if repasses_mensais %}
+// Gráfico de evolução mensal
+const ctx = document.getElementById('monthlyChart').getContext('2d');
+const monthlyChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: {{ repasses_mensais|safe }}.map(item => item.mes),
+        datasets: [{
+            label: 'Valor dos Repasses',
+            data: {{ repasses_mensais|safe }}.map(item => item.total),
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.1,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: {
+                    color: '#9CA3AF'
+                }
+            }
+        },
+        scales: {
+            x: {
+                ticks: {
+                    color: '#9CA3AF'
+                },
+                grid: {
+                    color: '#374151'
+                }
+            },
+            y: {
+                ticks: {
+                    color: '#9CA3AF',
+                    callback: function(value) {
+                        return 'R$ ' + value.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                    }
+                },
+                grid: {
+                    color: '#374151'
+                }
+            }
+        }
+    }
+});
+{% endif %}
+
+function exportarHistorico() {
+    const url = new URL(window.location.href);
+    url.pathname = url.pathname.replace('/historico/', '/extrato/');
+    url.searchParams.set('export', 'excel');
+    window.open(url.toString(), '_blank');
+}
+</script>
+{% endblock %}

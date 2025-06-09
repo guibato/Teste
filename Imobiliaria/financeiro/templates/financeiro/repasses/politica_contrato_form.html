@@ -1,0 +1,897 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if object %}Editar Política - Contrato {{ object.contrato.id }}{% else %}Nova Política de Repasse{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-900 py-6">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-white">
+                        {% if object %}
+                            Política - Contrato {{ object.contrato.id }}
+                        {% else %}
+                            Nova Política de Repasse
+                        {% endif %}
+                    </h1>
+                    <p class="mt-2 text-gray-400">
+                        Configure regras automáticas específicas para este contrato
+                    </p>
+                    
+                    <!-- ✅ CORRIGIDO: Só mostra se object E object.contrato existem -->
+                    {% if object and object.contrato %}
+                    <div class="mt-3 p-3 bg-gray-800 border border-gray-700 rounded-lg">
+                        <div class="text-sm text-gray-300">
+                            <strong>Contrato:</strong> 
+                            {% for proprietario in object.contrato.proprietario.all %}
+                                {{ proprietario.nome }}{% if not forloop.last %}, {% endif %}
+                            {% empty %}
+                                <span class="text-gray-500">Sem proprietário</span>
+                            {% endfor %}
+                            - {{ object.contrato.imovel.endereco_completo }}
+                        </div>
+                        <div class="text-xs text-gray-400 mt-1">
+                            Valor Base: R$ {{ object.contrato.valor_base|floatformat:2 }} | 
+                            Status: {% if object.contrato.ativo %}Ativo{% else %}Inativo{% endif %}
+                            
+                            {% if object.contrato.reajustes.exists %}
+                                {% with ultimo_reajuste=object.contrato.reajustes.first %}
+                                    | Valor Atual: R$ {{ ultimo_reajuste.valor_reajustado|floatformat:2 }}
+                                    ({{ ultimo_reajuste.data_reajuste|date:"m/Y" }})
+                                {% endwith %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                <a href="{% url 'financeiro:politica_contrato_list' %}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500">
+                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Voltar
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Formulário Principal -->
+            <div class="lg:col-span-2">
+                <div class="bg-gray-800 border border-gray-700 shadow rounded-lg">
+                    <form method="post" class="p-6 space-y-6">
+                        {% csrf_token %}
+                        
+                        <!-- ✅ CORRIGIDO: Seleção de Contrato com endereco_completo -->
+                        {% if not object %}
+                        <div class="border-b border-gray-700 pb-6">
+                            <h3 class="text-lg font-medium text-white mb-4">Selecionar Contrato</h3>
+                            <div>
+                                <label for="{{ form.contrato.id_for_label }}" class="block text-sm font-medium text-gray-300">
+                                    Contrato *
+                                </label>
+                                <select id="{{ form.contrato.id_for_label }}" name="contrato" required 
+                                        class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    <option value="">Selecione um contrato...</option>
+                                    {% for contrato in contratos_sem_politica %}
+                                        <option value="{{ contrato.id }}" 
+                                                data-proprietarios="{% for prop in contrato.proprietario.all %}{{ prop.nome }}{% if not forloop.last %}, {% endif %}{% endfor %}"
+                                                data-endereco="{{ contrato.imovel.endereco_completo }}"
+                                                data-valor="{{ contrato.valor_base }}">
+                                            #{{ contrato.id }} - 
+                                            {% for prop in contrato.proprietario.all %}{{ prop.nome }}{% if not forloop.last %}, {% endif %}{% endfor %} - 
+                                            {{ contrato.imovel.endereco_completo|truncatechars:50 }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                {% if form.contrato.errors %}
+                                    <p class="mt-1 text-sm text-red-400">{{ form.contrato.errors.0 }}</p>
+                                {% endif %}
+                                
+                                <!-- ✅ DEBUG: Mostrar alguns contratos para verificar -->
+                                {% if contratos_sem_politica %}
+                                <div class="mt-2 text-xs text-gray-500">
+                                    <details>
+                                        <summary>🔍 Debug: Ver primeiros contratos (clique para expandir)</summary>
+                                        <div class="mt-2 space-y-1 max-h-40 overflow-y-auto">
+                                            {% for contrato in contratos_sem_politica|slice:":3" %}
+                                                <div class="p-2 bg-gray-700 rounded text-xs">
+                                                    <div><strong>Contrato #{{ contrato.id }}</strong></div>
+                                                    <div>Proprietários: {% for prop in contrato.proprietario.all %}{{ prop.nome }}{% if not forloop.last %}, {% endif %}{% endfor %}</div>
+                                                    <div>Endereço: {{ contrato.imovel.endereco }}</div>
+                                                    <div>Número: {{ contrato.imovel.numero }}</div>
+                                                    <div>Complemento: {{ contrato.imovel.complemento }}</div>
+                                                    <div class="text-yellow-300"><strong>endereco_completo: "{{ contrato.imovel.endereco_completo }}"</strong></div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </details>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Configurações Básicas -->
+                        <div class="border-b border-gray-700 pb-6">
+                            <h3 class="text-lg font-medium text-white mb-4">Configurações Básicas</h3>
+                            
+                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                <!-- Ativa -->
+                                <div class="sm:col-span-2">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="ativa" {% if form.ativa.value %}checked{% endif %}
+                                               class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700 rounded">
+                                        <span class="ml-2 text-sm font-medium text-gray-300">Política Ativa</span>
+                                    </label>
+                                    <p class="mt-1 text-sm text-gray-400">
+                                        Apenas políticas ativas são usadas para criar repasses automaticamente
+                                    </p>
+                                </div>
+
+                                <!-- Periodicidade -->
+                                <div>
+                                    <label for="periodicidade" class="block text-sm font-medium text-gray-300">
+                                        Periodicidade *
+                                    </label>
+                                    <select id="periodicidade" name="periodicidade" required
+                                            class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        <option value="">Selecione...</option>
+                                        <option value="diaria" {% if form.periodicidade.value == 'diaria' %}selected{% endif %}>Diária</option>
+                                        <option value="semanal" {% if form.periodicidade.value == 'semanal' %}selected{% endif %}>Semanal</option>
+                                        <option value="quinzenal" {% if form.periodicidade.value == 'quinzenal' %}selected{% endif %}>Quinzenal</option>
+                                        <option value="mensal" {% if form.periodicidade.value == 'mensal' %}selected{% endif %}>Mensal</option>
+                                    </select>
+                                </div>
+
+                                <!-- Tipo de Dias -->
+                                <div>
+                                    <label for="tipo_dias" class="block text-sm font-medium text-gray-300">
+                                        Tipo de Dias *
+                                    </label>
+                                    <select id="tipo_dias" name="tipo_dias" required
+                                            class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        <option value="uteis" {% if form.tipo_dias.value == 'uteis' %}selected{% endif %}>Dias Úteis</option>
+                                        <option value="corridos" {% if form.tipo_dias.value == 'corridos' %}selected{% endif %}>Dias Corridos</option>
+                                        <option value="fixo" {% if form.tipo_dias.value == 'fixo' %}selected{% endif %}>Dia Fixo</option>
+                                    </select>
+                                    <p class="mt-1 text-sm text-gray-400">
+                                        Dias úteis: exclui finais de semana e feriados | Dias corridos: inclui todos os dias | Dia fixo: sempre no mesmo dia
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Configurações de Data -->
+                        <div class="border-b border-gray-700 pb-6">
+                            <h3 class="text-lg font-medium text-white mb-4">Configurações de Data</h3>
+                            
+                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                                <!-- Dia do Mês -->
+                                <div id="dia-mes-container" style="display: none;">
+                                    <label for="dia_mes" class="block text-sm font-medium text-gray-300">
+                                        Dia do Mês
+                                    </label>
+                                    <input type="number" id="dia_mes" name="dia_mes" min="1" max="31" 
+                                           value="{{ form.dia_mes.value|default:'' }}"
+                                           class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                           placeholder="Ex: 5">
+                                    <p class="mt-1 text-sm text-gray-400">Para periodicidade mensal (1-31)</p>
+                                </div>
+
+                                <!-- Dia da Semana -->
+                                <div id="dia-semana-container" style="display: none;">
+                                    <label for="dia_semana" class="block text-sm font-medium text-gray-300">
+                                        Dia da Semana
+                                    </label>
+                                    <select id="dia_semana" name="dia_semana"
+                                            class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        <option value="">Selecione...</option>
+                                        <option value="1" {% if form.dia_semana.value == 1 %}selected{% endif %}>Segunda-feira</option>
+                                        <option value="2" {% if form.dia_semana.value == 2 %}selected{% endif %}>Terça-feira</option>
+                                        <option value="3" {% if form.dia_semana.value == 3 %}selected{% endif %}>Quarta-feira</option>
+                                        <option value="4" {% if form.dia_semana.value == 4 %}selected{% endif %}>Quinta-feira</option>
+                                        <option value="5" {% if form.dia_semana.value == 5 %}selected{% endif %}>Sexta-feira</option>
+                                        <option value="6" {% if form.dia_semana.value == 6 %}selected{% endif %}>Sábado</option>
+                                        <option value="7" {% if form.dia_semana.value == 7 %}selected{% endif %}>Domingo</option>
+                                    </select>
+                                    <p class="mt-1 text-sm text-gray-400">Para periodicidade semanal</p>
+                                </div>
+
+                                <!-- Dias após recebimento -->
+                                <div>
+                                    <label for="dias_apos_recebimento" class="block text-sm font-medium text-gray-300">
+                                        Dias após Recebimento
+                                    </label>
+                                    <input type="number" id="dias_apos_recebimento" name="dias_apos_recebimento" 
+                                           min="0" max="30" value="{{ form.dias_apos_recebimento.value|default:2 }}"
+                                           class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    <p class="mt-1 text-sm text-gray-400">
+                                        Aguardar compensação do pagamento
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Configurações Financeiras -->
+                        <div class="border-b border-gray-700 pb-6">
+                            <h3 class="text-lg font-medium text-white mb-4">Configurações Financeiras</h3>
+                            
+                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                <!-- Taxa Admin Personalizada -->
+                                <div>
+                                    <label for="taxa_admin_personalizada" class="block text-sm font-medium text-gray-300">
+                                        Taxa Administrativa (%)
+                                    </label>
+                                    <input type="number" id="taxa_admin_personalizada" name="taxa_admin_personalizada" 
+                                           step="0.01" min="0" max="100" value="{{ form.taxa_admin_personalizada.value|default:'' }}"
+                                           class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                           placeholder="8.00">
+                                    <p class="mt-1 text-sm text-gray-400">
+                                        Taxa específica para este contrato (deixe vazio para usar padrão global)
+                                    </p>
+                                </div>
+
+                                <!-- Valor Mínimo -->
+                                <div>
+                                    <label for="valor_minimo_repasse" class="block text-sm font-medium text-gray-300">
+                                        Valor Mínimo para Repasse (R$)
+                                    </label>
+                                    <input type="number" id="valor_minimo_repasse" name="valor_minimo_repasse" 
+                                           step="0.01" min="0" value="{{ form.valor_minimo_repasse.value|default:0 }}"
+                                           class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                           placeholder="0.00">
+                                    <p class="mt-1 text-sm text-gray-400">
+                                        Repasses abaixo deste valor não serão criados (0 = sem limite)
+                                    </p>
+                                </div>
+
+                                <!-- Percentual de Adiantamento -->
+                                <div>
+                                    <label for="percentual_adiantamento" class="block text-sm font-medium text-gray-300">
+                                        Percentual de Adiantamento (%)
+                                    </label>
+                                    <input type="number" id="percentual_adiantamento" name="percentual_adiantamento" 
+                                           step="0.01" min="0" max="100" value="{{ form.percentual_adiantamento.value|default:0 }}"
+                                           class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                           placeholder="0.00">
+                                    <p class="mt-1 text-sm text-gray-400">
+                                        Percentual do valor que pode ser adiantado (0 = sem adiantamento)
+                                    </p>
+                                </div>
+
+                                <!-- Taxa de Adiantamento -->
+                                <div>
+                                    <label for="taxa_adiantamento" class="block text-sm font-medium text-gray-300">
+                                        Taxa de Adiantamento (%)
+                                    </label>
+                                    <input type="number" id="taxa_adiantamento" name="taxa_adiantamento" 
+                                           step="0.01" min="0" max="100" value="{{ form.taxa_adiantamento.value|default:0 }}"
+                                           class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                           placeholder="0.00">
+                                    <p class="mt-1 text-sm text-gray-400">
+                                        Taxa cobrada sobre adiantamentos
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Configurações Avançadas -->
+                        <div class="border-b border-gray-700 pb-6">
+                            <h3 class="text-lg font-medium text-white mb-4">Configurações Avançadas</h3>
+                            
+                            <div class="space-y-4">
+                                <!-- Considerar Feriados -->
+                                <div>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="considerar_feriados" {% if form.considerar_feriados.value %}checked{% endif %}
+                                               class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700 rounded">
+                                        <span class="ml-2 text-sm font-medium text-gray-300">Considerar feriados no cálculo de dias úteis</span>
+                                    </label>
+                                    <p class="mt-1 ml-6 text-sm text-gray-400">
+                                        Quando ativo, feriados nacionais também serão excluídos dos dias úteis
+                                    </p>
+                                </div>
+
+                                <!-- Antecipar FDS/Feriados -->
+                                <div>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="antecipar_fds_feriados" {% if form.antecipar_fds_feriados.value %}checked{% endif %}
+                                               class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700 rounded">
+                                        <span class="ml-2 text-sm font-medium text-gray-300">Antecipar repasse se data cair em final de semana ou feriado</span>
+                                    </label>
+                                    <p class="mt-1 ml-6 text-sm text-gray-400">
+                                        Se desativado, o repasse será postergado para o próximo dia útil
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Observações -->
+                        <div>
+                            <h3 class="text-lg font-medium text-white mb-4">Observações</h3>
+                            <div>
+                                <label for="observacoes" class="block text-sm font-medium text-gray-300">
+                                    Observações Gerais
+                                </label>
+                                <textarea id="observacoes" name="observacoes" rows="3"
+                                          class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                          placeholder="Observações específicas para esta política...">{{ form.observacoes.value|default:'' }}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Botões de Ação -->
+                        <div class="pt-6 border-t border-gray-700">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    {% if object %}
+                                        <button type="button" onclick="testarPolitica({{ object.pk }})" 
+                                                class="px-4 py-2 border border-blue-600 rounded-md shadow-sm text-sm font-medium text-blue-400 bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-500">
+                                            <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Testar Política
+                                        </button>
+                                    {% endif %}
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <a href="{% url 'financeiro:politica_contrato_list' %}" 
+                                       class="px-4 py-2 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-gray-500">
+                                        Cancelar
+                                    </a>
+                                    <button type="submit" 
+                                            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500">
+                                        {% if object %}
+                                            Atualizar Política
+                                        {% else %}
+                                            Criar Política
+                                        {% endif %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Sidebar com Preview e Ajuda -->
+            <div class="space-y-6">
+                <!-- Preview da Política -->
+                <div class="bg-gray-800 border border-gray-700 shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-700">
+                        <h3 class="text-lg font-medium text-white">Preview da Política</h3>
+                    </div>
+                    <div class="px-6 py-4">
+                        <div id="policy-preview" class="text-sm text-gray-300">
+                            <p>Configure os campos ao lado para ver como funcionará esta política.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulação de Repasse -->
+                <div class="bg-gray-800 border border-gray-700 shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-700">
+                        <h3 class="text-lg font-medium text-white">Simulação</h3>
+                    </div>
+                    <div class="px-6 py-4">
+                        <div id="simulation-result" class="text-sm text-gray-300">
+                            <p>Selecione um contrato para ver a simulação do próximo repasse.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guia Rápido -->
+                <div class="bg-gray-800 border border-gray-700 shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-700">
+                        <h3 class="text-lg font-medium text-white">Guia Rápido</h3>
+                    </div>
+                    <div class="px-6 py-4 space-y-4">
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-300 mb-2">Periodicidades:</h4>
+                            <ul class="text-sm text-gray-400 space-y-1">
+                                <li><strong>Diária:</strong> Repasses em dias úteis</li>
+                                <li><strong>Semanal:</strong> Dia específico da semana</li>
+                                <li><strong>Quinzenal:</strong> Dias 15 e último do mês</li>
+                                <li><strong>Mensal:</strong> Dia específico do mês</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-300 mb-2">Tipos de Dias:</h4>
+                            <ul class="text-sm text-gray-400 space-y-1">
+                                <li><strong>Úteis:</strong> Segunda a sexta, exceto feriados</li>
+                                <li><strong>Corridos:</strong> Todos os dias, incluindo fds</li>
+                                <li><strong>Fixo:</strong> Sempre no mesmo dia</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-300 mb-2">Dicas:</h4>
+                            <ul class="text-sm text-gray-400 space-y-1">
+                                <li>• Taxa admin específica substitui a global</li>
+                                <li>• Valor mínimo evita repasses pequenos</li>
+                                <li>• Dias após recebimento garante compensação</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Teste -->
+<div id="testModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-10 mx-auto p-0 border border-gray-600 w-full max-w-2xl shadow-lg rounded-lg bg-gray-800">
+        <!-- Header do Modal -->
+        <div class="flex items-center justify-between p-6 border-b border-gray-700">
+            <h3 class="text-xl font-semibold text-white">Simulação da Política</h3>
+            <button onclick="closeTestModal()" class="text-gray-400 hover:text-gray-200">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Conteúdo do Modal -->
+        <div class="p-6">
+            <div id="testResults" class="space-y-4">
+                <!-- Resultados do teste aparecerão aqui -->
+                <div class="flex items-center justify-center py-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    <span class="ml-2 text-gray-400">Pronto para executar simulação...</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer do Modal -->
+        <div class="flex justify-between p-6 border-t border-gray-700">
+            <button onclick="executarTeste()" 
+                    class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 transition-colors">
+                Executar Teste
+            </button>
+            <button onclick="closeTestModal()" 
+                    class="px-4 py-2 bg-gray-600 text-gray-200 text-sm font-medium rounded-md hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-gray-500 transition-colors">
+                Fechar
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Função para obter CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Elementos do formulário
+    const periodicidadeSelect = document.getElementById('periodicidade');
+    const diaMesContainer = document.getElementById('dia-mes-container');
+    const diaSemanaContainer = document.getElementById('dia-semana-container');
+    const contratoSelect = document.getElementById('id_contrato');
+    
+    // Função para mostrar/ocultar campos baseado na periodicidade
+    function togglePeriodicidadeFields() {
+        const periodicidade = periodicidadeSelect.value;
+        
+        // Resetar visibilidade
+        diaMesContainer.style.display = 'none';
+        diaSemanaContainer.style.display = 'none';
+        
+        // Mostrar campos relevantes
+        switch(periodicidade) {
+            case 'mensal':
+                diaMesContainer.style.display = 'block';
+                break;
+            case 'semanal':
+                diaSemanaContainer.style.display = 'block';
+                break;
+            case 'quinzenal':
+            case 'diaria':
+                // Não precisa de campos adicionais
+                break;
+        }
+        
+        updatePreview();
+    }
+    
+    // Função para atualizar o preview
+    function updatePreview() {
+        const periodicidade = periodicidadeSelect.value;
+        const tipoDias = document.getElementById('tipo_dias').value;
+        const diaMes = document.getElementById('dia_mes').value;
+        const diaSemana = document.getElementById('dia_semana').value;
+        const diasApos = document.getElementById('dias_apos_recebimento').value || '2';
+        const taxaAdmin = document.getElementById('taxa_admin_personalizada').value;
+        const valorMinimo = document.getElementById('valor_minimo_repasse').value || '0';
+        
+        let previewText = '<div class="space-y-2">';
+        
+        if (periodicidade) {
+            previewText += `<div><strong>Periodicidade:</strong> ${getPeriodicidadeText(periodicidade)}</div>`;
+            previewText += `<div><strong>Tipo de Dias:</strong> ${getTipoDiasText(tipoDias)}</div>`;
+            
+            switch(periodicidade) {
+                case 'mensal':
+                    previewText += `<div><strong>Execução:</strong> Todo dia ${diaMes || '[dia]'} do mês</div>`;
+                    break;
+                case 'semanal':
+                    const diasSemana = ['', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+                    previewText += `<div><strong>Execução:</strong> Toda ${diasSemana[diaSemana] || '[dia da semana]'}</div>`;
+                    break;
+                case 'quinzenal':
+                    previewText += `<div><strong>Execução:</strong> Dias 15 e último dia do mês</div>`;
+                    break;
+                case 'diaria':
+                    previewText += `<div><strong>Execução:</strong> Todos os dias ${tipoDias === 'uteis' ? 'úteis' : ''}</div>`;
+                    break;
+            }
+            
+            previewText += `<div><strong>Aguarda:</strong> ${diasApos} dias após recebimento</div>`;
+            
+            if (taxaAdmin) {
+                previewText += `<div><strong>Taxa Admin:</strong> ${taxaAdmin}% (específica)</div>`;
+            } else {
+                previewText += `<div><strong>Taxa Admin:</strong> Padrão global</div>`;
+            }
+            
+            if (parseFloat(valorMinimo) > 0) {
+                previewText += `<div><strong>Valor Mínimo:</strong> R$ ${parseFloat(valorMinimo).toFixed(2)}</div>`;
+            }
+        } else {
+            previewText += '<div>Selecione uma periodicidade para ver o preview</div>';
+        }
+        
+        previewText += '</div>';
+        
+        document.getElementById('policy-preview').innerHTML = previewText;
+        
+        // Atualizar simulação se contrato selecionado
+        updateSimulation();
+    }
+    
+    function getPeriodicidadeText(periodicidade) {
+        const map = {
+            'diaria': 'Diária',
+            'semanal': 'Semanal', 
+            'quinzenal': 'Quinzenal',
+            'mensal': 'Mensal'
+        };
+        return map[periodicidade] || periodicidade;
+    }
+    
+    function getTipoDiasText(tipoDias) {
+        const map = {
+            'uteis': 'Dias Úteis',
+            'corridos': 'Dias Corridos',
+            'fixo': 'Dia Fixo'
+        };
+        return map[tipoDias] || tipoDias;
+    }
+    
+    function updateSimulation() {
+        const contratoId = contratoSelect ? contratoSelect.value : null;
+        const contratoOption = contratoSelect ? contratoSelect.selectedOptions[0] : null;
+        
+        if (!contratoId || !contratoOption) {
+            document.getElementById('simulation-result').innerHTML = '<p>Selecione um contrato para ver a simulação.</p>';
+            return;
+        }
+        
+        const valorAluguel = parseFloat(contratoOption.dataset.valor) || 0;
+        const taxaAdmin = parseFloat(document.getElementById('taxa_admin_personalizada').value) || 8.0;
+        const valorMinimo = parseFloat(document.getElementById('valor_minimo_repasse').value) || 0;
+        
+        const valorTaxa = valorAluguel * (taxaAdmin / 100);
+        const valorLiquido = valorAluguel - valorTaxa;
+        
+        let simulationHtml = '<div class="space-y-2">';
+        simulationHtml += `<div><strong>Contrato:</strong> ${contratoOption.dataset.proprietarios}</div>`;
+        simulationHtml += `<div><strong>Endereço:</strong> ${contratoOption.dataset.endereco}</div>`;
+        simulationHtml += `<div><strong>Valor Base:</strong> R$ ${valorAluguel.toFixed(2)}</div>`;
+        simulationHtml += `<div><strong>Taxa Admin:</strong> R$ ${valorTaxa.toFixed(2)} (${taxaAdmin}%)</div>`;
+        simulationHtml += `<div><strong>Valor Líquido:</strong> <span class="${valorLiquido >= valorMinimo ? 'text-green-400' : 'text-red-400'}">R$ ${valorLiquido.toFixed(2)}</span></div>`;
+        
+        if (valorLiquido < valorMinimo) {
+            simulationHtml += `<div class="text-red-400 text-xs">⚠️ Abaixo do valor mínimo (R$ ${valorMinimo.toFixed(2)})</div>`;
+        } else {
+            simulationHtml += `<div class="text-green-400 text-xs">✅ Repasse será criado</div>`;
+        }
+        
+        simulationHtml += '</div>';
+        
+        document.getElementById('simulation-result').innerHTML = simulationHtml;
+    }
+    
+    // Event listeners
+    periodicidadeSelect.addEventListener('change', togglePeriodicidadeFields);
+    
+    if (contratoSelect) {
+        contratoSelect.addEventListener('change', updateSimulation);
+    }
+    
+    // Adicionar listeners para todos os campos do formulário
+    document.querySelectorAll('input, select, textarea').forEach(element => {
+        element.addEventListener('input', updatePreview);
+        element.addEventListener('change', updatePreview);
+    });
+    
+    // Inicializar
+    togglePeriodicidadeFields();
+    updatePreview();
+    
+    // Validação do formulário
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const periodicidade = periodicidadeSelect.value;
+        const diaMes = document.getElementById('dia_mes').value;
+        const diaSemana = document.getElementById('dia_semana').value;
+        
+        // Validar campos obrigatórios baseados na periodicidade
+        if (periodicidade === 'mensal' && (!diaMes || diaMes < 1 || diaMes > 31)) {
+            e.preventDefault();
+            alert('Para periodicidade mensal, informe um dia válido (1-31).');
+            return false;
+        }
+        
+        if (periodicidade === 'semanal' && !diaSemana) {
+            e.preventDefault();
+            alert('Para periodicidade semanal, selecione um dia da semana.');
+            return false;
+        }
+        
+        const valorMinimo = parseFloat(document.getElementById('valor_minimo_repasse').value || 0);
+        if (valorMinimo < 0) {
+            e.preventDefault();
+            alert('O valor mínimo não pode ser negativo.');
+            return false;
+        }
+        
+        const percentualAdiantamento = parseFloat(document.getElementById('percentual_adiantamento').value || 0);
+        if (percentualAdiantamento < 0 || percentualAdiantamento > 100) {
+            e.preventDefault();
+            alert('O percentual de adiantamento deve estar entre 0 e 100.');
+            return false;
+        }
+        
+        const taxaAdmin = parseFloat(document.getElementById('taxa_admin_personalizada').value || 0);
+        if (taxaAdmin < 0 || taxaAdmin > 100) {
+            e.preventDefault();
+            alert('A taxa administrativa deve estar entre 0 e 100.');
+            return false;
+        }
+    });
+});
+
+function testarPolitica(politicaId) {
+    // Mostrar modal e preparar para teste
+    const modal = document.getElementById('testModal');
+    const resultsDiv = document.getElementById('testResults');
+    
+    modal.classList.remove('hidden');
+    resultsDiv.innerHTML = `
+        <div class="flex items-center justify-center py-8">
+            <div class="w-10 h-10 bg-blue-900 border border-blue-600 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <span class="ml-3 text-gray-400">Clique em "Executar Teste" para simular a política</span>
+        </div>
+    `;
+    
+    // Armazenar o ID da política para uso no executarTeste
+    window.currentPoliticaId = politicaId;
+}
+
+function closeTestModal() {
+    document.getElementById('testModal').classList.add('hidden');
+}
+
+function executarTeste() {
+    const politicaId = window.currentPoliticaId;
+    const resultsDiv = document.getElementById('testResults');
+    
+    if (!politicaId) {
+        resultsDiv.innerHTML = `
+            <div class="bg-red-900 border border-red-700 rounded-lg p-4">
+                <p class="text-red-200">Erro: ID da política não encontrado.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Mostrar loading
+    resultsDiv.innerHTML = `
+        <div class="flex items-center justify-center py-8">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <span class="ml-2 text-gray-400">Simulando política...</span>
+        </div>
+    `;
+    
+    // Fazer requisição AJAX
+    fetch(`/financeiro/repasses/politicas/contrato/${politicaId}/testar/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        
+        if (data.success && data.simulacao) {
+            const sim = data.simulacao;
+            
+            // Verificar se os dados estão válidos
+            const valorBruto = sim.valor_bruto || 0;
+            const valorLiquido = sim.valor_liquido || 0;
+            const taxaAdmin = sim.taxa_admin || 0;
+            const valorTaxaAdmin = sim.valor_taxa_admin || 0;
+            const valorMinimo = sim.valor_minimo || 0;
+            const proximaData = sim.proxima_data || 'N/A';
+            const ativa = sim.ativa ? 'Sim' : 'Não';
+            const acimaMinimo = sim.acima_minimo ? 'Sim' : 'Não';
+            const periodicidade = sim.periodicidade || 'N/A';
+            const tipoDias = sim.tipo_dias || 'N/A';
+            
+            resultsDiv.innerHTML = `
+                <div class="bg-gray-700 border border-gray-600 rounded-lg p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-green-900 border border-green-600 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <h4 class="ml-3 text-lg font-semibold text-white">Simulação Concluída</h4>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-3">
+                            <div class="bg-gray-800 rounded p-3">
+                                <div class="text-sm text-gray-400">Valor Bruto</div>
+                                <div class="text-lg font-semibold text-white">R$ ${valorBruto.toFixed(2)}</div>
+                            </div>
+                            
+                            <div class="bg-gray-800 rounded p-3">
+                                <div class="text-sm text-gray-400">Taxa Administrativa</div>
+                                <div class="text-lg font-semibold text-orange-400">${taxaAdmin.toFixed(2)}% (R$ ${valorTaxaAdmin.toFixed(2)})</div>
+                            </div>
+                            
+                            <div class="bg-gray-800 rounded p-3">
+                                <div class="text-sm text-gray-400">Valor Líquido</div>
+                                <div class="text-lg font-semibold text-green-400">R$ ${valorLiquido.toFixed(2)}</div>
+                            </div>
+                            
+                            <div class="bg-gray-800 rounded p-3">
+                                <div class="text-sm text-gray-400">Valor Mínimo</div>
+                                <div class="text-lg font-semibold text-gray-300">R$ ${valorMinimo.toFixed(2)}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="bg-gray-800 rounded p-3">
+                                <div class="text-sm text-gray-400">Próxima Data</div>
+                                <div class="text-lg font-semibold text-blue-400">${proximaData}</div>
+                            </div>
+                            
+                            <div class="bg-gray-800 rounded p-3">
+                                <div class="text-sm text-gray-400">Periodicidade</div>
+                                <div class="text-lg font-semibold text-purple-400">${periodicidade}</div>
+                            </div>
+                            
+                            <div class="bg-gray-800 rounded p-3">
+                                <div class="text-sm text-gray-400">Tipo de Dias</div>
+                                <div class="text-lg font-semibold text-cyan-400">${tipoDias}</div>
+                            </div>
+                            
+                            <div class="bg-gray-800 rounded p-3">
+                                <div class="text-sm text-gray-400">Status da Política</div>
+                                <div class="text-lg font-semibold ${sim.ativa ? 'text-green-400' : 'text-red-400'}">${ativa}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Indicador de Viabilidade -->
+                    <div class="mt-4 p-3 rounded-lg ${sim.acima_minimo ? 'bg-green-900 border border-green-700' : 'bg-yellow-900 border border-yellow-700'}">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 ${sim.acima_minimo ? 'text-green-400' : 'text-yellow-400'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${sim.acima_minimo ? 'M5 13l4 4L19 7' : 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.728-.833-2.498 0L4.316 15.5c-.77.833.192 2.5 1.732 2.5z'}"></path>
+                            </svg>
+                            <span class="ml-2 text-sm font-medium ${sim.acima_minimo ? 'text-green-200' : 'text-yellow-200'}">
+                                ${sim.acima_minimo ? '✅ Valor acima do mínimo exigido' : '⚠️ Valor abaixo do mínimo exigido'}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    ${sim.observacoes ? `
+                        <div class="mt-4 p-3 bg-blue-900 border border-blue-700 rounded-lg">
+                            <div class="text-sm text-blue-200">
+                                <strong>Observações:</strong> ${sim.observacoes}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        } else {
+            // Erro retornado pela API
+            const errorMsg = data.error || 'Erro desconhecido na simulação';
+            resultsDiv.innerHTML = `
+                <div class="bg-red-900 border border-red-700 rounded-lg p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-red-800 border border-red-600 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </div>
+                        <h4 class="ml-3 text-lg font-semibold text-white">Erro na Simulação</h4>
+                    </div>
+                    
+                    <div class="bg-red-800 rounded p-4">
+                        <p class="text-red-200 font-medium">${errorMsg}</p>
+                        <p class="text-red-300 text-sm mt-2">
+                            Verifique se o contrato possui valor configurado e se a política está correta.
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Erro na requisição:', error);
+        resultsDiv.innerHTML = `
+            <div class="bg-red-900 border border-red-700 rounded-lg p-6">
+                <div class="flex items-center mb-4">
+                    <div class="w-10 h-10 bg-red-800 border border-red-600 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h4 class="ml-3 text-lg font-semibold text-white">Erro de Conexão</h4>
+                </div>
+                
+                <div class="bg-red-800 rounded p-4">
+                    <p class="text-red-200 font-medium">Não foi possível conectar com o servidor.</p>
+                    <p class="text-red-300 text-sm mt-2">Erro: ${error.message}</p>
+                </div>
+            </div>
+        `;
+    });
+}
+
+// Fechar modal ao clicar fora dele
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('testModal');
+    if (e.target === modal) {
+        closeTestModal();
+    }
+});
+
+// Fechar modal com ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeTestModal();
+    }
+});
+</script>
+{% endblock %}

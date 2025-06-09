@@ -1,0 +1,269 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ cliente.nome }} - Detalhes{% endblock %}
+
+{% block page_title %}Detalhes do Cliente{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="bg-slate-800 rounded-xl p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-white mb-2">{{ cliente.nome }}</h1>
+                <div class="flex items-center space-x-3">
+                    {% if cliente.tipo_pessoa == 'fisica' %}
+                        <span class="bg-green-600 text-white text-xs px-2 py-1 rounded">Pessoa Física</span>
+                    {% elif cliente.tipo_pessoa == 'juridica' %}
+                        <span class="bg-blue-600 text-white text-xs px-2 py-1 rounded">Pessoa Jurídica</span>
+                    {% endif %}
+                    
+                    {% if cliente.ativo %}
+                        <span class="bg-green-600 text-white text-xs px-2 py-1 rounded">Ativo</span>
+                    {% else %}
+                        <span class="bg-red-600 text-white text-xs px-2 py-1 rounded">Inativo</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="flex space-x-3">
+                <a href="{% url 'editar_cliente' cliente.id %}" 
+                   class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    Editar
+                </a>
+                <a href="{% url 'listar_clientes' %}" 
+                   class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+                    Voltar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-slate-800 rounded-xl p-4 text-center">
+            <p class="text-slate-400 text-sm">Proprietário</p>
+            <p class="text-2xl font-bold text-blue-400">{{ contratos_proprietario.count|default:"0" }}</p>
+        </div>
+        <div class="bg-slate-800 rounded-xl p-4 text-center">
+            <p class="text-slate-400 text-sm">Inquilino</p>
+            <p class="text-2xl font-bold text-green-400">{{ contratos_inquilino.count|default:"0" }}</p>
+        </div>
+        <div class="bg-slate-800 rounded-xl p-4 text-center">
+            <p class="text-slate-400 text-sm">Fiador</p>
+            <p class="text-2xl font-bold text-purple-400">{{ contratos_fiador.count|default:"0" }}</p>
+        </div>
+        <div class="bg-slate-800 rounded-xl p-4 text-center">
+            <p class="text-slate-400 text-sm">Total</p>
+            <p class="text-2xl font-bold text-white">{{ total_contratos|default:"0" }}</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Informações Pessoais -->
+            <div class="bg-slate-800 rounded-xl p-6">
+                <h2 class="text-xl font-semibold text-white mb-4">Informações Pessoais</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-300">
+                    <div>
+                        <strong>Nome:</strong> {{ cliente.nome }}
+                    </div>
+                    
+                    {% if cliente.tipo_pessoa == 'fisica' %}
+                        {% if cliente.cpf %}
+                        <div>
+                            <strong>CPF:</strong> {{ cliente.cpf }}
+                        </div>
+                        {% endif %}
+                        {% if cliente.rg %}
+                        <div>
+                            <strong>RG:</strong> {{ cliente.rg }}
+                        </div>
+                        {% endif %}
+                        {% if cliente.data_nascimento %}
+                        <div>
+                            <strong>Nascimento:</strong> {{ cliente.data_nascimento }}
+                        </div>
+                        {% endif %}
+                    {% elif cliente.tipo_pessoa == 'juridica' %}
+                        {% if cliente.cnpj %}
+                        <div>
+                            <strong>CNPJ:</strong> {{ cliente.cnpj }}
+                        </div>
+                        {% endif %}
+                        {% if cliente.razao_social %}
+                        <div>
+                            <strong>Razão Social:</strong> {{ cliente.razao_social }}
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Contato -->
+            <div class="bg-slate-800 rounded-xl p-6">
+                <h2 class="text-xl font-semibold text-white mb-4">Contato</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-300">
+                    {% if cliente.email %}
+                    <div>
+                        <strong>Email:</strong> {{ cliente.email }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if cliente.telefone %}
+                    <div>
+                        <strong>Telefone:</strong> {{ cliente.telefone }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if cliente.whatsapp %}
+                    <div>
+                        <strong>WhatsApp:</strong> {{ cliente.whatsapp }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Endereço -->
+            {% if cliente.endereco or cliente.cidade %}
+            <div class="bg-slate-800 rounded-xl p-6">
+                <h2 class="text-xl font-semibold text-white mb-4">Endereço</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-300">
+                    {% if cliente.endereco %}
+                    <div class="md:col-span-2">
+                        <strong>Endereço:</strong> {{ cliente.endereco }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if cliente.bairro %}
+                    <div>
+                        <strong>Bairro:</strong> {{ cliente.bairro }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if cliente.cidade %}
+                    <div>
+                        <strong>Cidade:</strong> {{ cliente.cidade }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if cliente.cep %}
+                    <div>
+                        <strong>CEP:</strong> {{ cliente.cep }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Contratos -->
+            <div class="bg-slate-800 rounded-xl p-6">
+                <h2 class="text-xl font-semibold text-white mb-4">Contratos</h2>
+                
+                {% if todos_contratos %}
+                    <div class="space-y-3">
+                        {% for contrato in todos_contratos %}
+                        <div class="bg-slate-700 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-white font-medium">Contrato #{{ contrato.id }}</h3>
+                                {% if contrato.ativo %}
+                                    <span class="bg-green-600 text-white text-xs px-2 py-1 rounded">Ativo</span>
+                                {% else %}
+                                    <span class="bg-red-600 text-white text-xs px-2 py-1 rounded">Inativo</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="text-slate-300 text-sm">
+                                <p><strong>Imóvel:</strong> {{ contrato.imovel.endereco }}, {{ contrato.imovel.numero }}</p>
+                                <p><strong>Período:</strong> {{ contrato.data_inicio }} até {{ contrato.data_fim }}</p>
+                                <p><strong>Valor:</strong> R$ {{ contrato.valor_base|floatformat:2 }}</p>
+                                <p><strong>Papel:</strong> 
+                                    {% if cliente in contrato.proprietario.all %}
+                                        Proprietário
+                                    {% elif cliente in contrato.inquilino.all %}
+                                        Inquilino
+                                    {% elif contrato.fiador == cliente %}
+                                        Fiador
+                                    {% endif %}
+                                </p>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <a href="/contratos/detalhes/{{ contrato.id }}/" 
+                                   class="text-blue-400 hover:text-blue-300 text-sm">
+                                    Ver Detalhes →
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-slate-400 text-center py-8">
+                        Nenhum contrato encontrado para este cliente.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="space-y-6">
+            <!-- Ações Rápidas -->
+            <div class="bg-slate-800 rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-white mb-4">Ações Rápidas</h3>
+                
+                <div class="space-y-3">
+                    <a href="{% url 'editar_cliente' cliente.id %}" 
+                       class="block w-full text-center bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                        Editar Cliente
+                    </a>
+                    
+                    <a href="/contratos/cadastrar/" 
+                       class="block w-full text-center bg-green-600 text-white py-2 rounded hover:bg-green-700">
+                        Novo Contrato
+                    </a>
+                    
+                    {% if cliente.email %}
+                    <a href="mailto:{{ cliente.email }}" 
+                       class="block w-full text-center bg-purple-600 text-white py-2 rounded hover:bg-purple-700">
+                        Enviar Email
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Informações -->
+            <div class="bg-slate-800 rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-white mb-4">Informações</h3>
+                
+                <div class="space-y-2 text-slate-300 text-sm">
+                    <div class="flex justify-between">
+                        <span>ID:</span>
+                        <span>#{{ cliente.id }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Cadastrado:</span>
+                        <span>{{ cliente.created_at|date:"d/m/Y"|default:"N/A" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Atualizado:</span>
+                        <span>{{ cliente.updated_at|date:"d/m/Y"|default:"N/A" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Observações -->
+            {% if cliente.observacoes %}
+            <div class="bg-slate-800 rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-white mb-4">Observações</h3>
+                <p class="text-slate-300 text-sm">{{ cliente.observacoes }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

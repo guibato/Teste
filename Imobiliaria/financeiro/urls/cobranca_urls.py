@@ -34,7 +34,7 @@ urlpatterns = [
     
     # URLs para ações especiais - Fluxo Tradicional
     path('<int:pk>/integrar-asaas/', cobranca_integrar_asaas, name='cobranca_integrar_asaas'),
-    path('<int:pk>/marcar-paga/', cobranca_marcar_paga, name='cobranca_marcar_paga'),
+    path('<int:pk>/marcar-paga/', cobranca_marcar_paga, name='marcar_paga'),
     path('<int:pk>/cancelar/', cobranca_cancelar, name='cobranca_cancelar'),
     
     # URLs para operações em lote - Fluxo Tradicional

@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Palestra Imóveis - Sistema Imobiliário{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    {% block extra_css %}{% endblock %}
+    
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Sidebar Animations */
+        .sidebar {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .sidebar-collapsed {
+            width: 4rem;
+        }
+        
+        .sidebar-expanded {
+            width: 20rem;
+        }
+        
+        /* Menu Animations */
+        .menu-item {
+            transition: all 0.2s ease;
+        }
+        
+        .menu-item:hover {
+            transform: translateX(4px);
+        }
+        
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+        }
+        
+        .submenu.active {
+            max-height: 2000px;
+            opacity: 1;
+        }
+        
+        .submenu-level-2 {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+        }
+        
+        .submenu-level-2.active {
+            max-height: 1000px;
+            opacity: 1;
+        }
+        
+        /* Dashboard Cards */
+        .dashboard-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        
+        /* Glassmorphism Effects */
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Loading Animations */
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Toast Notifications */
+        .toast {
+            animation: slideInRight 0.3s ease-out;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Gradient Backgrounds */
+        .gradient-blue {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .gradient-purple {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .gradient-green {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .gradient-orange {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+        
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Badge styles */
+        .menu-badge {
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border-radius: 8px;
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar sidebar-expanded fixed left-0 top-0 h-full bg-gray-900/95 backdrop-blur-xl border-r border-white/10 z-50 overflow-y-auto">
+        <!-- Logo -->
+        <div class="p-6 border-b border-white/10 flex items-center justify-between">
+            <a href="{% url 'home' %}" class="flex items-center space-x-3 group">
+                <div class="p-2 bg-blue-500/20 rounded-xl group-hover:bg-blue-500/30 transition-colors">
+                    <i class="fas fa-building text-2xl text-blue-400"></i>
+                </div>
+                <span id="logo-text" class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    Palestra Imóveis
+                </span>
+            </a>
+            <button id="toggle-sidebar" class="p-2 rounded-lg hover:bg-white/10 transition-colors">
+                <i class="fas fa-chevron-left text-gray-400"></i>
+            </button>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <nav class="p-4 space-y-2">
+            <!-- Dashboard -->
+            <a href="{% url 'home' %}" class="menu-item flex items-center px-4 py-3 rounded-xl hover:bg-white/10 group">
+                <i class="fas fa-home text-lg text-blue-400 group-hover:text-blue-300 transition-colors"></i>
+                <span class="ml-3 menu-text">Dashboard</span>
+            </a>
+            
+            <!-- Clientes -->
+            <div class="menu-group">
+                <div class="menu-item flex items-center px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer group" onclick="toggleSubmenu('clientesSubmenu')">
+                    <i class="fas fa-users text-lg text-green-400 group-hover:text-green-300 transition-colors"></i>
+                    <span class="ml-3 menu-text">Clientes</span>
+                    <i class="fas fa-chevron-down ml-auto text-sm transform transition-transform" id="clientesChevron"></i>
+                </div>
+                <div id="clientesSubmenu" class="submenu ml-6 mt-2 space-y-1">
+                    <a href="{% url 'cadastro_cliente' %}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-plus-circle mr-3 text-green-400"></i>
+                        <span class="menu-text">Cadastrar Cliente</span>
+                    </a>
+                    <a href="{% url 'listar_clientes' %}" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-list mr-3 text-green-400"></i>
+                        <span class="menu-text">Listar Clientes</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Imóveis -->
+            <div class="menu-group">
+                <div class="menu-item flex items-center px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer group" onclick="toggleSubmenu('imoveisSubmenu')">
+                    <i class="fas fa-building text-lg text-purple-400 group-hover:text-purple-300 transition-colors"></i>
+                    <span class="ml-3 menu-text">Imóveis</span>
+                    <i class="fas fa-chevron-down ml-auto text-sm transform transition-transform" id="imoveisChevron"></i>
+                </div>
+                <div id="imoveisSubmenu" class="submenu ml-6 mt-2 space-y-1">
+                    <a href="/imoveis/cadastrar/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-plus-circle mr-3 text-purple-400"></i>
+                        <span class="menu-text">Cadastrar Imóvel</span>
+                    </a>
+                    <a href="/imoveis/listar/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-list mr-3 text-purple-400"></i>
+                        <span class="menu-text">Listar Imóveis</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Contratos -->
+            <div class="menu-group">
+                <div class="menu-item flex items-center px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer group" onclick="toggleSubmenu('contratosSubmenu')">
+                    <i class="fas fa-file-contract text-lg text-orange-400 group-hover:text-orange-300 transition-colors"></i>
+                    <span class="ml-3 menu-text">Contratos</span>
+                    <i class="fas fa-chevron-down ml-auto text-sm transform transition-transform" id="contratosChevron"></i>
+                </div>
+                <div id="contratosSubmenu" class="submenu ml-6 mt-2 space-y-1">
+                    <a href="/contratos/cadastrar/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-plus-circle mr-3 text-orange-400"></i>
+                        <span class="menu-text">Cadastrar Contrato</span>
+                    </a>
+                    <a href="/contratos/listar/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-list mr-3 text-orange-400"></i>
+                        <span class="menu-text">Listar Contratos</span>
+                    </a>
+                    <a href="/contratos/reajustar/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-sync mr-3 text-orange-400"></i>
+                        <span class="menu-text">Reajustar Contratos</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Financeiro -->
+            <div class="menu-group">
+                <div class="menu-item flex items-center px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer group" onclick="toggleSubmenu('financeiroSubmenu')">
+                    <i class="fas fa-dollar-sign text-lg text-emerald-400 group-hover:text-emerald-300 transition-colors"></i>
+                    <span class="ml-3 menu-text">Financeiro</span>
+                    <i class="fas fa-chevron-down ml-auto text-sm transform transition-transform" id="financeiroChevron"></i>
+                </div>
+                <div id="financeiroSubmenu" class="submenu ml-6 mt-2 space-y-1 max-h-96 overflow-y-auto">
+                    <!-- Dashboard Financeiro -->
+                    <a href="/financeiro/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-chart-pie mr-3 text-emerald-400"></i>
+                        <span class="menu-text">Dashboard</span>
+                    </a>
+                    
+                    <!-- Seção: Cobranças -->
+                    <div class="mt-3 mb-2">
+                        <span class="text-xs text-gray-400 uppercase tracking-wider px-4 menu-text">Cobranças</span>
+                    </div>
+                    <a href="/financeiro/cobrancas/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-file-invoice-dollar mr-3 text-emerald-400"></i>
+                        <span class="menu-text">Lista de Cobranças</span>
+                    </a>
+                    <a href="/financeiro/cobrancas/nova/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-plus mr-3 text-emerald-400"></i>
+                        <span class="menu-text">Nova Cobrança</span>
+                    </a>
+                    <a href="/financeiro/cobrancas/preview/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-eye mr-3 text-emerald-400"></i>
+                        <span class="menu-text">Preview & Geração</span>
+                    </a>
+                    <a href="/financeiro/cobrancas/revisao/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-check-double mr-3 text-emerald-400"></i>
+                        <span class="menu-text">Revisão & Integração</span>
+                    </a>
+                    
+                    <!-- Seção: Repasses -->
+                    <div class="mt-3 mb-2">
+                        <span class="text-xs text-gray-400 uppercase tracking-wider px-4 menu-text">Repasses</span>
+                    </div>
+                    <a href="/financeiro/repasses/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-exchange-alt mr-3 text-emerald-400"></i>
+                        <span class="menu-text">Lista de Repasses</span>
+                    </a>
+                    <a href="/financeiro/repasses/novo/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-plus mr-3 text-emerald-400"></i>
+                        <span class="menu-text">Novo Repasse</span>
+                    </a>
+                    <a href="/financeiro/repasses/dashboard/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-tachometer-alt mr-3 text-emerald-400"></i>
+                        <span class="menu-text">Dashboard Repasses</span>
+                    </a>
+                    
+                    
+                    <!-- Subseção: Políticas de Repasse -->
+                    <div class="menu-group ml-4">
+                        <div class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 cursor-pointer group" onclick="toggleSubmenu('politicasSubmenu')">
+                            <i class="fas fa-cogs mr-3 text-emerald-400"></i>
+                            <span class="menu-text">Políticas</span>
+                            <i class="fas fa-chevron-down ml-auto text-xs transform transition-transform" id="politicasChevron"></i>
+                        </div>
+                        <div id="politicasSubmenu" class="submenu-level-2 ml-6 mt-1 space-y-1">
+                            <a href="/financeiro/repasses/politicas/contrato/" class="flex items-center px-3 py-1 text-xs rounded-lg hover:bg-white/10 transition-colors">
+                                <i class="fas fa-file-contract mr-2 text-emerald-400"></i>
+                                <span class="menu-text">Por Contrato</span>
+                            </a>
+                            <a href="/financeiro/repasses/politicas/global/" class="flex items-center px-3 py-1 text-xs rounded-lg hover:bg-white/10 transition-colors">
+                                <i class="fas fa-globe mr-2 text-emerald-400"></i>
+                                <span class="menu-text">Globais</span>
+                            </a>
+                            <a href="/financeiro/repasses/contratos/sem-politica/" class="flex items-center px-3 py-1 text-xs rounded-lg hover:bg-white/10 transition-colors">
+                                <i class="fas fa-exclamation-triangle mr-2 text-yellow-400"></i>
+                                <span class="menu-text">Sem Política</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Seção: Despesas -->
+                    <div class="mt-3 mb-2">
+                        <span class="text-xs text-gray-400 uppercase tracking-wider px-4 menu-text">Despesas</span>
+                    </div>
+                    <a href="/financeiro/tipos-despesa/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-tags mr-3 text-emerald-400"></i>
+                        <span class="menu-text">Tipos de Despesa</span>
+                    </a>
+                    <a href="/financeiro/despesas/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-receipt mr-3 text-emerald-400"></i>
+                        <span class="menu-text">Despesas</span>
+                    </a>
+                    <a href="/financeiro/despesas/nova/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-plus mr-3 text-emerald-400"></i>
+                        <span class="menu-text">Nova Despesa</span>
+                    </a>
+                    
+                    <!-- Seção: Reajustes -->
+                    <div class="mt-3 mb-2">
+                        <span class="text-xs text-gray-400 uppercase tracking-wider px-4 menu-text">Reajustes</span>
+                    </div>
+                    <a href="/financeiro/reajustes/dashboard/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-chart-line mr-3 text-emerald-400"></i>
+                        <span class="menu-text">Dashboard Reajustes</span>
+                    </a>
+                    <a href="/financeiro/reajustes/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-percentage mr-3 text-emerald-400"></i>
+                        <span class="menu-text">Lista de Reajustes</span>
+                    </a>
+                    <a href="/financeiro/reajustes/sugestoes/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-lightbulb mr-3 text-emerald-400"></i>
+                        <span class="menu-text">Sugestões</span>
+                    </a>
+                    <a href="/financeiro/reajustes/novo/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-plus mr-3 text-emerald-400"></i>
+                        <span class="menu-text">Novo Reajuste</span>
+                    </a>
+                    
+                    <!-- Seção: Movimentos Financeiros -->
+                    <div class="mt-3 mb-2">
+                        <span class="text-xs text-gray-400 uppercase tracking-wider px-4 menu-text">Movimentos</span>
+                    </div>
+                    <a href="/financeiro/movimentos/dashboard/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-chart-bar mr-3 text-emerald-400"></i>
+                        <span class="menu-text">Dashboard Movimentos</span>
+                    </a>
+                    <a href="/financeiro/movimentos/saldos/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-wallet mr-3 text-emerald-400"></i>
+                        <span class="menu-text">Saldos</span>
+                    </a>
+                    
+                    <!-- Seção: Lembretes -->
+                    <div class="mt-3 mb-2">
+                        <span class="text-xs text-gray-400 uppercase tracking-wider px-4 menu-text">Lembretes</span>
+                    </div>
+                    <a href="/financeiro/lembretes/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-bell mr-3 text-emerald-400"></i>
+                        <span class="menu-text">Lista de Lembretes</span>
+                    </a>
+                    <a href="/financeiro/lembretes/dashboard/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-bell-concierge mr-3 text-emerald-400"></i>
+                        <span class="menu-text">Dashboard Lembretes</span>
+                    </a>
+                    <a href="/financeiro/lembretes/configuracao/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-cog mr-3 text-emerald-400"></i>
+                        <span class="menu-text">Configurações</span>
+                    </a>
+                    
+                    <!-- Seção: Configurações -->
+                    <div class="mt-3 mb-2">
+                        <span class="text-xs text-gray-400 uppercase tracking-wider px-4 menu-text">Configurações</span>
+                    </div>
+                    <a href="/financeiro/indices/" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors">
+                        <i class="fas fa-chart-line mr-3 text-emerald-400"></i>
+                        <span class="menu-text">Índices</span>
+                    </a>
+                    <button onclick="atualizarIndices()" class="flex items-center px-4 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors w-full text-left">
+                        <i class="fas fa-sync mr-3 text-emerald-400"></i>
+                        <span class="menu-text">Atualizar Índices</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Utilitários -->
+            <div class="border-t border-white/10 pt-4 mt-4">
+                <a href="{% url 'buscar' %}" class="menu-item flex items-center px-4 py-3 rounded-xl hover:bg-white/10 group">
+                    <i class="fas fa-search text-lg text-gray-400 group-hover:text-gray-300 transition-colors"></i>
+                    <span class="ml-3 menu-text">Buscar</span>
+                </a>
+            </div>
+        </nav>
+        
+        <!-- User Menu -->
+        <div class=" bottom-0 left-0 right-0 p-4 border-t border-white/10">
+            <a href="{% url 'logout' %}" class="flex items-center px-4 py-3 rounded-xl hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-colors group">
+                <i class="fas fa-sign-out-alt mr-3"></i>
+                <span class="menu-text">Sair</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div id="main-content" class="transition-all duration-300 ease-in-out ml-80">
+        <!-- Top Bar -->
+        <header class="glass sticky top-0 z-40 border-b border-white/10">
+            <div class="px-6 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <button id="mobile-menu" class="lg:hidden p-2 rounded-lg hover:bg-white/10">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <h1 class="text-xl font-semibold">{% block page_title %}Dashboard{% endblock %}</h1>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="hidden md:block flex-1 max-w-md mx-8">
+                    <form action="{% url 'buscar' %}" method="GET" class="relative">
+                        <input 
+                            type="text" 
+                            name="q" 
+                            placeholder="Buscar clientes, imóveis ou contratos..."
+                            class="w-full px-4 py-2 pl-10 bg-white/10 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-white placeholder-gray-400"
+                        >
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </form>
+                </div>
+                
+                <!-- User Actions -->
+                <div class="flex items-center space-x-4">
+                    <button class="p-2 rounded-lg hover:bg-white/10 relative">
+                        <i class="fas fa-bell text-xl text-gray-400"></i>
+                        <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                    </button>
+                    <button class="p-2 rounded-lg hover:bg-white/10">
+                        <i class="fas fa-user-circle text-xl text-gray-400"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <main class="p-6">
+            <!-- Messages -->
+            {% if messages %}
+            <div class="mb-6 space-y-3">
+                {% for message in messages %}
+                <div class="toast glass rounded-xl p-4 flex items-center justify-between border-l-4 border-blue-500">
+                    <div class="flex items-center">
+                        <i class="fas fa-info-circle text-blue-400 mr-3"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                    <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center">
+        <div class="glass rounded-xl p-6 flex items-center space-x-3">
+            <i class="fas fa-spinner loading-spinner text-blue-400 text-xl"></i>
+            <span>Carregando...</span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // DOM Ready
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSidebar();
+            initializeMenus();
+        });
+
+        // Sidebar Management
+        function initializeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            const toggleBtn = document.getElementById('toggle-sidebar');
+            const mobileBtn = document.getElementById('mobile-menu');
+
+            // Desktop toggle
+            toggleBtn?.addEventListener('click', function() {
+                sidebar.classList.toggle('sidebar-collapsed');
+                sidebar.classList.toggle('sidebar-expanded');
+                
+                if (sidebar.classList.contains('sidebar-collapsed')) {
+                    mainContent.style.marginLeft = '4rem';
+                    toggleBtn.innerHTML = '<i class="fas fa-chevron-right text-gray-400"></i>';
+                    // Hide text elements
+                    document.querySelectorAll('.menu-text').forEach(el => el.style.display = 'none');
+                    document.getElementById('logo-text').style.display = 'none';
+                } else {
+                    mainContent.style.marginLeft = '20rem';
+                    toggleBtn.innerHTML = '<i class="fas fa-chevron-left text-gray-400"></i>';
+                    // Show text elements
+                    document.querySelectorAll('.menu-text').forEach(el => el.style.display = 'block');
+                    document.getElementById('logo-text').style.display = 'block';
+                }
+            });
+
+            // Mobile toggle
+            mobileBtn?.addEventListener('click', function() {
+                sidebar.classList.toggle('-translate-x-full');
+            });
+
+            // Responsive behavior
+            function handleResize() {
+                if (window.innerWidth < 1024) {
+                    sidebar.classList.add('-translate-x-full');
+                    mainContent.style.marginLeft = '0';
+                } else {
+                    sidebar.classList.remove('-translate-x-full');
+                    if (!sidebar.classList.contains('sidebar-collapsed')) {
+                        mainContent.style.marginLeft = '20rem';
+                    }
+                }
+            }
+
+            window.addEventListener('resize', handleResize);
+            handleResize();
+        }
+
+        // Submenu Management
+        function toggleSubmenu(submenuId) {
+            const submenu = document.getElementById(submenuId);
+            const chevronId = submenuId.replace('Submenu', 'Chevron');
+            const chevron = document.getElementById(chevronId);
+            
+            if (submenu && chevron) {
+                submenu.classList.toggle('active');
+                chevron.classList.toggle('rotate-180');
+            }
+        }
+
+        function initializeMenus() {
+            // Auto-expand active menu based on current path
+            const currentPath = window.location.pathname;
+            
+            // Check financeiro section and expand appropriate submenus
+            if (currentPath.includes('/financeiro/')) {
+                toggleSubmenu('financeiroSubmenu');
+                
+                // Check for specific subsections that need políticas submenu
+                if (currentPath.includes('/repasses/politicas/') || 
+                    currentPath.includes('/contratos/sem-politica/')) {
+                    setTimeout(() => {
+                        toggleSubmenu('politicasSubmenu');
+                    }, 100);
+                }
+            }
+            // Check if we're in clientes section
+            else if (currentPath.includes('/clientes/')) {
+                toggleSubmenu('clientesSubmenu');
+            }
+            // Check if we're in imoveis section
+            else if (currentPath.includes('/imoveis/')) {
+                toggleSubmenu('imoveisSubmenu');
+            }
+            // Check if we're in contratos section
+            else if (currentPath.includes('/contratos/')) {
+                toggleSubmenu('contratosSubmenu');
+            }
+        }
+
+        // Utility Functions
+        function showLoading() {
+            document.getElementById('loading-overlay').classList.remove('hidden');
+            document.getElementById('loading-overlay').classList.add('flex');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').classList.add('hidden');
+            document.getElementById('loading-overlay').classList.remove('flex');
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            const colors = {
+                info: 'border-blue-500 text-blue-400',
+                success: 'border-green-500 text-green-400',
+                warning: 'border-yellow-500 text-yellow-400',
+                error: 'border-red-500 text-red-400'
+            };
+            
+            toast.className = `toast glass rounded-xl p-4 flex items-center justify-between border-l-4 ${colors[type]} fixed top-4 right-4 z-50`;
+            toast.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-info-circle mr-3"></i>
+                    <span>${message}</span>
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-white transition-colors ml-4">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        }
+
+        // Atualizar Índices Function
+        async function atualizarIndices() {
+            try {
+                showLoading();
+                showToast('Atualizando índices...', 'info');
+                
+                // Tenta várias URLs possíveis para atualizar índices
+                const possibleUrls = [
+                    '/financeiro/indices/atualizar-api/',
+                    '/atualizar-indices/',
+                    '/financeiro/atualizar-indices/'
+                ];
+                
+                let success = false;
+                for (const url of possibleUrls) {
+                    try {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+                                'Content-Type': 'application/json',
+                            },
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            showToast(data.message || 'Índices atualizados com sucesso!', 'success');
+                            success = true;
+                            break;
+                        }
+                    } catch (e) {
+                        continue; // Tenta próxima URL
+                    }
+                }
+                
+                if (!success) {
+                    showToast('Função de atualização de índices não configurada ainda', 'warning');
+                }
+            } catch (error) {
+                showToast(`Erro: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Quick Actions Functions
+        function navigateToSection(section) {
+            const urls = {
+                'cobrancas': '/financeiro/cobrancas/',
+                'repasses': '/financeiro/repasses/',
+                'despesas': '/financeiro/despesas/',
+                'reajustes': '/financeiro/reajustes/',
+                'indices': '/financeiro/indices/',
+                'dashboard': '/financeiro/'
+            };
+            
+            if (urls[section]) {
+                window.location.href = urls[section];
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Alt + F para abrir menu financeiro
+            if (e.altKey && e.key === 'f') {
+                e.preventDefault();
+                if (!document.getElementById('financeiroSubmenu').classList.contains('active')) {
+                    toggleSubmenu('financeiroSubmenu');
+                }
+            }
+            
+            // Alt + C para cobranças
+            if (e.altKey && e.key === 'c') {
+                e.preventDefault();
+                navigateToSection('cobrancas');
+            }
+            
+            // Alt + R para repasses
+            if (e.altKey && e.key === 'r') {
+                e.preventDefault();
+                navigateToSection('repasses');
+            }
+            
+            // Esc para fechar todos os submenus
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.submenu.active').forEach(submenu => {
+                    submenu.classList.remove('active');
+                });
+                document.querySelectorAll('.submenu-level-2.active').forEach(submenu => {
+                    submenu.classList.remove('active');
+                });
+                document.querySelectorAll('[id$="Chevron"]').forEach(chevron => {
+                    chevron.classList.remove('rotate-180');
+                });
+            }
+        });
+
+        // Search enhancement
+        function enhanceSearch() {
+            const searchInput = document.querySelector('input[name="q"]');
+            if (searchInput) {
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && e.ctrlKey) {
+                        // Ctrl + Enter para busca avançada
+                        const currentValue = this.value;
+                        this.value = `advanced:${currentValue}`;
+                        this.form.submit();
+                    }
+                });
+            }
+        }
+
+        // Initialize search enhancement
+        document.addEventListener('DOMContentLoaded', enhanceSearch);
+
+        // Auto-save user preferences for sidebar state
+        function saveUserPreferences() {
+            const sidebar = document.getElementById('sidebar');
+            const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
+            localStorage.setItem('sidebarCollapsed', isCollapsed);
+        }
+
+        function loadUserPreferences() {
+            const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            const toggleBtn = document.getElementById('toggle-sidebar');
+            
+            if (isCollapsed && window.innerWidth >= 1024) {
+                sidebar.classList.add('sidebar-collapsed');
+                sidebar.classList.remove('sidebar-expanded');
+                mainContent.style.marginLeft = '4rem';
+                toggleBtn.innerHTML = '<i class="fas fa-chevron-right text-gray-400"></i>';
+                document.querySelectorAll('.menu-text').forEach(el => el.style.display = 'none');
+                document.getElementById('logo-text').style.display = 'none';
+            }
+        }
+
+        // Save preferences when sidebar is toggled
+        document.getElementById('toggle-sidebar')?.addEventListener('click', function() {
+            setTimeout(saveUserPreferences, 300);
+        });
+
+        // Load preferences on page load
+        document.addEventListener('DOMContentLoaded', loadUserPreferences);
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

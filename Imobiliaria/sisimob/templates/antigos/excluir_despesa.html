@@ -1,0 +1,12 @@
+{% extends 'base/base.html' %}
+
+{% block content %}
+  <h2>Excluir Despesa</h2>
+  <p>Você tem certeza que deseja excluir esta despesa?</p>
+  <p><strong>{{ despesa.nome }}</strong></p>
+  <form method="POST">
+    {% csrf_token %}
+    <button type="submit">Excluir</button>
+  </form>
+  <a href="{% url 'dashboard' %}">Cancelar</a>
+{% endblock %}

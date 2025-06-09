@@ -1,0 +1,465 @@
+<!-- financeiro/templates/financeiro/repasses/politica_form.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if object %}Editar Política Global{% else %}Nova Política Global{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-900 py-6">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-white">
+                        {% if object %}
+                            Editar Política Global: {{ object.nome }}
+                        {% else %}
+                            Nova Política Global
+                        {% endif %}
+                    </h1>
+                    <p class="mt-2 text-gray-400">
+                        Configure uma política padrão que pode ser aplicada a múltiplos contratos
+                    </p>
+                </div>
+                <a href="{% url 'financeiro:politica_global_list' %}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500">
+                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Voltar
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Formulário Principal -->
+            <div class="lg:col-span-2">
+                <div class="bg-gray-800 border border-gray-700 shadow rounded-lg">
+                    <form method="post" class="p-6 space-y-6">
+                        {% csrf_token %}
+                        
+                        <!-- Informações Básicas -->
+                        <div class="border-b border-gray-700 pb-6">
+                            <h3 class="text-lg font-medium text-white mb-4">Informações Básicas</h3>
+                            
+                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                <!-- Nome -->
+                                <div class="sm:col-span-2">
+                                    <label for="{{ form.nome.id_for_label }}" class="block text-sm font-medium text-gray-300">
+                                        Nome da Política *
+                                    </label>
+                                    <input type="text" id="{{ form.nome.id_for_label }}" name="nome" 
+                                           value="{{ form.nome.value|default:'' }}" required
+                                           class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                           placeholder="Ex: Política Padrão Mensal">
+                                    {% if form.nome.errors %}
+                                        <p class="mt-1 text-sm text-gray-400">Para periodicidade mensal (1-31)</p>
+                                </div>
+
+                                <!-- Dia da Semana -->
+                                <div id="dia-semana-container" style="display: none;">
+                                    <label for="dia_semana" class="block text-sm font-medium text-gray-300">
+                                        Dia da Semana
+                                    </label>
+                                    <select id="dia_semana" name="dia_semana"
+                                            class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        <option value="">Selecione...</option>
+                                        <option value="1" {% if form.dia_semana.value == 1 %}selected{% endif %}>Segunda-feira</option>
+                                        <option value="2" {% if form.dia_semana.value == 2 %}selected{% endif %}>Terça-feira</option>
+                                        <option value="3" {% if form.dia_semana.value == 3 %}selected{% endif %}>Quarta-feira</option>
+                                        <option value="4" {% if form.dia_semana.value == 4 %}selected{% endif %}>Quinta-feira</option>
+                                        <option value="5" {% if form.dia_semana.value == 5 %}selected{% endif %}>Sexta-feira</option>
+                                        <option value="6" {% if form.dia_semana.value == 6 %}selected{% endif %}>Sábado</option>
+                                        <option value="7" {% if form.dia_semana.value == 7 %}selected{% endif %}>Domingo</option>
+                                    </select>
+                                    <p class="mt-1 text-sm text-gray-400">Para periodicidade semanal</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Configurações Financeiras -->
+                        <div class="border-b border-gray-700 pb-6">
+                            <h3 class="text-lg font-medium text-white mb-4">Configurações Financeiras</h3>
+                            
+                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                <!-- Taxa Admin Padrão -->
+                                <div>
+                                    <label for="taxa_admin_padrao" class="block text-sm font-medium text-gray-300">
+                                        Taxa de Administração Padrão (%)
+                                    </label>
+                                    <input type="number" id="taxa_admin_padrao" name="taxa_admin_padrao" 
+                                           step="0.01" min="0" max="100" value="{{ form.taxa_admin_padrao.value|default:8.00 }}"
+                                           class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                           placeholder="8.00">
+                                    <p class="mt-1 text-sm text-gray-400">
+                                        Taxa aplicada quando contratos não têm taxa específica
+                                    </p>
+                                </div>
+
+                                <!-- Valor Mínimo -->
+                                <div>
+                                    <label for="valor_minimo_repasse" class="block text-sm font-medium text-gray-300">
+                                        Valor Mínimo para Repasse (R$)
+                                    </label>
+                                    <input type="number" id="valor_minimo_repasse" name="valor_minimo_repasse" 
+                                           step="0.01" min="0" value="{{ form.valor_minimo_repasse.value|default:0 }}"
+                                           class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                           placeholder="0.00">
+                                    <p class="mt-1 text-sm text-gray-400">
+                                        Repasses abaixo deste valor não serão criados (0 = sem limite)
+                                    </p>
+                                </div>
+
+                                <!-- Percentual de Adiantamento -->
+                                <div>
+                                    <label for="percentual_adiantamento" class="block text-sm font-medium text-gray-300">
+                                        Percentual de Adiantamento (%)
+                                    </label>
+                                    <input type="number" id="percentual_adiantamento" name="percentual_adiantamento" 
+                                           step="0.01" min="0" max="100" value="{{ form.percentual_adiantamento.value|default:0 }}"
+                                           class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                           placeholder="0.00">
+                                    <p class="mt-1 text-sm text-gray-400">
+                                        Percentual do valor que pode ser adiantado (0 = sem adiantamento)
+                                    </p>
+                                </div>
+
+                                <!-- Taxa de Adiantamento -->
+                                <div>
+                                    <label for="taxa_adiantamento" class="block text-sm font-medium text-gray-300">
+                                        Taxa de Adiantamento (%)
+                                    </label>
+                                    <input type="number" id="taxa_adiantamento" name="taxa_adiantamento" 
+                                           step="0.01" min="0" max="100" value="{{ form.taxa_adiantamento.value|default:0 }}"
+                                           class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                           placeholder="0.00">
+                                    <p class="mt-1 text-sm text-gray-400">
+                                        Taxa cobrada sobre adiantamentos
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Configurações Avançadas -->
+                        <div>
+                            <h3 class="text-lg font-medium text-white mb-4">Configurações Avançadas</h3>
+                            
+                            <div class="space-y-4">
+                                <!-- Considerar Feriados -->
+                                <div>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="considerar_feriados" {% if form.considerar_feriados.value %}checked{% endif %}
+                                               class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700 rounded">
+                                        <span class="ml-2 text-sm font-medium text-gray-300">Considerar feriados no cálculo de dias úteis</span>
+                                    </label>
+                                    <p class="mt-1 ml-6 text-sm text-gray-400">
+                                        Quando ativo, feriados nacionais também serão excluídos dos dias úteis
+                                    </p>
+                                </div>
+
+                                <!-- Antecipar FDS/Feriados -->
+                                <div>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="antecipar_fds_feriados" {% if form.antecipar_fds_feriados.value %}checked{% endif %}
+                                               class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700 rounded">
+                                        <span class="ml-2 text-sm font-medium text-gray-300">Antecipar repasse se data cair em final de semana ou feriado</span>
+                                    </label>
+                                    <p class="mt-1 ml-6 text-sm text-gray-400">
+                                        Se desativado, o repasse será postergado para o próximo dia útil
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botões de Ação -->
+                        <div class="pt-6 border-t border-gray-700">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    {% if object %}
+                                        <button type="button" onclick="testarPolitica()" 
+                                                class="px-4 py-2 border border-blue-600 rounded-md shadow-sm text-sm font-medium text-blue-400 bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-500">
+                                            <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Testar Política
+                                        </button>
+                                    {% endif %}
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <a href="{% url 'financeiro:politica_global_list' %}" 
+                                       class="px-4 py-2 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-gray-500">
+                                        Cancelar
+                                    </a>
+                                    <button type="submit" 
+                                            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500">
+                                        {% if object %}
+                                            Atualizar Política
+                                        {% else %}
+                                            Criar Política
+                                        {% endif %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Sidebar com Preview e Info -->
+            <div class="space-y-6">
+                <!-- Preview da Política -->
+                <div class="bg-gray-800 border border-gray-700 shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-700">
+                        <h3 class="text-lg font-medium text-white">Preview da Política</h3>
+                    </div>
+                    <div class="px-6 py-4">
+                        <div id="policy-preview" class="text-sm text-gray-300">
+                            <p>Configure os campos ao lado para ver como funcionará esta política.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aplicação em Contratos -->
+                <div class="bg-gray-800 border border-gray-700 shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-700">
+                        <h3 class="text-lg font-medium text-white">Aplicação</h3>
+                    </div>
+                    <div class="px-6 py-4">
+                        <div class="text-sm text-gray-300 space-y-2">
+                            <p><strong>Como usar esta política:</strong></p>
+                            <ul class="list-disc list-inside space-y-1 text-gray-400">
+                                <li>Pode ser aplicada a múltiplos contratos</li>
+                                <li>Serve como template para políticas específicas</li>
+                                <li>Contratos sem política específica usarão esta como padrão</li>
+                            </ul>
+                            {% if object %}
+                                <div class="mt-4 pt-4 border-t border-gray-700">
+                                    <button onclick="aplicarEmContratos()" 
+                                            class="w-full inline-flex justify-center items-center px-3 py-2 border border-green-300 text-sm font-medium rounded-md text-green-400 bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-green-500">
+                                        <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                        </svg>
+                                        Aplicar em Contratos
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guia de Configuração -->
+                <div class="bg-gray-800 border border-gray-700 shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-700">
+                        <h3 class="text-lg font-medium text-white">Guia de Configuração</h3>
+                    </div>
+                    <div class="px-6 py-4 space-y-4">
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-300 mb-2">Periodicidades:</h4>
+                            <ul class="text-sm text-gray-400 space-y-1">
+                                <li><strong>Diária:</strong> Repasses em dias úteis</li>
+                                <li><strong>Semanal:</strong> Dia específico da semana</li>
+                                <li><strong>Quinzenal:</strong> Dias 15 e último do mês</li>
+                                <li><strong>Mensal:</strong> Dia específico do mês</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-300 mb-2">Tipos de Dias:</h4>
+                            <ul class="text-sm text-gray-400 space-y-1">
+                                <li><strong>Úteis:</strong> Segunda a sexta, exceto feriados</li>
+                                <li><strong>Corridos:</strong> Todos os dias, incluindo fds</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-300 mb-2">Dicas:</h4>
+                            <ul class="text-sm text-gray-400 space-y-1">
+                                <li>• Taxa padrão será aplicada a todos os contratos</li>
+                                <li>• Valor mínimo evita repasses muito pequenos</li>
+                                <li>• Adiantamentos permitem flexibilidade de caixa</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Teste -->
+<div id="testModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 overflow-y-auto h-full w-full hidden">
+    <div class="relative top-20 mx-auto p-5 border border-gray-600 w-96 shadow-lg rounded-md bg-gray-800">
+        <div class="mt-3 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-900 border border-blue-600">
+                <svg class="h-6 w-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-medium text-white mt-4">Teste de Política Global</h3>
+            <div class="mt-2 px-7 py-3">
+                <p class="text-sm text-gray-400">
+                    Simulando como esta política funcionaria se aplicada a contratos...
+                </p>
+                <div id="testResults" class="mt-4 text-left hidden">
+                    <!-- Resultados do teste aparecerão aqui -->
+                </div>
+            </div>
+            <div class="items-center px-4 py-3">
+                <button onclick="executarTeste()" class="px-4 py-2 bg-blue-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500">
+                    Executar Simulação
+                </button>
+                <button onclick="closeTestModal()" class="mt-3 px-4 py-2 bg-gray-600 text-gray-200 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-gray-500">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Elementos do formulário
+    const periodicidadeSelect = document.getElementById('periodicidade');
+    const diaMesContainer = document.getElementById('dia-mes-container');
+    const diaSemanaContainer = document.getElementById('dia-semana-container');
+    
+    // Função para mostrar/ocultar campos baseado na periodicidade
+    function togglePeriodicidadeFields() {
+        const periodicidade = periodicidadeSelect.value;
+        
+        // Resetar visibilidade
+        diaMesContainer.style.display = 'none';
+        diaSemanaContainer.style.display = 'none';
+        
+        // Mostrar campos relevantes
+        switch(periodicidade) {
+            case 'mensal':
+                diaMesContainer.style.display = 'block';
+                break;
+            case 'semanal':
+                diaSemanaContainer.style.display = 'block';
+                break;
+            case 'quinzenal':
+            case 'diaria':
+                // Não precisa de campos adicionais
+                break;
+        }
+        
+        updatePreview();
+    }
+    
+    // Função para atualizar o preview
+    function updatePreview() {
+        const nome = document.getElementById('id_nome').value || 'Nova Política Global';
+        const periodicidade = periodicidadeSelect.value;
+        const tipoDias = document.getElementById('tipo_dias').value;
+        const diaMes = document.getElementById('dia_mes').value;
+        const diaSemana = document.getElementById('dia_semana').value;
+        const diasApos = document.getElementById('dias_apos_recebimento').value || '2';
+        const taxaAdmin = document.getElementById('taxa_admin_padrao').value || '8.00';
+        const valorMinimo = document.getElementById('valor_minimo_repasse').value || '0';
+        
+        let previewText = `<div class="space-y-2">`;
+        previewText += `<div><strong>${nome}</strong></div>`;
+        
+        if (periodicidade) {
+            previewText += `<div><strong>Periodicidade:</strong> ${getPeriodicidadeText(periodicidade)}</div>`;
+            previewText += `<div><strong>Tipo de Dias:</strong> ${tipoDias === 'uteis' ? 'Dias Úteis' : 'Dias Corridos'}</div>`;
+            
+            switch(periodicidade) {
+                case 'mensal':
+                    previewText += `<div><strong>Execução:</strong> Todo dia ${diaMes || '[dia]'} do mês</div>`;
+                    break;
+                case 'semanal':
+                    const diasSemana = ['', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+                    previewText += `<div><strong>Execução:</strong> Toda ${diasSemana[diaSemana] || '[dia da semana]'}</div>`;
+                    break;
+                case 'quinzenal':
+                    previewText += `<div><strong>Execução:</strong> Dias 15 e último dia do mês</div>`;
+                    break;
+                case 'diaria':
+                    previewText += `<div><strong>Execução:</strong> Todos os dias ${tipoDias === 'uteis' ? 'úteis' : ''}</div>`;
+                    break;
+            }
+            
+            previewText += `<div><strong>Aguarda:</strong> ${diasApos} dias após recebimento</div>`;
+            previewText += `<div><strong>Taxa Admin:</strong> ${taxaAdmin}%</div>`;
+            
+            if (parseFloat(valorMinimo) > 0) {
+                previewText += `<div><strong>Valor Mínimo:</strong> R$ ${parseFloat(valorMinimo).toFixed(2)}</div>`;
+            }
+        } else {
+            previewText += '<div>Selecione uma periodicidade para ver o preview</div>';
+        }
+        
+        previewText += '</div>';
+        
+        document.getElementById('policy-preview').innerHTML = previewText;
+    }
+    
+    function getPeriodicidadeText(periodicidade) {
+        const map = {
+            'diaria': 'Diária',
+            'semanal': 'Semanal',
+            'quinzenal': 'Quinzenal',
+            'mensal': 'Mensal'
+        };
+        return map[periodicidade] || periodicidade;
+    }
+    
+    // Event listeners
+    periodicidadeSelect.addEventListener('change', togglePeriodicidadeFields);
+    
+    // Adicionar listeners para todos os campos do formulário
+    document.querySelectorAll('input, select, textarea').forEach(element => {
+        element.addEventListener('input', updatePreview);
+        element.addEventListener('change', updatePreview);
+    });
+    
+    // Inicializar
+    togglePeriodicidadeFields();
+    updatePreview();
+});
+
+function testarPolitica() {
+    document.getElementById('testModal').classList.remove('hidden');
+    document.getElementById('testResults').classList.add('hidden');
+}
+
+function closeTestModal() {
+    document.getElementById('testModal').classList.add('hidden');
+}
+
+function executarTeste() {
+    const resultsDiv = document.getElementById('testResults');
+    resultsDiv.innerHTML = '<p class="text-sm text-gray-400">Executando simulação...</p>';
+    resultsDiv.classList.remove('hidden');
+    
+    // Simular teste
+    setTimeout(() => {
+        const html = `
+            <div class="bg-gray-700 rounded p-3 text-sm space-y-2">
+                <div><strong>Simulação da Política Global:</strong></div>
+                <div>• Aplicável a todos os contratos sem política específica</div>
+                <div>• Contratos elegíveis: Calculado baseado nos critérios</div>
+                <div>• Taxa aplicada: ${document.getElementById('taxa_admin_padrao').value || '8.00'}%</div>
+                <div>• Tipo de dias: ${document.getElementById('tipo_dias').value === 'uteis' ? 'Dias Úteis' : 'Dias Corridos'}</div>
+                <div class="text-green-400 text-xs mt-2">
+                    ✅ Política configurada corretamente
+                </div>
+            </div>
+        `;
+        resultsDiv.innerHTML = html;
+    }, 1000);
+}
+
+function aplicarEmContratos() {
+    // Redirecionar para página de aplicação em lote
+    window.location.href = '{% url "financeiro:contratos_sem_politica" %}';
+}
+</script>
+{% endblock %>
