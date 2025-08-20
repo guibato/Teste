@@ -722,3 +722,343 @@ class AgendamentoRepasse(models.Model):
             self.detalhes_processamento = (self.detalhes_processamento or '') + f"\nCancelado: {motivo}"
         self.save()
         return True
+    
+
+# financeiro/models/repasse_integrado.py
+
+from decimal import Decimal
+from django.db import models
+import json
+
+class RepasseDetalhado(models.Model):
+    """
+    Repasse com cálculo baseado na composição detalhada da cobrança
+    """
+    STATUS_CHOICES = [
+        ('pendente', 'Pendente'),
+        ('efetuado', 'Efetuado'),
+        ('cancelado', 'Cancelado'),
+    ]
+
+    # Relacionamentos básicos
+    proprietario = models.ForeignKey('sisimob.Cliente', on_delete=models.CASCADE)
+    cobranca = models.ForeignKey('financeiro.Cobranca', on_delete=models.CASCADE)
+    contrato = models.ForeignKey('sisimob.Contrato', on_delete=models.CASCADE)
+
+    # Valores financeiros
+    valor_bruto_total = models.DecimalField(
+        max_digits=12, decimal_places=2,
+        help_text="Valor total da cobrança (o que o inquilino pagou)"
+    )
+    
+    valor_taxa_admin_total = models.DecimalField(
+        max_digits=12, decimal_places=2,
+        help_text="Total de taxa administrativa descontada"
+    )
+    
+    valor_liquido_repasse = models.DecimalField(
+        max_digits=12, decimal_places=2,
+        help_text="Valor líquido a ser repassado ao proprietário"
+    )
+    
+    # Detalhamento da composição (JSON)
+    composicao_detalhada = models.JSONField(
+        default=dict,
+        help_text="Detalhamento de como o valor foi composto e calculado"
+    )
+    
+    # Controle de datas
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_prevista = models.DateField()
+    data_efetivacao = models.DateField(null=True, blank=True)
+    
+    # Período de referência
+    mes_referencia = models.PositiveSmallIntegerField()
+    ano_referencia = models.PositiveSmallIntegerField()
+    
+    # Status e controle
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
+    observacoes = models.TextField(blank=True, null=True)
+    comprovante = models.FileField(upload_to='repasses/comprovantes/', null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Repasse Detalhado'
+        verbose_name_plural = 'Repasses Detalhados'
+        ordering = ['-data_criacao']
+
+    def __str__(self):
+        return f"Repasse {self.id} - {self.proprietario} - R$ {self.valor_liquido_repasse}"
+
+    @classmethod
+    def criar_a_partir_de_cobranca(cls, cobranca):
+        """
+        Cria um repasse baseado na composição detalhada de uma cobrança
+        """
+        from .cobranca_composicao import ComposicaoCobranca
+        
+        # Calcular composição
+        calculadora = ComposicaoCobranca(
+            cobranca.contrato, 
+            cobranca.mes_referencia, 
+            cobranca.ano_referencia
+        )
+        composicao = calculadora.calcular_composicao_completa()
+        
+        # Obter política de repasse para calcular data
+        politica = getattr(cobranca.contrato, 'politica_repasse', None)
+        
+        if politica:
+            data_prevista = politica.calcular_data_repasse(cobranca.data_pagamento)
+        else:
+            # Fallback: 2 dias úteis após pagamento
+            from datetime import timedelta
+            data_prevista = cobranca.data_pagamento + timedelta(days=2)
+        
+        # Obter primeiro proprietário
+        proprietario = cobranca.contrato.proprietario.first()
+        
+        # Criar repasse
+        repasse = cls.objects.create(
+            proprietario=proprietario,
+            cobranca=cobranca,
+            contrato=cobranca.contrato,
+            valor_bruto_total=composicao['valor_total_cobranca'],
+            valor_taxa_admin_total=composicao['valor_total_taxa_admin'],
+            valor_liquido_repasse=composicao['valor_total_repasse'],
+            composicao_detalhada=cls._preparar_composicao_para_json(composicao),
+            data_prevista=data_prevista,
+            mes_referencia=cobranca.mes_referencia,
+            ano_referencia=cobranca.ano_referencia,
+            observacoes=f"Repasse automático - {len(composicao['componentes'])} componentes"
+        )
+        
+        return repasse
+    
+    @staticmethod
+    def _preparar_composicao_para_json(composicao):
+        """Converte Decimal para float para armazenamento JSON"""
+        def converter_decimals(obj):
+            if isinstance(obj, dict):
+                return {k: converter_decimals(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [converter_decimals(item) for item in obj]
+            elif isinstance(obj, Decimal):
+                return float(obj)
+            return obj
+        
+        return converter_decimals(composicao)
+    
+    def get_composicao_legivel(self):
+        """Retorna a composição em formato legível"""
+        if not self.composicao_detalhada:
+            return {}
+        
+        composicao = self.composicao_detalhada.copy()
+        
+        # Converter floats de volta para Decimal para cálculos
+        def converter_para_decimal(obj):
+            if isinstance(obj, dict):
+                return {k: converter_para_decimal(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [converter_para_decimal(item) for item in obj]
+            elif isinstance(obj, (int, float)):
+                return Decimal(str(obj))
+            return obj
+        
+        return converter_para_decimal(composicao)
+    
+    def gerar_relatorio_repasse(self):
+        """
+        Gera relatório detalhado do repasse
+        """
+        composicao = self.get_composicao_legivel()
+        
+        relatorio = {
+            'cabecalho': {
+                'repasse_id': self.id,
+                'proprietario': str(self.proprietario),
+                'periodo': f"{self.mes_referencia:02d}/{self.ano_referencia}",
+                'contrato': str(self.contrato),
+                'data_criacao': self.data_criacao.strftime('%d/%m/%Y'),
+                'data_prevista': self.data_prevista.strftime('%d/%m/%Y'),
+                'status': self.get_status_display()
+            },
+            'resumo_financeiro': {
+                'valor_total_cobranca': self.valor_bruto_total,
+                'total_taxa_admin': self.valor_taxa_admin_total,
+                'valor_liquido_repasse': self.valor_liquido_repasse,
+                'percentual_taxa_media': (
+                    (self.valor_taxa_admin_total / self.valor_bruto_total * 100) 
+                    if self.valor_bruto_total > 0 else Decimal('0')
+                )
+            },
+            'componentes_detalhados': composicao.get('componentes', []),
+            'observacoes': self.observacoes or ''
+        }
+        
+        return relatorio
+    
+    def gerar_descricao_humanizada(self):
+        """
+        Gera descrição em linguagem natural
+        """
+        composicao = self.get_composicao_legivel()
+        componentes = composicao.get('componentes', [])
+        
+        linhas = [
+            f"💰 REPASSE #{self.id}",
+            f"👤 Proprietário: {self.proprietario}",
+            f"📅 Período: {self.mes_referencia:02d}/{self.ano_referencia}",
+            f"🏠 Contrato: {self.contrato}",
+            "",
+            "📊 COMPOSIÇÃO DO REPASSE:",
+        ]
+        
+        for comp in componentes:
+            valor = Decimal(str(comp.get('valor', 0)))
+            valor_fmt = f"R$ {valor:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
+            
+            if comp.get('tem_incidencia_admin', False):
+                taxa = Decimal(str(comp.get('valor_taxa_admin', 0)))
+                liquido = Decimal(str(comp.get('valor_liquido_repasse', 0)))
+                taxa_fmt = f"R$ {taxa:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
+                liquido_fmt = f"R$ {liquido:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
+                
+                linhas.append(f"• {comp['descricao']}: {valor_fmt}")
+                linhas.append(f"  - Taxa admin: -{taxa_fmt}")
+                linhas.append(f"  - Líquido: {liquido_fmt}")
+            else:
+                linhas.append(f"• {comp['descricao']}: {valor_fmt} (sem taxa)")
+        
+        linhas.extend([
+            "",
+            "🎯 RESUMO:",
+            f"Valor bruto total: R$ {self.valor_bruto_total:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
+            f"Taxa admin total: R$ {self.valor_taxa_admin_total:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
+            f"🏆 VALOR LÍQUIDO: R$ {self.valor_liquido_repasse:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
+        ])
+        
+        return "\n".join(linhas)
+    
+    def efetivar_repasse(self, metodo_pagamento=None, observacoes_efetivacao=None):
+        """
+        Efetiva o repasse
+        """
+        if self.status != 'pendente':
+            return False
+        
+        from datetime import date
+        
+        self.status = 'efetuado'
+        self.data_efetivacao = date.today()
+        
+        if observacoes_efetivacao:
+            self.observacoes = f"{self.observacoes or ''}\n\nEfetuado em {date.today().strftime('%d/%m/%Y')}: {observacoes_efetivacao}".strip()
+        
+        self.save()
+        
+        # Criar movimento financeiro
+        self._criar_movimento_financeiro(metodo_pagamento)
+        
+        return True
+    
+    def _criar_movimento_financeiro(self, metodo_pagamento):
+        """
+        Cria movimento financeiro quando repasse é efetuado
+        """
+        try:
+            from .movimento import MovimentoConta
+            
+            MovimentoConta.objects.create(
+                proprietario=self.proprietario,
+                contrato=self.contrato,
+                tipo='repasse',
+                descricao=f"Repasse {self.mes_referencia:02d}/{self.ano_referencia} - {len(self.composicao_detalhada.get('componentes', []))} componentes",
+                valor=self.valor_liquido_repasse,
+                data_referencia=date(self.ano_referencia, self.mes_referencia, 1),
+                metodo_pagamento=metodo_pagamento,
+                detalhes_json=self.composicao_detalhada
+            )
+        except ImportError:
+            # Modelo MovimentoConta não existe ainda
+            pass
+    
+    def pode_ser_cancelado(self):
+        """Verifica se o repasse pode ser cancelado"""
+        return self.status == 'pendente'
+    
+    def cancelar_repasse(self, motivo):
+        """Cancela o repasse"""
+        if not self.pode_ser_cancelado():
+            return False
+        
+        self.status = 'cancelado'
+        self.observacoes = f"{self.observacoes or ''}\n\nCancelado: {motivo}".strip()
+        self.save()
+        
+        return True
+
+
+# Função auxiliar para migrar repasses antigos
+def migrar_repasse_antigo_para_detalhado(repasse_antigo):
+    """
+    Migra um repasse do modelo antigo para o novo modelo detalhado
+    """
+    from .cobranca_composicao import ComposicaoCobranca
+    
+    if not repasse_antigo.cobranca:
+        return None
+    
+    cobranca = repasse_antigo.cobranca
+    
+    # Recalcular composição
+    calculadora = ComposicaoCobranca(
+        cobranca.contrato,
+        cobranca.mes_referencia,
+        cobranca.ano_referencia
+    )
+    composicao = calculadora.calcular_composicao_completa()
+    
+    # Criar novo repasse
+    repasse_novo = RepasseDetalhado.objects.create(
+        proprietario=repasse_antigo.proprietario,
+        cobranca=cobranca,
+        contrato=repasse_antigo.contrato,
+        valor_bruto_total=composicao['valor_total_cobranca'],
+        valor_taxa_admin_total=composicao['valor_total_taxa_admin'],
+        valor_liquido_repasse=composicao['valor_total_repasse'],
+        composicao_detalhada=RepasseDetalhado._preparar_composicao_para_json(composicao),
+        data_prevista=repasse_antigo.data_prevista,
+        data_efetivacao=repasse_antigo.data_efetivacao,
+        mes_referencia=repasse_antigo.mes_referencia,
+        ano_referencia=repasse_antigo.ano_referencia,
+        status=repasse_antigo.status,
+        observacoes=f"Migrado do repasse #{repasse_antigo.id}\n{repasse_antigo.observacoes or ''}".strip()
+    )
+    
+    return repasse_novo
+
+
+# Exemplo de uso:
+def exemplo_criar_repasse_a_partir_de_cobranca():
+    """
+    Exemplo de como criar um repasse quando uma cobrança é paga
+    """
+    from financeiro.models import Cobranca
+    
+    # Quando uma cobrança é marcada como paga
+    cobranca = Cobranca.objects.get(id=123)
+    cobranca.marcar_como_paga()
+    
+    # Criar repasse automaticamente
+    repasse = RepasseDetalhado.criar_a_partir_de_cobranca(cobranca)
+    
+    # Gerar relatório
+    relatorio = repasse.gerar_relatorio_repasse()
+    print(json.dumps(relatorio, indent=2, default=str))
+    
+    # Gerar descrição humanizada
+    descricao = repasse.gerar_descricao_humanizada()
+    print(descricao)
+    
+    return repasse

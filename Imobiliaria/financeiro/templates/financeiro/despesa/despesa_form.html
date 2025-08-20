@@ -1,10 +1,10 @@
-<!-- financeiro/templates/financeiro/despesa/despesa_form.html - VERSÃO MELHORADA -->
+<!-- financeiro/templates/financeiro/despesa/despesa_form.html - ADAPTADO AO MODELO -->
 {% extends 'base/base.html' %}
 
 {% block page_title %}{{ titulo }}{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto">
+<div class="max-w-6xl mx-auto">
     <!-- Cabeçalho -->
     <div class="bg-gray-800 rounded-lg p-6 mb-6">
         <h1 class="text-2xl font-bold text-white flex items-center">
@@ -26,7 +26,7 @@
                 {% endif %}
 
                 <!-- Formulário -->
-                <form method="post" class="space-y-6" id="despesa-form">
+                <form method="post" enctype="multipart/form-data" class="space-y-6" id="despesa-form">
                     {% csrf_token %}
                     
                     <!-- Linha 1: Contrato e Tipo -->
@@ -69,11 +69,15 @@
                             <select id="{{ form.tipo.id_for_label }}"
                                     name="{{ form.tipo.name }}"
                                     required
-                                    class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 {% if form.tipo.errors %}border-red-500{% endif %}">
+                                    class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 {% if form.tipo.errors %}border-red-500{% endif %}"
+                                    onchange="updateTipoInfo()">
                                 <option value="">Selecione um tipo</option>
                                 {% for choice in form.tipo.field.choices %}
                                     {% if choice.0 %}
-                                        <option value="{{ choice.0 }}" {% if form.tipo.value == choice.0|stringformat:"s" %}selected{% endif %}>
+                                        <option value="{{ choice.0 }}" 
+                                                data-categoria="{{ choice.1.categoria }}"
+                                                data-incidencia-padrao="{{ choice.1.incidencia_taxa_admin_padrao|yesno:'true,false' }}"
+                                                {% if form.tipo.value == choice.0|stringformat:"s" %}selected{% endif %}>
                                             {{ choice.1 }}
                                         </option>
                                     {% endif %}
@@ -87,20 +91,120 @@
                                     {% endfor %}
                                 </div>
                             {% endif %}
+                            
+                            <!-- Info do tipo selecionado -->
+                            <div id="tipo-info" class="mt-2 text-sm text-gray-400 hidden">
+                                <span id="tipo-categoria"></span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Linha 2: Descrição -->
-                    <div>
-                        <label for="{{ form.descricao.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
-                            {{ form.descricao.label }}
-                        </label>
-                        <input type="text" 
-                               id="{{ form.descricao.id_for_label }}"
-                               name="{{ form.descricao.name }}"
-                               value="{{ form.descricao.value|default:'' }}"
-                               placeholder="Descrição da despesa (opcional)..."
-                               class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <!-- Linha 2: Descrição e Referência -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="{{ form.descricao.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                                {{ form.descricao.label }}
+                            </label>
+                            <input type="text" 
+                                   id="{{ form.descricao.id_for_label }}"
+                                   name="{{ form.descricao.name }}"
+                                   value="{{ form.descricao.value|default:'' }}"
+                                   placeholder="Descrição da despesa (opcional)..."
+                                   class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <!-- NOVO: Campo Referência de Cobrança -->
+                        <div>
+                            <label for="{{ form.cobranca_referencia.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                                {{ form.cobranca_referencia.label }}
+                            </label>
+                            <input type="text" 
+                                   id="{{ form.cobranca_referencia.id_for_label }}"
+                                   name="{{ form.cobranca_referencia.name }}"
+                                   value="{{ form.cobranca_referencia.value|default:'' }}"
+                                   placeholder="Ex: 01/2025, Março/2025..."
+                                   class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            {% if form.cobranca_referencia.help_text %}
+                                <p class="text-gray-400 text-sm mt-1">{{ form.cobranca_referencia.help_text }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- NOVA: Seção de Taxa de Administração -->
+                    <div class="bg-yellow-900 bg-opacity-30 rounded-lg p-4 space-y-4">
+                        <h3 class="text-lg font-medium text-white flex items-center">
+                            <i class="fas fa-percentage text-yellow-400 mr-2"></i>
+                            Taxa de Administração
+                        </h3>
+                        
+                        <!-- Incidência de Taxa -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-3">{{ form.incidencia_taxa_admin.label }}</label>
+                            <div class="space-y-2">
+                                {% for choice in form.incidencia_taxa_admin.field.choices %}
+                                    <label class="flex items-start">
+                                        <input type="radio" 
+                                               name="{{ form.incidencia_taxa_admin.name }}" 
+                                               value="{{ choice.0 }}"
+                                               {% if form.incidencia_taxa_admin.value == choice.0 or choice.0 == 'nao' and not form.incidencia_taxa_admin.value %}checked{% endif %}
+                                               class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500 focus:ring-2 mt-1"
+                                               onchange="toggleTaxaFields()">
+                                        <span class="ml-2 text-white">{{ choice.1 }}</span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                            {% if form.incidencia_taxa_admin.help_text %}
+                                <p class="text-gray-400 text-sm mt-2">{{ form.incidencia_taxa_admin.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Campos condicionais da taxa -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Percentual com Incidência (para incidência parcial) -->
+                            <div id="campo-percentual-incidencia" style="display: none;">
+                                <label for="{{ form.percentual_com_incidencia.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                                    {{ form.percentual_com_incidencia.label }}
+                                    <span class="text-red-400">*</span>
+                                </label>
+                                <div class="relative">
+                                    <input type="number" 
+                                           id="{{ form.percentual_com_incidencia.id_for_label }}"
+                                           name="{{ form.percentual_com_incidencia.name }}"
+                                           value="{{ form.percentual_com_incidencia.value|default:'' }}"
+                                           step="0.01"
+                                           min="0"
+                                           max="100"
+                                           placeholder="0,00"
+                                           class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">%</span>
+                                </div>
+                                {% if form.percentual_com_incidencia.help_text %}
+                                    <p class="text-gray-400 text-sm mt-1">{{ form.percentual_com_incidencia.help_text }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Taxa Específica (opcional) -->
+                            <div id="campo-taxa-especifica" style="display: none;">
+                                <label for="{{ form.taxa_admin_especifica.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                                    {{ form.taxa_admin_especifica.label }}
+                                </label>
+                                <div class="relative">
+                                    <input type="number" 
+                                           id="{{ form.taxa_admin_especifica.id_for_label }}"
+                                           name="{{ form.taxa_admin_especifica.name }}"
+                                           value="{{ form.taxa_admin_especifica.value|default:'' }}"
+                                           step="0.01"
+                                           min="0"
+                                           max="100"
+                                           placeholder="8,00"
+                                           class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">%</span>
+                                </div>
+                                {% if form.taxa_admin_especifica.help_text %}
+                                    <p class="text-gray-400 text-sm mt-1">{{ form.taxa_admin_especifica.help_text }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Seção de Valores -->
@@ -170,7 +274,7 @@
                         </div>
                     </div>
 
-                    <!-- Linha 3: Paga Por e Parcelas -->
+                    <!-- Linha 3: Paga Por, Parcelas e Periodicidade -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <!-- Campo Paga Por -->
                         <div>
@@ -225,8 +329,8 @@
                         </div>
                     </div>
 
-                    <!-- Linha 4: Data de Início e Status -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Linha 4: Datas e Configurações -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <!-- Campo Data de Início -->
                         <div>
                             <label for="{{ form.data_inicio.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
@@ -241,8 +345,44 @@
                                    class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
 
+                        <!-- NOVO: Campo Data Fim Prevista -->
+                        <div>
+                            <label for="{{ form.data_fim_prevista.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                                {{ form.data_fim_prevista.label }}
+                            </label>
+                            <input type="date" 
+                                   id="{{ form.data_fim_prevista.id_for_label }}"
+                                   name="{{ form.data_fim_prevista.name }}"
+                                   value="{{ form.data_fim_prevista.value|date:'Y-m-d'|default:'' }}"
+                                   class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            {% if form.data_fim_prevista.help_text %}
+                                <p class="text-gray-400 text-sm mt-1">{{ form.data_fim_prevista.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Campo Percentual Repassado -->
+                        <div>
+                            <label for="{{ form.percentual_repassado.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                                {{ form.percentual_repassado.label }}
+                            </label>
+                            <div class="relative">
+                                <input type="number" 
+                                       id="{{ form.percentual_repassado.id_for_label }}"
+                                       name="{{ form.percentual_repassado.name }}"
+                                       value="{{ form.percentual_repassado.value|default:'100' }}"
+                                       step="0.01"
+                                       min="0"
+                                       max="100"
+                                       class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Linha 5: Checkboxes -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Campo Ativa -->
-                        <div class="flex items-center mt-8">
+                        <div class="flex items-center">
                             <input type="checkbox" 
                                    id="{{ form.is_ativa.id_for_label }}"
                                    name="{{ form.is_ativa.name }}"
@@ -252,6 +392,41 @@
                                 {{ form.is_ativa.label }}
                             </label>
                         </div>
+
+                        <!-- NOVO: Campo Recorrente -->
+                        <div class="flex items-center">
+                            <input type="checkbox" 
+                                   id="{{ form.is_recorrente.id_for_label }}"
+                                   name="{{ form.is_recorrente.name }}"
+                                   {% if form.is_recorrente.value %}checked{% endif %}
+                                   class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2">
+                            <label for="{{ form.is_recorrente.id_for_label }}" class="ml-2 text-sm text-gray-300">
+                                {{ form.is_recorrente.label }}
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- NOVO: Campo Comprovante -->
+                    <div>
+                        <label for="{{ form.comprovante.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                            {{ form.comprovante.label }}
+                        </label>
+                        <input type="file" 
+                               id="{{ form.comprovante.id_for_label }}"
+                               name="{{ form.comprovante.name }}"
+                               accept=".pdf,.jpg,.jpeg,.png"
+                               class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        {% if form.comprovante.help_text %}
+                            <p class="text-gray-400 text-sm mt-1">{{ form.comprovante.help_text }}</p>
+                        {% endif %}
+                        {% if object.comprovante %}
+                            <div class="mt-2 text-sm">
+                                <span class="text-gray-400">Arquivo atual: </span>
+                                <a href="{{ object.comprovante.url }}" target="_blank" class="text-blue-400 hover:text-blue-300">
+                                    Ver comprovante atual
+                                </a>
+                            </div>
+                        {% endif %}
                     </div>
 
                     <!-- Seção de Recorrência -->
@@ -355,6 +530,33 @@
                 </div>
             </div>
 
+            <!-- NOVO: Preview de Taxa Administrativa -->
+            <div id="preview-taxa-admin" class="bg-gray-800 rounded-lg p-6" style="display: none;">
+                <h3 class="text-lg font-medium text-white mb-4 flex items-center">
+                    <i class="fas fa-percentage text-yellow-400 mr-2"></i>
+                    Taxa de Administração
+                </h3>
+                
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Valor c/ Incidência:</span>
+                        <span class="text-white font-medium" id="preview-valor-com-taxa">R$ 0,00</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Valor s/ Incidência:</span>
+                        <span class="text-white font-medium" id="preview-valor-sem-taxa">R$ 0,00</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Taxa Admin:</span>
+                        <span class="text-yellow-400 font-medium" id="preview-taxa-valor">R$ 0,00</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Impacto Repasse:</span>
+                        <span class="text-blue-400 font-bold" id="preview-impacto-repasse">R$ 0,00</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Preview de Recorrência -->
             <div id="preview-recorrencia" class="bg-gray-800 rounded-lg p-6" style="display: none;">
                 <h3 class="text-lg font-medium text-white mb-4 flex items-center">
@@ -394,19 +596,19 @@
                 <div class="space-y-3 text-sm text-gray-300">
                     <div class="flex items-start">
                         <i class="fas fa-circle text-yellow-400 text-xs mt-2 mr-3 flex-shrink-0"></i>
-                        <span><strong>Valor Total:</strong> Informe o valor completo da despesa</span>
+                        <span><strong>Taxa Admin:</strong> Configure se a despesa tem incidência de taxa administrativa</span>
                     </div>
                     <div class="flex items-start">
                         <i class="fas fa-circle text-yellow-400 text-xs mt-2 mr-3 flex-shrink-0"></i>
-                        <span><strong>Valor por Parcela:</strong> Informe o valor de cada parcela individual</span>
+                        <span><strong>Incidência Parcial:</strong> Ideal quando só parte do valor tem taxa (ex: 70% do condomínio)</span>
+                    </div>
+                    <div class="flex items-start">
+                        <i class="fas fa-circle text-yellow-400 text-xs mt-2 mr-3 flex-shrink-0"></i>
+                        <span><strong>Referência:</strong> Use para identificar o período da cobrança</span>
                     </div>
                     <div class="flex items-start">
                         <i class="fas fa-circle text-yellow-400 text-xs mt-2 mr-3 flex-shrink-0"></i>
                         <span><strong>Recorrentes:</strong> Ideal para despesas mensais como Condomínio, IPTU</span>
-                    </div>
-                    <div class="flex items-start">
-                        <i class="fas fa-circle text-yellow-400 text-xs mt-2 mr-3 flex-shrink-0"></i>
-                        <span><strong>Periodicidade:</strong> Define a frequência das parcelas/recorrências</span>
                     </div>
                 </div>
             </div>
@@ -419,24 +621,31 @@
                 </h3>
                 <div class="space-y-3 text-sm">
                     <div class="bg-gray-700 rounded p-3">
-                        <div class="text-green-400 font-medium">Condomínio Mensal</div>
-                        <div class="text-gray-300">• Valor por Parcela: R$ 350,00</div>
-                        <div class="text-gray-300">• Recorrente: 12 meses</div>
-                        <div class="text-gray-300">• Periodicidade: Mensal</div>
+                        <div class="text-green-400 font-medium">💰 Condomínio c/ Taxa</div>
+                        <div class="text-gray-300">• Valor: R$ 350,00</div>
+                        <div class="text-gray-300">• Incidência: Total (100%)</div>
+                        <div class="text-gray-300">• Pago por: Inquilino</div>
                     </div>
                     
                     <div class="bg-gray-700 rounded p-3">
-                        <div class="text-blue-400 font-medium">IPTU Parcelado</div>
+                        <div class="text-blue-400 font-medium">🏠 IPTU Parcelado</div>
                         <div class="text-gray-300">• Valor Total: R$ 1.200,00</div>
                         <div class="text-gray-300">• Parcelas: 10x</div>
-                        <div class="text-gray-300">• Periodicidade: Mensal</div>
+                        <div class="text-gray-300">• Incidência: Não</div>
                     </div>
                     
                     <div class="bg-gray-700 rounded p-3">
-                        <div class="text-purple-400 font-medium">Reforma Única</div>
-                        <div class="text-gray-300">• Valor Total: R$ 5.000,00</div>
-                        <div class="text-gray-300">• Parcelas: 1x</div>
-                        <div class="text-gray-300">• Sem recorrência</div>
+                        <div class="text-orange-400 font-medium">🔧 Reforma Parcial</div>
+                        <div class="text-gray-300">• Valor: R$ 2.000,00</div>
+                        <div class="text-gray-300">• Incidência: Parcial (50%)</div>
+                        <div class="text-gray-300">• Pago por: Proprietário</div>
+                    </div>
+                    
+                    <div class="bg-gray-700 rounded p-3">
+                        <div class="text-purple-400 font-medium">🆓 Seguro Anual</div>
+                        <div class="text-gray-300">• Valor: R$ 800,00</div>
+                        <div class="text-gray-300">• Incidência: Não</div>
+                        <div class="text-gray-300">• Pago por: Imobiliária</div>
                     </div>
                 </div>
             </div>
@@ -448,12 +657,21 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Elementos do formulário
     const tipoValorRadios = document.querySelectorAll('input[name="tipo_valor"]');
+    const incidenciaTaxaRadios = document.querySelectorAll('input[name="incidencia_taxa_admin"]');
     const campoValorTotal = document.getElementById('campo-valor-total');
     const campoValorParcela = document.getElementById('campo-valor-parcela');
+    const campoPercentualIncidencia = document.getElementById('campo-percentual-incidencia');
+    const campoTaxaEspecifica = document.getElementById('campo-taxa-especifica');
+    const previewTaxaAdmin = document.getElementById('preview-taxa-admin');
+    
     const valorTotalField = document.getElementById('{{ form.valor_total.id_for_label }}');
     const valorParcelaField = document.getElementById('{{ form.valor_parcela.id_for_label }}');
     const parcelasField = document.getElementById('{{ form.numero_parcelas.id_for_label }}');
     const periodicidadeField = document.getElementById('{{ form.periodicidade.id_for_label }}');
+    const pagaPorField = document.getElementById('{{ form.paga_por.id_for_label }}');
+    const percentualIncidenciaField = document.getElementById('{{ form.percentual_com_incidencia.id_for_label }}');
+    const taxaEspecificaField = document.getElementById('{{ form.taxa_admin_especifica.id_for_label }}');
+    
     const gerarRecorrentesField = document.getElementById('{{ form.gerar_recorrentes.id_for_label }}');
     const campoRecorrentes = document.getElementById('campo-recorrentes');
     const quantidadeRecorrentesField = document.getElementById('{{ form.quantidade_recorrentes.id_for_label }}');
@@ -469,6 +687,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const previewValorMensal = document.getElementById('preview-valor-mensal');
     const previewTotalRecorrente = document.getElementById('preview-total-recorrente');
     const previewQtdTexto = document.getElementById('preview-qtd-texto');
+    
+    // Preview taxa admin
+    const previewValorComTaxa = document.getElementById('preview-valor-com-taxa');
+    const previewValorSemTaxa = document.getElementById('preview-valor-sem-taxa');
+    const previewTaxaValor = document.getElementById('preview-taxa-valor');
+    const previewImpactoRepasse = document.getElementById('preview-impacto-repasse');
 
     // Função para alternar campos de valor
     function toggleCamposValor() {
@@ -488,6 +712,29 @@ document.addEventListener('DOMContentLoaded', function() {
         updatePreview();
     }
 
+    // Função para alternar campos de taxa
+    function toggleTaxaFields() {
+        const incidenciaSelecionada = document.querySelector('input[name="incidencia_taxa_admin"]:checked').value;
+        
+        if (incidenciaSelecionada === 'parcial') {
+            campoPercentualIncidencia.style.display = 'block';
+            percentualIncidenciaField.setAttribute('required', 'required');
+        } else {
+            campoPercentualIncidencia.style.display = 'none';
+            percentualIncidenciaField.removeAttribute('required');
+        }
+        
+        if (incidenciaSelecionada === 'sim' || incidenciaSelecionada === 'parcial') {
+            campoTaxaEspecifica.style.display = 'block';
+            previewTaxaAdmin.style.display = 'block';
+        } else {
+            campoTaxaEspecifica.style.display = 'none';
+            previewTaxaAdmin.style.display = 'none';
+        }
+        
+        updatePreview();
+    }
+
     // Função para alternar campo de recorrentes
     function toggleCampoRecorrentes() {
         if (gerarRecorrentesField && gerarRecorrentesField.checked) {
@@ -500,11 +747,39 @@ document.addEventListener('DOMContentLoaded', function() {
         updatePreview();
     }
 
+    // Função para atualizar info do tipo
+    function updateTipoInfo() {
+        const tipoSelect = document.getElementById('{{ form.tipo.id_for_label }}');
+        const tipoInfo = document.getElementById('tipo-info');
+        const tipoCategoria = document.getElementById('tipo-categoria');
+        
+        if (tipoSelect.value) {
+            const selectedOption = tipoSelect.options[tipoSelect.selectedIndex];
+            const categoria = selectedOption.dataset.categoria;
+            const incidenciaPadrao = selectedOption.dataset.incidenciaPadrao === 'true';
+            
+            tipoCategoria.textContent = `Categoria: ${categoria}`;
+            tipoInfo.classList.remove('hidden');
+            
+            // Auto-selecionar incidência baseada no padrão do tipo
+            if (incidenciaPadrao) {
+                document.querySelector('input[name="incidencia_taxa_admin"][value="sim"]').checked = true;
+            } else {
+                document.querySelector('input[name="incidencia_taxa_admin"][value="nao"]').checked = true;
+            }
+            toggleTaxaFields();
+        } else {
+            tipoInfo.classList.add('hidden');
+        }
+    }
+
     // Função para atualizar preview
     function updatePreview() {
         const tipoValor = document.querySelector('input[name="tipo_valor"]:checked').value;
         const parcelas = parseInt(parcelasField.value) || 1;
         const periodicidade = periodicidadeField.options[periodicidadeField.selectedIndex].text;
+        const pagaPor = pagaPorField.options[pagaPorField.selectedIndex].text;
+        const incidenciaTaxa = document.querySelector('input[name="incidencia_taxa_admin"]:checked').value;
         
         let valorTotal = 0;
         let valorParcela = 0;
@@ -529,10 +804,41 @@ document.addEventListener('DOMContentLoaded', function() {
         previewPeriodicidade.textContent = periodicidade;
         previewTotalGeral.textContent = `R$ ${valorTotal.toFixed(2).replace('.', ',')}`;
         
+        // Atualizar preview de taxa administrativa
+        if (incidenciaTaxa === 'sim' || incidenciaTaxa === 'parcial') {
+            let valorComIncidencia = 0;
+            let valorSemIncidencia = 0;
+            
+            if (incidenciaTaxa === 'sim') {
+                valorComIncidencia = valorTotal;
+                valorSemIncidencia = 0;
+            } else if (incidenciaTaxa === 'parcial') {
+                const percentual = parseFloat(percentualIncidenciaField.value) || 0;
+                valorComIncidencia = valorTotal * (percentual / 100);
+                valorSemIncidencia = valorTotal - valorComIncidencia;
+            }
+            
+            const taxaAdmin = parseFloat(taxaEspecificaField.value) || 8.0;
+            const valorTaxaAdmin = valorComIncidencia * (taxaAdmin / 100);
+            
+            let impactoRepasse = 0;
+            if (pagaPor === 'Inquilino') {
+                impactoRepasse = (valorComIncidencia - valorTaxaAdmin) + valorSemIncidencia;
+            } else if (pagaPor === 'Proprietário') {
+                impactoRepasse = -((valorComIncidencia - valorTaxaAdmin) + valorSemIncidencia);
+            }
+            
+            previewValorComTaxa.textContent = `R$ ${valorComIncidencia.toFixed(2).replace('.', ',')}`;
+            previewValorSemTaxa.textContent = `R$ ${valorSemIncidencia.toFixed(2).replace('.', ',')}`;
+            previewTaxaValor.textContent = `R$ ${valorTaxaAdmin.toFixed(2).replace('.', ',')}`;
+            previewImpactoRepasse.textContent = `${impactoRepasse >= 0 ? '+' : ''}R$ ${impactoRepasse.toFixed(2).replace('.', ',')}`;
+            previewImpactoRepasse.className = impactoRepasse >= 0 ? 'text-green-400 font-bold' : 'text-red-400 font-bold';
+        }
+        
         // Atualizar preview de recorrência
         if (gerarRecorrentesField && gerarRecorrentesField.checked) {
             const qtdRecorrentes = parseInt(quantidadeRecorrentesField.value) || 12;
-            const valorMensal = valorTotal; // Valor de cada despesa recorrente
+            const valorMensal = valorTotal;
             const totalRecorrente = valorMensal * qtdRecorrentes;
             
             previewQtdRecorrentes.textContent = qtdRecorrentes;
@@ -547,11 +853,16 @@ document.addEventListener('DOMContentLoaded', function() {
         radio.addEventListener('change', toggleCamposValor);
     });
 
+    incidenciaTaxaRadios.forEach(radio => {
+        radio.addEventListener('change', toggleTaxaFields);
+    });
+
     if (gerarRecorrentesField) {
         gerarRecorrentesField.addEventListener('change', toggleCampoRecorrentes);
     }
 
-    [valorTotalField, valorParcelaField, parcelasField, periodicidadeField, quantidadeRecorrentesField].forEach(field => {
+    [valorTotalField, valorParcelaField, parcelasField, periodicidadeField, pagaPorField, 
+     percentualIncidenciaField, taxaEspecificaField, quantidadeRecorrentesField].forEach(field => {
         if (field) {
             field.addEventListener('input', updatePreview);
             field.addEventListener('change', updatePreview);
@@ -560,12 +871,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Inicializar
     toggleCamposValor();
+    toggleTaxaFields();
     toggleCampoRecorrentes();
+    updateTipoInfo();
     updatePreview();
 
     // Validação do formulário
     document.getElementById('despesa-form').addEventListener('submit', function(e) {
         const tipoValor = document.querySelector('input[name="tipo_valor"]:checked').value;
+        const incidenciaTaxa = document.querySelector('input[name="incidencia_taxa_admin"]:checked').value;
         
         if (tipoValor === 'parcela') {
             const valorParcela = parseFloat(valorParcelaField.value) || 0;
@@ -584,10 +898,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
         }
+        
+        if (incidenciaTaxa === 'parcial') {
+            const percentual = parseFloat(percentualIncidenciaField.value) || 0;
+            if (percentual <= 0 || percentual > 100) {
+                e.preventDefault();
+                percentualIncidenciaField.classList.add('border-red-500');
+                percentualIncidenciaField.focus();
+                return;
+            }
+        }
     });
 
     // Remover bordas vermelhas ao digitar
-    [valorTotalField, valorParcelaField].forEach(field => {
+    [valorTotalField, valorParcelaField, percentualIncidenciaField].forEach(field => {
         if (field) {
             field.addEventListener('input', function() {
                 this.classList.remove('border-red-500');

@@ -5,6 +5,7 @@ import requests
 from django.conf import settings
 import logging
 
+
 logger = logging.getLogger(__name__)
 
 class AsaasService:
@@ -170,58 +171,264 @@ class AsaasService:
         Busca uma cobrança específica no Asaas
         """
         return self._fazer_requisicao('GET', f'payments/{payment_id}')
-
-
-# ============================================================================
-# COMANDO ATUALIZADO COM VALIDAÇÃO DE AMBIENTE
-# ============================================================================
-
-# Atualize o comando para incluir validação do ambiente:
-
-def _verificar_configuracao_asaas(self):
-    """Verifica se as configurações do Asaas estão corretas"""
-    from django.conf import settings
     
-    api_key = getattr(settings, 'ASAAS_API_KEY', None)
-    environment = getattr(settings, 'ASAAS_ENVIRONMENT', 'sandbox')
-    
-    if not api_key:
-        self.stdout.write(self.style.ERROR("❌ ASAAS_API_KEY não configurada!"))
-        return False
-    
-    # Validar ambiente
-    if environment not in ['sandbox', 'production']:
-        self.stdout.write(self.style.ERROR("❌ ASAAS_ENVIRONMENT deve ser 'sandbox' ou 'production'"))
-        return False
-    
-    # Mostrar ambiente atual
-    if environment == 'production':
-        self.stdout.write(self.style.WARNING("⚠️  ATENÇÃO: Executando em PRODUÇÃO!"))
-        self.stdout.write("   Dados reais serão importados.")
+    def criar_cliente(self, dados_cliente):
+        """
+        Cria ou atualiza cliente no Asaas
+        """
+        # Verificar se cliente já existe por CPF/CNPJ
+        cpf_cnpj = dados_cliente.get('cpfCnpj')
+        if cpf_cnpj:
+            try:
+                # Buscar cliente existente
+                response = self._fazer_requisicao('GET', 'customers', params={'cpfCnpj': cpf_cnpj})
+                
+                if response.get('data') and len(response['data']) > 0:
+                    # Cliente existe, fazer update
+                    cliente_id = response['data'][0]['id']
+                    logger.info(f"Cliente existente encontrado: {cliente_id}")
+                    return self._fazer_requisicao('PUT', f'customers/{cliente_id}', data=dados_cliente)
+            except Exception as e:
+                logger.warning(f"Erro ao buscar cliente existente: {e}")
+                # Continuar para criar novo cliente
         
-        if not self.dry_run:
-            resposta = input("   Confirma execução em PRODUÇÃO? (digite 'SIM' para confirmar): ")
-            if resposta != 'SIM':
-                self.stdout.write(self.style.ERROR("❌ Execução cancelada pelo usuário"))
-                return False
-    else:
-        self.stdout.write(self.style.SUCCESS("✅ Executando em SANDBOX (ambiente de testes)"))
+        # Cliente não existe, criar novo
+        logger.info("Criando novo cliente")
+        return self._fazer_requisicao('POST', 'customers', data=dados_cliente)
     
-    # Testar conexão
-    try:
-        asaas_service = AsaasService()
-        teste = asaas_service.testar_conexao()
+    def criar_cobranca(self, dados_cobranca):
+        """
+        Cria cobrança no Asaas
+        """
+        logger.info(f"Criando cobrança - Valor: {dados_cobranca.get('value')}")
+        return self._fazer_requisicao('POST', 'payments', data=dados_cobranca)
+    
+    def cancelar_cobranca(self, payment_id):
+        """
+        Cancela uma cobrança no Asaas
+        """
+        logger.info(f"Cancelando cobrança: {payment_id}")
+        return self._fazer_requisicao('DELETE', f'payments/{payment_id}')
+    
+    def gerar_boleto_url(self, payment_id):
+        """
+        Gera URL do boleto para uma cobrança
+        """
+        base_url = self.base_url.replace('/api/v3/', '')
+        return f"{base_url}/b/pdf/{payment_id}"
+    
+    def gerar_pix_qrcode(self, payment_id):
+        """
+        Gera QR Code PIX para uma cobrança
+        """
+        logger.info(f"Gerando PIX QR Code para: {payment_id}")
+        return self._fazer_requisicao('GET', f'payments/{payment_id}/pixQrCode')
+    
+    def atualizar_cobranca(self, payment_id, dados_atualizacao):
+        """
+        Atualiza uma cobrança existente
+        """
+        logger.info(f"Atualizando cobrança: {payment_id}")
+        return self._fazer_requisicao('PUT', f'payments/{payment_id}', data=dados_atualizacao)
+    
+    def listar_cobrancas_cliente(self, customer_id, limit=50, offset=0):
+        """
+        Lista todas as cobranças de um cliente
+        """
+        params = {
+            'customer': customer_id,
+            'limit': limit,
+            'offset': offset
+        }
+        return self._fazer_requisicao('GET', 'payments', params=params)
+    
+    def verificar_status_cobranca(self, payment_id):
+        """
+        Verifica o status atual de uma cobrança
+        """
+        response = self._fazer_requisicao('GET', f'payments/{payment_id}')
+        return {
+            'id': response.get('id'),
+            'status': response.get('status'),
+            'value': response.get('value'),
+            'dueDate': response.get('dueDate'),
+            'customer': response.get('customer'),
+            'bankSlipUrl': response.get('bankSlipUrl'),
+            'invoiceUrl': response.get('invoiceUrl')
+        }
+    
+    def processar_webhook_pagamento(self, dados_webhook):
+        """
+        Processa webhook de pagamento recebido do Asaas
+        """
+        event = dados_webhook.get('event')
+        payment = dados_webhook.get('payment', {})
         
-        if teste['sucesso']:
-            self.stdout.write(self.style.SUCCESS(f"✅ {teste['mensagem']}"))
-            self.stdout.write(f"   Total de clientes: {teste.get('total_clientes', 0)}")
-        else:
-            self.stdout.write(self.style.ERROR(f"❌ {teste['mensagem']}"))
-            self.stdout.write(f"   Erro: {teste['erro']}")
-            return False
+        logger.info(f"Processando webhook - Event: {event}, Payment: {payment.get('id')}")
+        
+        return {
+            'event': event,
+            'payment_id': payment.get('id'),
+            'status': payment.get('status'),
+            'value': payment.get('value'),
+            'customer': payment.get('customer'),
+            'external_reference': payment.get('externalReference')
+        }
+
+
+    def verificar_configuracao_asaas():
+        """
+        Função utilitária para verificar configurações do Asaas
+        """
+        from django.conf import settings
+        
+        configuracoes = {
+            'ASAAS_API_KEY': getattr(settings, 'ASAAS_API_KEY', None),
+            'ASAAS_ENVIRONMENT': getattr(settings, 'ASAAS_ENVIRONMENT', 'sandbox'),
+        }
+        
+        # Validações
+        erros = []
+        
+        if not configuracoes['ASAAS_API_KEY']:
+            erros.append("ASAAS_API_KEY não configurada")
+        
+        if configuracoes['ASAAS_ENVIRONMENT'] not in ['sandbox', 'production']:
+            erros.append("ASAAS_ENVIRONMENT deve ser 'sandbox' ou 'production'")
+        
+        return {
+            'valido': len(erros) == 0,
+            'erros': erros,
+            'configuracoes': configuracoes
+        }
+
+    def buscar_codigo_barras(self, payment_id):
+        """
+        Busca o código de barras de uma cobrança
+        """
+        logger.info(f"Buscando código de barras para: {payment_id}")
+        
+        try:
+            # Endpoint para buscar código de barras
+            response = self._fazer_requisicao('GET', f'payments/{payment_id}/identificationField')
             
-    except Exception as e:
-        self.stdout.write(self.style.ERROR(f"❌ Erro ao testar conexão: {str(e)}"))
-        return False
-    
-    return True
+            # O Asaas retorna o campo 'identificationField' que é o código de barras
+            codigo_barras = response.get('identificationField')
+            
+            if codigo_barras:
+                logger.info(f"Código de barras encontrado: {codigo_barras[:20]}...")
+                return codigo_barras
+            else:
+                logger.warning(f"Código de barras não disponível para {payment_id}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Erro ao buscar código de barras para {payment_id}: {str(e)}")
+            return None
+
+    def buscar_pix_copia_cola_detalhado(self, payment_id):
+        """
+        Busca informações detalhadas do PIX (copia e cola + QR code)
+        """
+        logger.info(f"Buscando PIX detalhado para: {payment_id}")
+        
+        try:
+            # Usar o endpoint existente
+            response = self._fazer_requisicao('GET', f'payments/{payment_id}/pixQrCode')
+            
+            # Extrair informações do PIX
+            resultado = {
+                'pix_copia_cola': None,
+                'qr_code': None,
+                'qr_code_image': None,
+                'success': False
+            }
+            
+            if response:
+                # O Asaas pode retornar diferentes formatos
+                resultado['pix_copia_cola'] = (
+                    response.get('payload') or
+                    response.get('qrCode') or 
+                    response.get('copyAndPaste') or
+                    response.get('brCode')
+                )
+                
+                resultado['qr_code'] = response.get('qrCode')
+                resultado['qr_code_image'] = response.get('encodedImage')
+                resultado['success'] = bool(resultado['pix_copia_cola'])
+                
+                if resultado['pix_copia_cola']:
+                    logger.info(f"PIX copia e cola encontrado: {resultado['pix_copia_cola'][:50]}...")
+                else:
+                    logger.warning(f"PIX copia e cola não disponível para {payment_id}")
+            
+            return resultado
+            
+        except Exception as e:
+            logger.error(f"Erro ao buscar PIX para {payment_id}: {str(e)}")
+            return {
+                'pix_copia_cola': None,
+                'qr_code': None,
+                'qr_code_image': None,
+                'success': False,
+                'error': str(e)
+            }
+
+    def atualizar_dados_pagamento_completos(self, payment_id):
+        """
+        Busca todos os dados de um pagamento: informações básicas, código de barras e PIX
+        """
+        logger.info(f"Atualizando dados completos para: {payment_id}")
+        
+        dados_completos = {
+            'payment_id': payment_id,
+            'cobranca': None,
+            'codigo_barras': None,
+            'pix_dados': None,
+            'boleto_url': None,
+            'status': None,
+            'valor': None,
+            'vencimento': None,
+            'success': True,
+            'erros': []
+        }
+        
+        try:
+            # 1. Buscar dados básicos da cobrança
+            cobranca_dados = self.buscar_cobranca(payment_id)
+            if cobranca_dados:
+                dados_completos['cobranca'] = cobranca_dados
+                dados_completos['status'] = cobranca_dados.get('status')
+                dados_completos['valor'] = cobranca_dados.get('value')
+                dados_completos['vencimento'] = cobranca_dados.get('dueDate')
+                dados_completos['boleto_url'] = (
+                    cobranca_dados.get('bankSlipUrl') or 
+                    cobranca_dados.get('invoiceUrl') or
+                    self.gerar_boleto_url(payment_id)
+                )
+            else:
+                dados_completos['erros'].append("Não foi possível buscar dados da cobrança")
+                dados_completos['success'] = False
+            
+            # 2. Buscar código de barras
+            codigo_barras = self.buscar_codigo_barras(payment_id)
+            if codigo_barras:
+                dados_completos['codigo_barras'] = codigo_barras
+            else:
+                dados_completos['erros'].append("Código de barras não disponível")
+            
+            # 3. Buscar dados do PIX
+            pix_dados = self.buscar_pix_copia_cola_detalhado(payment_id)
+            if pix_dados['success']:
+                dados_completos['pix_dados'] = pix_dados
+            else:
+                dados_completos['erros'].append("PIX não disponível")
+            
+            logger.info(f"Dados completos coletados para {payment_id} - Erros: {len(dados_completos['erros'])}")
+            
+        except Exception as e:
+            logger.error(f"Erro ao coletar dados completos para {payment_id}: {str(e)}")
+            dados_completos['success'] = False
+            dados_completos['erros'].append(f"Erro geral: {str(e)}")
+        
+        return dados_completos

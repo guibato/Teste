@@ -1,0 +1,681 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Envio Programado de Lembretes{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-900 py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="md:flex md:items-center md:justify-between mb-6">
+            <div class="flex-1 min-w-0">
+                <h1 class="text-2xl font-bold leading-7 text-white sm:text-3xl">
+                    📋 Envio Programado de Lembretes
+                </h1>
+                <p class="mt-1 text-sm text-gray-400">
+                    Data selecionada: {{ data_selecionada|date:"d/m/Y" }}
+                    {% if data_selecionada != data_hoje %}
+                        <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900 text-blue-300">
+                            📅 Data Personalizada
+                        </span>
+                    {% endif %}
+                    {% if dry_run_ativo %}
+                        <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-900 text-yellow-300">
+                            🧪 MODO DRY RUN
+                        </span>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="mt-4 flex md:mt-0 md:ml-4 space-x-3">
+                <a href="{% url 'financeiro:lembrete_list' %}" 
+                   class="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors">
+                    ← Voltar para Lista
+                </a>
+            </div>
+        </div>
+
+        <!-- Seletor de Data -->
+       <div class="bg-gray-800 shadow rounded-lg mb-6 border border-gray-700">
+    <div class="px-6 py-4 border-b border-gray-700">
+        <h3 class="text-lg font-medium text-white">📅 Selecionar Data de Referência</h3>
+        <p class="text-sm text-gray-400 mt-1">Escolha a data para calcular os lembretes programados</p>
+    </div>
+    <form method="get" class="p-6">
+        <!-- Primeira linha: 4 campos principais -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div>
+        <label class="block text-sm font-medium text-gray-300 mb-2">Data de Referência</label>
+        <input type="date" name="data_referencia" 
+               value="{{ data_selecionada|date:'Y-m-d' }}"
+               class="block w-full h-10 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-white">
+    </div>
+    
+    <div>
+        <label class="block text-sm font-medium text-gray-300 mb-2">Configuração de Dias</label>
+        <select name="configuracao_dias" class="block w-full h-10 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-white appearance-none">
+            <option value="10,3,0" {% if configuracao_dias == "10,3,0" %}selected{% endif %}>Padrão (10, 3, 0 dias)</option>
+            <option value="15,7,3,1,0" {% if configuracao_dias == "15,7,3,1,0" %}selected{% endif %}>Estendido (15, 7, 3, 1, 0 dias)</option>
+            <option value="7,3,0" {% if configuracao_dias == "7,3,0" %}selected{% endif %}>Simples (7, 3, 0 dias)</option>
+            <option value="personalizado">Personalizado</option>
+        </select>
+    </div>
+            
+            <div id="dias-personalizados" style="display: none;">
+                <label class="block text-sm font-medium text-gray-300 mb-2">Dias Personalizados</label>
+                <input type="text" name="dias_personalizados" 
+                       placeholder="Ex: 10,5,3,1,0"
+                       class="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-white">
+                <p class="text-xs text-gray-500 mt-1">Separados por vírgula</p>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Valor Mínimo</label>
+                <input type="number" name="valor_minimo" 
+                       value="{{ valor_minimo }}" step="0.01" min="0"
+                       placeholder="0.00"
+                       class="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-white">
+            </div>
+        </div>
+
+        <!-- Segunda linha: Botão e atalhos -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Ação</label>
+                <button type="submit" 
+                        class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500 flex items-center justify-center transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    Atualizar Lembretes
+                </button>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Atalhos de Data</label>
+                <div class="flex space-x-1">
+                    <a href="?data_referencia={{ data_ontem|date:'Y-m-d' }}" 
+                       class="flex-1 text-center bg-gray-700 text-gray-300 px-2 py-2 rounded text-sm hover:bg-gray-600 transition-colors">
+                        Ontem
+                    </a>
+                    <a href="?data_referencia={{ data_hoje|date:'Y-m-d' }}" 
+                       class="flex-1 text-center bg-gray-700 text-gray-300 px-2 py-2 rounded text-sm hover:bg-gray-600 transition-colors">
+                        Hoje
+                    </a>
+                    <a href="?data_referencia={{ data_amanha|date:'Y-m-d' }}" 
+                       class="flex-1 text-center bg-gray-700 text-gray-300 px-2 py-2 rounded text-sm hover:bg-gray-600 transition-colors">
+                        Amanhã
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filtros Adicionais -->
+        <div class="pt-4 border-t border-gray-700">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="flex items-center">
+                        <input type="checkbox" name="incluir_ja_enviados" 
+                               {% if incluir_ja_enviados %}checked{% endif %}
+                               class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500">
+                        <span class="ml-2 text-sm text-gray-300">Incluir já enviados</span>
+                    </label>
+                    <p class="text-xs text-gray-500 ml-6 mt-1">Mostrar lembretes já enviados anteriormente</p>
+                </div>
+                
+                <div>
+                    <label class="flex items-center">
+                        <input type="checkbox" name="apenas_em_atraso" 
+                               {% if apenas_em_atraso %}checked{% endif %}
+                               class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500">
+                        <span class="ml-2 text-sm text-gray-300">Apenas em atraso</span>
+                    </label>
+                    <p class="text-xs text-gray-500 ml-6 mt-1">Filtrar apenas cobranças vencidas</p>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+        <!-- Informações da Data -->
+        {% if not eh_dia_util %}
+        <div class="bg-orange-900 border border-orange-700 rounded-lg p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-orange-300">
+                        ⚠️ Data não é dia útil
+                    </h3>
+                    <div class="mt-2 text-sm text-orange-200">
+                        <p>{{ data_selecionada|date:"d/m/Y" }} ({{ data_selecionada|date:"l" }}) não é dia útil.</p>
+                        {% if proximo_dia_util %}
+                            <p>Próximo dia útil: {{ proximo_dia_util|date:"d/m/Y" }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if total_geral > 0 %}
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="data_referencia" value="{{ data_selecionada|date:'Y-m-d' }}">
+            
+            <!-- Resumo -->
+            <div class="bg-blue-900 border border-blue-700 rounded-lg p-4 mb-6">
+                <h3 class="text-lg font-medium text-blue-200 mb-2">📊 Resumo do Envio</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <p class="text-blue-300">
+                            <strong>{{ total_geral }}</strong> lembretes programados
+                            {% if dry_run_ativo %}(modo teste){% endif %}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-blue-300">
+                            <strong>R$ {{ valor_total_formatado }}</strong> em cobranças
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-blue-300">
+                            <strong>{{ total_clientes }}</strong> clientes únicos
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lembretes por categoria -->
+            {% for grupo in lembretes_programados %}
+            <div class="bg-gray-800 shadow rounded-lg mb-6 border border-gray-700">
+                <div class="px-6 py-4 border-b border-gray-700">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-medium text-white">
+                            {% if grupo.dias_antes == 0 %}
+                                🚨 Vencimento em {{ grupo.data_vencimento|date:"d/m/Y" }}
+                                {% if grupo.data_vencimento < data_hoje %}
+                                    <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-900 text-red-300">
+                                        VENCIDO
+                                    </span>
+                                {% elif grupo.data_vencimento == data_hoje %}
+                                    <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-900 text-orange-300">
+                                        HOJE
+                                    </span>
+                                {% endif %}
+                            {% else %}
+                                📅 Vence em {{ grupo.dias_antes }} dias ({{ grupo.data_vencimento|date:"d/m/Y" }})
+                            {% endif %}
+                            
+                            <span class="ml-2 text-sm text-gray-400">
+                                ({{ grupo.total }} lembretes
+                                {% if grupo.pendentes_atrasados > 0 %}
+                                    - <span class="text-red-400 font-medium">{{ grupo.pendentes_atrasados }} atrasados</span>
+                                {% endif %}
+                                {% if grupo.ja_enviados > 0 %}
+                                    - {{ grupo.ja_enviados }} enviados
+                                {% endif %}
+                                )
+                            </span>
+                        </h3>
+                        
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-400">R$ {{ grupo.valor_total_grupo }}</span>
+                            <input type="checkbox" class="select-all-group" data-group="{{ forloop.counter0 }}">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-700">
+                        <thead class="bg-gray-900">
+                            <tr>
+                                <th class="w-12 px-6 py-3 text-left">
+                                    <span class="text-xs font-medium text-gray-400 uppercase">Sel.</span>
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Inquilino</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Valor</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Telefone</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Mensagem</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-gray-800 divide-y divide-gray-700">
+                            {% for item in grupo.cobrancas %}
+                            <tr class="hover:bg-gray-700 group-{{ forloop.parentloop.counter0 }} 
+                                {% if item.ja_enviado %}bg-gray-750
+                                {% elif item.esta_atrasado %}bg-red-900 border-l-4 border-l-red-500
+                                {% endif %} transition-colors">
+                                <td class="px-6 py-4">
+                                    <input type="checkbox" name="cobrancas_selecionadas" 
+                                           value="{{ item.cobranca.pk }}" 
+                                           class="cobranca-checkbox group-{{ forloop.parentloop.counter0 }}"
+                                           {% if not item.ja_enviado %}checked{% endif %}
+                                           {% if item.ja_enviado and not incluir_ja_enviados %}disabled{% endif %}>
+                                </td>
+                                <td class="px-6 py-4 text-sm font-medium text-white">
+                                    {{ item.nome_inquilino|default:"Cliente" }}
+                                    {% if item.ja_enviado %}
+                                        <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-green-900 text-green-300">
+                                            ✓ Enviado
+                                        </span>
+                                    {% elif item.esta_atrasado %}
+                                        <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-red-800 text-red-200">
+                                            🚨 {{ item.dias_atraso }} dias atrasado
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-300">
+                                    R$ {{ item.cobranca.valor_total }}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-400">
+                                    {{ item.telefone }}
+                                </td>
+                                <td class="px-6 py-4 text-sm">
+                                    {% if item.cobranca.data_vencimento < data_hoje %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-900 text-red-300">
+                                            Vencido
+                                        </span>
+                                    {% elif item.cobranca.data_vencimento == data_hoje %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-900 text-orange-300">
+                                            Vence Hoje
+                                        </span>
+                                    {% else %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900 text-blue-300">
+                                            Pendente
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-400">
+                                    <button type="button" 
+                                            class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded text-xs font-medium transition-colors flex items-center"
+                                            onclick="mostrarMensagemCompleta(
+                                                '{{ item.cobranca.pk }}', 
+                                                '{{ item.nome_inquilino|escapejs }}', 
+                                                '{{ item.telefone|escapejs }}',
+                                                '{{ item.cobranca.valor_total|floatformat:2|escapejs }}',
+                                                '{{ item.cobranca.data_vencimento|date:"d/m/Y"|escapejs }}',
+                                                `{{ item.mensagem_completa|escapejs }}`
+                                            )">
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.955 8.955 0 01-4.126-.98L3 21l1.98-5.874A8.955 8.955 0 013 12c0-4.418 3.582-8 8-8s8 3.582 8 8z"/>
+                                        </svg>
+                                        Ver Mensagem
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Botões de ação -->
+            <div class="bg-gray-800 rounded-lg shadow p-6 border border-gray-700">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-4">
+                        <button type="button" id="select-all" 
+                                class="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors">
+                            ✅ Selecionar Todos
+                        </button>
+                        <button type="button" id="unselect-all" 
+                                class="text-gray-400 hover:text-gray-300 text-sm font-medium transition-colors">
+                            ❌ Desmarcar Todos
+                        </button>
+                        <button type="button" id="select-only-new" 
+                                class="text-green-400 hover:text-green-300 text-sm font-medium transition-colors">
+                            🆕 Apenas Novos
+                        </button>
+                        <span id="selected-count" class="text-sm text-gray-400">
+                            0 selecionados
+                        </span>
+                    </div>
+                    
+                    <div class="flex items-center space-x-3">
+                        <span class="text-sm text-gray-400">
+                            Total selecionado: <span id="valor-selecionado" class="text-white font-medium">R$ 0,00</span>
+                        </span>
+                        <button type="submit" 
+                                class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-500 font-medium transition-colors"
+                                onclick="return confirmarEnvio()">
+                            {% if dry_run_ativo %}
+                                🧪 Enviar (Teste)
+                            {% else %}
+                                📤 Enviar Lembretes
+                            {% endif %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        {% else %}
+        <!-- Nenhum lembrete -->
+        <div class="bg-gray-800 rounded-lg shadow text-center py-12 border border-gray-700">
+            <div class="text-gray-500 text-6xl mb-4">📅</div>
+            <h3 class="text-lg font-medium text-white mb-2">Nenhum lembrete programado</h3>
+            <p class="text-gray-400 mb-4">
+                Não há lembretes programados para {{ data_selecionada|date:"d/m/Y" }} ou 
+                todos já foram enviados.
+            </p>
+            <div class="space-x-2">
+                <a href="?data_referencia={{ data_ontem|date:'Y-m-d' }}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-600 rounded-md text-sm text-gray-300 hover:bg-gray-700 transition-colors">
+                    ← Ontem
+                </a>
+                <a href="?data_referencia={{ data_amanha|date:'Y-m-d' }}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-600 rounded-md text-sm text-gray-300 hover:bg-gray-700 transition-colors">
+                    Amanhã →
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal para Mensagem Completa -->
+<div id="modalMensagem" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 transition-opacity bg-gray-900 bg-opacity-75" onclick="fecharModal()"></div>
+        
+        <!-- Modal container -->
+        <div class="inline-block w-full max-w-2xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-gray-800 shadow-xl rounded-2xl border border-gray-700">
+            <!-- Header -->
+            <div class="flex items-center justify-between pb-4 border-b border-gray-700">
+                <div>
+                    <h3 class="text-lg font-medium text-white flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.955 8.955 0 01-4.126-.98L3 21l1.98-5.874A8.955 8.955 0 013 12c0-4.418 3.582-8 8-8s8 3.582 8 8z"/>
+                        </svg>
+                        Preview da Mensagem WhatsApp
+                    </h3>
+                    <p class="text-sm text-gray-400 mt-1">
+                        <span id="modalNomeCliente">Cliente</span> • 
+                        <span id="modalTelefone">Telefone</span>
+                    </p>
+                </div>
+                <button onclick="fecharModal()" 
+                        class="text-gray-400 hover:text-gray-300 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Conteúdo -->
+            <div class="mt-4">
+                <!-- Simulação visual do WhatsApp -->
+                <div class="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                    <div class="flex items-center mb-3">
+                        <div class="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center mr-3">
+                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="text-sm font-medium text-white">Sua Empresa</div>
+                            <div class="text-xs text-gray-400">Online</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Balão da mensagem -->
+                    <div class="bg-green-600 rounded-lg rounded-tl-sm p-3 ml-8 relative">
+                        <div class="absolute -left-2 top-0 w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-green-600 border-t-8 border-t-green-600"></div>
+                        <div id="modalMensagemTexto" class="text-white text-sm whitespace-pre-wrap leading-relaxed">
+                            <!-- Mensagem será carregada aqui -->
+                        </div>
+                        <div class="text-xs text-green-100 mt-2 text-right opacity-75">
+                            <span id="modalHorario">12:34</span> ✓✓
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Informações adicionais -->
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-gray-700 rounded-lg p-3">
+                        <h4 class="text-sm font-medium text-gray-300 mb-2">📋 Informações da Cobrança</h4>
+                        <div class="space-y-1 text-xs text-gray-400">
+                            <div>ID: <span id="modalCobrancaId" class="text-white">-</span></div>
+                            <div>Vencimento: <span id="modalVencimento" class="text-white">-</span></div>
+                            <div>Valor: <span id="modalValor" class="text-white">-</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-700 rounded-lg p-3">
+                        <h4 class="text-sm font-medium text-gray-300 mb-2">📱 Informações do Contato</h4>
+                        <div class="space-y-1 text-xs text-gray-400">
+                            <div>Nome: <span id="modalNomeCompletoCliente" class="text-white">-</span></div>
+                            <div>Telefone: <span id="modalTelefoneCompleto" class="text-white">-</span></div>
+                            <div>Status: <span id="modalStatusEnvio" class="text-white">-</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="mt-6 pt-4 border-t border-gray-700 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <button onclick="copiarMensagem()" 
+                            class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg text-xs font-medium transition-colors flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                        Copiar Texto
+                    </button>
+                    
+                    <button onclick="editarMensagem()" 
+                            class="bg-yellow-600 hover:bg-yellow-500 text-white px-3 py-2 rounded-lg text-xs font-medium transition-colors flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                        Editar
+                    </button>
+                </div>
+                
+                <button onclick="fecharModal()" 
+                        class="bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllBtn = document.getElementById('select-all');
+    const unselectAllBtn = document.getElementById('unselect-all');
+    const selectOnlyNewBtn = document.getElementById('select-only-new');
+    const selectedCountEl = document.getElementById('selected-count');
+    const valorSelecionadoEl = document.getElementById('valor-selecionado');
+    const checkboxes = document.querySelectorAll('.cobranca-checkbox:not([disabled])');
+    const groupCheckboxes = document.querySelectorAll('.select-all-group');
+    const configSelect = document.querySelector('select[name="configuracao_dias"]');
+    const diasPersonalizados = document.getElementById('dias-personalizados');
+    
+    // Mostrar/ocultar dias personalizados
+    if (configSelect) {
+        configSelect.addEventListener('change', function() {
+            if (this.value === 'personalizado') {
+                diasPersonalizados.style.display = 'block';
+            } else {
+                diasPersonalizados.style.display = 'none';
+            }
+        });
+    }
+    
+    function updateCount() {
+        const selected = document.querySelectorAll('.cobranca-checkbox:checked:not([disabled])').length;
+        selectedCountEl.textContent = selected + ' selecionados';
+        
+        // Calcular valor total selecionado
+        let valorTotal = 0;
+        document.querySelectorAll('.cobranca-checkbox:checked:not([disabled])').forEach(cb => {
+            const row = cb.closest('tr');
+            const valorText = row.querySelector('td:nth-child(3)').textContent.trim();
+            const valor = parseFloat(valorText.replace('R$ ', '').replace('.', '').replace(',', '.'));
+            if (!isNaN(valor)) {
+                valorTotal += valor;
+            }
+        });
+        
+        valorSelecionadoEl.textContent = 'R$ ' + valorTotal.toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+    
+    selectAllBtn.addEventListener('click', function() {
+        checkboxes.forEach(cb => cb.checked = true);
+        groupCheckboxes.forEach(cb => cb.checked = true);
+        updateCount();
+    });
+    
+    unselectAllBtn.addEventListener('click', function() {
+        checkboxes.forEach(cb => cb.checked = false);
+        groupCheckboxes.forEach(cb => cb.checked = false);
+        updateCount();
+    });
+    
+    selectOnlyNewBtn.addEventListener('click', function() {
+        checkboxes.forEach(cb => {
+            const row = cb.closest('tr');
+            const jaEnviado = row.classList.contains('bg-gray-750') || 
+                             row.querySelector('.bg-green-900');
+            cb.checked = !jaEnviado;
+        });
+        updateCount();
+    });
+    
+    // Group checkboxes
+    groupCheckboxes.forEach(groupCb => {
+        groupCb.addEventListener('change', function() {
+            const group = this.dataset.group;
+            const groupCheckboxes = document.querySelectorAll(`.group-${group} .cobranca-checkbox:not([disabled])`);
+            groupCheckboxes.forEach(cb => cb.checked = this.checked);
+            updateCount();
+        });
+    });
+    
+    // Individual checkboxes
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', updateCount);
+    });
+    
+    updateCount();
+});
+
+function confirmarEnvio() {
+    const selected = document.querySelectorAll('.cobranca-checkbox:checked:not([disabled])').length;
+    const isDryRun = {{ dry_run_ativo|yesno:"true,false" }};
+    
+    if (selected === 0) {
+        alert('Selecione pelo menos um lembrete para enviar!');
+        return false;
+    }
+    
+    const modo = isDryRun ? ' em modo TESTE' : '';
+    return confirm(`Confirma o envio de ${selected} lembretes${modo}?`);
+}
+
+// ================================================================
+// FUNÇÕES DO MODAL DE MENSAGEM - VERSÃO SIMPLIFICADA
+// ================================================================
+
+let mensagemAtual = '';
+
+function mostrarMensagemCompleta(cobrancaId, nomeCliente, telefone, valor, vencimento, mensagemCompleta) {
+    // Usar dados já vindos do template
+    const dadosCobranca = {
+        id: cobrancaId,
+        valor_total: valor,
+        data_vencimento: vencimento
+    };
+    
+    preencherModal(dadosCobranca, mensagemCompleta, nomeCliente, telefone);
+    document.getElementById('modalMensagem').classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+}
+
+function preencherModal(cobranca, mensagem, nomeCliente, telefone) {
+    // Armazenar mensagem atual
+    mensagemAtual = mensagem;
+    
+    // Preencher dados do cliente
+    document.getElementById('modalNomeCliente').textContent = nomeCliente;
+    document.getElementById('modalTelefone').textContent = telefone;
+    document.getElementById('modalNomeCompletoCliente').textContent = nomeCliente;
+    document.getElementById('modalTelefoneCompleto').textContent = telefone;
+    
+    // Preencher dados da cobrança
+    document.getElementById('modalCobrancaId').textContent = cobranca.id;
+    document.getElementById('modalVencimento').textContent = cobranca.data_vencimento || 'N/A';
+    document.getElementById('modalValor').textContent = cobranca.valor_total ? `R$ ${cobranca.valor_total}` : 'N/A';
+    
+    // Preencher mensagem
+    document.getElementById('modalMensagemTexto').textContent = mensagem;
+    
+    // Horário atual
+    const agora = new Date();
+    const horario = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('modalHorario').textContent = horario;
+    
+    // Status de envio
+    document.getElementById('modalStatusEnvio').textContent = 'Não enviado';
+}
+
+function fecharModal() {
+    document.getElementById('modalMensagem').classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+}
+
+function copiarMensagem() {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(mensagemAtual).then(() => {
+            // Feedback visual
+            const botao = event.target.closest('button');
+            const textoOriginal = botao.innerHTML;
+            botao.innerHTML = `<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>Copiado!`;
+            
+            setTimeout(() => {
+                botao.innerHTML = textoOriginal;
+            }, 2000);
+        }).catch(err => {
+            console.error('Erro ao copiar:', err);
+            alert('Erro ao copiar mensagem');
+        });
+    } else {
+        // Fallback para navegadores mais antigos
+        const textarea = document.createElement('textarea');
+        textarea.value = mensagemAtual;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        alert('Mensagem copiada!');
+    }
+}
+
+function editarMensagem() {
+    const novaMsg = prompt('Editar mensagem:', mensagemAtual);
+    if (novaMsg !== null) {
+        mensagemAtual = novaMsg;
+        document.getElementById('modalMensagemTexto').textContent = novaMsg;
+    }
+}
+
+// Fechar modal com ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        fecharModal();
+    }
+});
+</script>
+{% endblock %}

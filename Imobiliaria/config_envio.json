@@ -1,0 +1,18 @@
+{
+  "zapi": {
+    "instance_id": "SUA_INSTANCE_ID",
+    "token": "SEU_TOKEN",
+    "client_token": "SEU_CLIENT_TOKEN"
+  },
+  "campos_csv": {
+    "nome": "Nome",
+    "telefone": "Telefone",
+    "email": "Email",
+    "campo1": "Formulário",
+    "campo2": "Estágio"
+  },
+  "templates": {
+    "medicos": "Olá Dr(a). {primeiro_nome}!\n\nObrigado pelo interesse em \"{campo1}\".\n\n🏥 SOBRADOS PARA MÉDICOS:\n• Região médica premium\n• Infraestrutura completa\n• Licenciamento facilitado\n\nStatus: {campo2}\nContato: {telefone}\n\nQuer agendar visita?\n\n📞 (11) 99999-9999\n\nAtenciosamente,\nEquipe Médica",
+    "geral": "Olá {primeiro_nome}!\n\nObrigado pelo interesse em nossos imóveis.\n\nTemos oportunidades que podem interessar:\n\n✅ {campo1}\n📋 Status: {campo2}\n📞 Seu contato: {telefone}\n\nEntre em contato conosco:\nWhatsApp: (11) 99999-9999\n\nAtenciosamente,\nEquipe Comercial\n\nData: {data_atual}"
+  }
+}

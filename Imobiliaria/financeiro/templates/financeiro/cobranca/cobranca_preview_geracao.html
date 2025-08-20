@@ -2,8 +2,8 @@
 {% extends "financeiro/cobranca/base_cobranca.html" %}
 {% load static %}
 
-{% block page_title %}Preview de Cobranças{% endblock %}
-{% block page_description %}Visualize e selecione as cobranças para gerar{% endblock %}
+{% block page_title %}Gerar Cobranças{% endblock %}
+{% block page_description %}Configure e gere cobranças para o período desejado{% endblock %}
 
 {% block header_actions %}
 <a href="{% url 'financeiro:cobranca_list' %}" 
@@ -16,23 +16,33 @@
 {% endblock %}
 
 {% block main_content %}
-<div class="max-w-7xl mx-auto">
+<div class="max-w-6xl mx-auto space-y-6">
     
-    <!-- Configurações do Preview -->
-    <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-8">
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Configurações do Preview</h3>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Defina os parâmetros para visualizar as cobranças</p>
-        </div>
-        <div class="px-6 py-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                <!-- Mês -->
+    <!-- ETAPA 1: Configurações -->
+    <div id="etapa-configuracao" class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-700 dark:bg-gray-750 rounded-t-xl">
+            <div class="flex items-center space-x-3">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                        <span class="text-sm font-bold text-blue-600 dark:text-blue-400">1</span>
+                    </div>
+                </div>
                 <div>
-                    <label for="mes_referencia" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Configurar Período</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Defina o mês/ano de referência para gerar as cobranças</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="px-6 py-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Mês de Referência -->
+                <div class="space-y-2">
+                    <label for="mes_referencia" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Mês de Referência <span class="text-red-500">*</span>
                     </label>
                     <select id="mes_referencia" 
-                            class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm">
                         {% for value, name in meses %}
                         <option value="{{ value }}" {% if value == mes_atual %}selected{% endif %}>{{ name }}</option>
                         {% endfor %}
@@ -40,232 +50,233 @@
                 </div>
 
                 <!-- Ano -->
-                <div>
-                    <label for="ano_referencia" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <div class="space-y-2">
+                    <label for="ano_referencia" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Ano <span class="text-red-500">*</span>
                     </label>
                     <input type="number" id="ano_referencia" value="{{ ano_atual }}" min="2020" max="2030"
-                           class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm">
                 </div>
 
-                <!-- Data Vencimento -->
-                <div>
-                    <label for="data_vencimento" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Vencimento <span class="text-red-500">*</span>
-                    </label>
-                    <input type="date" id="data_vencimento" value="{{ data_vencimento_padrao }}"
-                           class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-
-                        <!-- Contratos -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Contratos
+                <!-- Filtro de Contratos -->
+                <div class="space-y-2">
+                    <label for="filtro_contratos" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Contratos (Opcional)
                     </label>
                     <select id="filtro_contratos" multiple
-                            class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 h-20">
+                            class="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm h-24">
                         {% for contrato in contratos_ativos %}
                         <option value="{{ contrato.pk }}">
-                            {{ contrato.tipo_contrato|default:contrato.pk }} - 
+                            #{{ contrato.pk }} - 
                             {% if contrato.inquilino.all %}
-                                {{ contrato.inquilino.all.0.nome }}
+                                {{ contrato.inquilino.all.0.nome|truncatechars:30 }}
                             {% else %}
                                 Sem inquilino
                             {% endif %}
                         </option>
                         {% endfor %}
                     </select>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        <strong>Vazio = todos os contratos</strong> 
-                        ({% if contratos_ativos %}{{ contratos_ativos|length }} disponíveis{% else %}nenhum contrato ativo{% endif %})
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                        Vazio = todos os contratos ativos ({{ contratos_ativos|length }} disponíveis)
                     </p>
                 </div>
             </div>
 
             <!-- Opções -->
-            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
-                <h4 class="text-md font-medium text-gray-900 dark:text-white mb-3">Opções</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="flex items-center">
+            <div class="mt-6 space-y-4">
+                <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Opções de Geração</h4>
+                <div class="flex flex-wrap gap-6">
+                    <div class="flex items-center space-x-3">
                         <input type="checkbox" id="incluir_despesas" checked
-                               class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
-                        <label for="incluir_despesas" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                               class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2">
+                        <label for="incluir_despesas" class="text-sm text-gray-700 dark:text-gray-300">
                             Incluir despesas automaticamente
                         </label>
                     </div>
-                    <div class="flex items-center">
+                    <div class="flex items-center space-x-3">
                         <input type="checkbox" id="gerar_descricao_automatica" checked
-                               class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
-                        <label for="gerar_descricao_automatica" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                               class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2">
+                        <label for="gerar_descricao_automatica" class="text-sm text-gray-700 dark:text-gray-300">
                             Gerar descrição automaticamente
                         </label>
                     </div>
                 </div>
             </div>
 
-            <!-- Botões -->
-            <div class="flex justify-between items-center">
-                <button type="button" onclick="gerarPreview()" 
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2">
+            <!-- Botão Continuar -->
+            <div class="mt-8 text-center">
+                <button type="button" onclick="irParaReview()" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 mx-auto shadow-sm">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                     </svg>
-                    <span>Gerar Preview</span>
-                </button>
-
-                <button type="button" onclick="gerarSelecionadas()" id="btn-gerar-selecionadas" disabled
-                        class="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
-                    <span>Gerar Selecionadas (<span id="contador-selecionadas">0</span>)</span>
+                    <span>Continuar para Review</span>
                 </button>
             </div>
         </div>
     </div>
 
     <!-- Loading State -->
-    <div id="loading-preview" class="hidden text-center py-12">
-        <svg class="animate-spin mx-auto h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Gerando preview...</p>
+    <div id="loading-preview" class="hidden">
+        <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 py-12">
+            <div class="text-center">
+                <svg class="animate-spin mx-auto h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="mt-4 text-lg font-medium text-gray-900 dark:text-white">Calculando cobranças...</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Aguarde enquanto processamos os contratos</p>
+            </div>
+        </div>
     </div>
 
-    <!-- Resumo -->
-    <div id="resumo-preview" class="hidden bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Resumo do Preview</h3>
-        </div>
-        <div class="px-6 py-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div class="bg-blue-50 dark:bg-blue-900 rounded-lg p-4">
-                    <div class="flex items-center">
+    <!-- ETAPA 2: Review das Cobranças -->
+    <div id="etapa-review" class="hidden space-y-6">
+        <!-- Header do Review -->
+        <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-700 dark:bg-gray-750 rounded-t-xl">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
                         <div class="flex-shrink-0">
-                            <svg class="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
+                            <div class="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+                                <span class="text-sm font-bold text-green-600 dark:text-green-400">2</span>
+                            </div>
                         </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-blue-600 dark:text-blue-400">Cobranças Possíveis</p>
-                            <p class="text-2xl font-bold text-blue-900 dark:text-blue-100" id="total-cobrancas-preview">0</p>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Review das Cobranças</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400" id="periodo-review">Revise antes de gerar</p>
                         </div>
                     </div>
-                </div>
-
-                <div class="bg-green-50 dark:bg-green-900 rounded-lg p-4">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                    
+                    <div class="flex space-x-3">
+                        <button type="button" onclick="voltarConfiguracao()" 
+                                class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                             </svg>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-green-600 dark:text-green-400">Valor Total</p>
-                            <p class="text-2xl font-bold text-green-900 dark:text-green-100" id="valor-total-preview">R$ 0,00</p>
-                        </div>
+                            <span>Voltar</span>
+                        </button>
+                        
+                        <button type="button" onclick="confirmarGeracao()" id="btn-confirmar-geracao"
+                                class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <span>Confirmar e Gerar (<span id="total-cobrancas-count">0</span>)</span>
+                        </button>
                     </div>
                 </div>
-
-                <div class="bg-purple-50 dark:bg-purple-900 rounded-lg p-4">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <svg class="w-8 h-8 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                            </svg>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-purple-600 dark:text-purple-400">Selecionadas</p>
-                            <p class="text-2xl font-bold text-purple-900 dark:text-purple-100" id="total-selecionadas-preview">0</p>
+            </div>
+            
+            <!-- Resumo Estatístico -->
+            <div class="px-6 py-6">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 rounded-xl p-4 border border-blue-200 dark:border-blue-700">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-10 h-10 bg-blue-100 dark:bg-blue-800 rounded-lg flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-xs font-medium text-blue-700 dark:text-blue-300">Total de Cobranças</p>
+                                <p class="text-xl font-bold text-blue-900 dark:text-blue-100" id="total-cobrancas-review">0</p>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <svg class="w-8 h-8 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a4 4 0 118 0v4h4a1 1 0 011 1v9a2 2 0 01-2 2H5a2 2 0 01-2-2V8a1 1 0 011-1h4z"/>
-                            </svg>
+                    <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900 dark:to-green-800 rounded-xl p-4 border border-green-200 dark:border-green-700">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-10 h-10 bg-green-100 dark:bg-green-800 rounded-lg flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-xs font-medium text-green-700 dark:text-green-300">Valor Total</p>
+                                <p class="text-xl font-bold text-green-900 dark:text-green-100" id="valor-total-review">R$ 0,00</p>
+                            </div>
                         </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Período</p>
-                            <p class="text-lg font-bold text-gray-900 dark:text-gray-100" id="periodo-preview">-</p>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900 dark:to-purple-800 rounded-xl p-4 border border-purple-200 dark:border-purple-700">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-10 h-10 bg-purple-100 dark:bg-purple-800 rounded-lg flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-xs font-medium text-purple-700 dark:text-purple-300">Período</p>
+                                <p class="text-xl font-bold text-purple-900 dark:text-purple-100" id="periodo-display">-</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Tabela de Preview -->
-    <div id="tabela-preview" class="hidden bg-white dark:bg-gray-800 shadow rounded-lg">
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <div class="flex items-center justify-between">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Preview das Cobranças</h3>
-                <div class="flex space-x-2">
-                    <button type="button" onclick="selecionarTodasPreview()" 
-                            class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors">
-                        Selecionar Todas
-                    </button>
-                    <button type="button" onclick="deselecionarTodasPreview()" 
-                            class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm transition-colors">
-                        Limpar Seleção
-                    </button>
+        <!-- Tabela de Review -->
+        <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-700 dark:bg-gray-750 rounded-t-xl">
+                <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Cobranças a Serem Geradas</h4>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Confira as informações antes de confirmar</p>
+            </div>
+            
+            <div class="overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Contrato
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Inquilino
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Vencimento
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Valores
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Descrição
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-review" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <!-- Conteúdo será preenchido via JavaScript -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead class="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            <input type="checkbox" id="select-all-preview" onchange="toggleAllPreview(this)"
-                                   class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Contrato
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Inquilino
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Valores
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Despesas
-                        </th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Ações
-                        </th>
-                    </tr>
-                </thead>
-                <tbody id="tbody-preview" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    <!-- Conteúdo será preenchido via JavaScript -->
-                </tbody>
-            </table>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<!-- Aguardar carregamento completo antes de definir funções -->
 <script>
-// Aguardar que o base.html carregue completamente
+// ✅ CORREÇÃO DO ERRO: Variáveis globais declaradas antes de uso
+let cobrancasCalculadas = [];
+let configuracoes = {};
+
+// Aguardar carregamento
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("🚀 Preview de Cobranças carregando...");
+    console.log("🚀 Sistema de geração de cobranças carregado");
     
-    // Verificar se função CSRF existe, senão criar
+    // Verificar CSRF Token
     if (typeof getCSRFToken === 'undefined') {
-        console.log("⚠️ getCSRFToken não encontrada, criando...");
         window.getCSRFToken = function() {
             let csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
-            if (csrfToken) {
-                return csrfToken.value;
-            }
+            if (csrfToken) return csrfToken.value;
             
             const name = 'csrftoken';
             let cookieValue = null;
@@ -282,72 +293,51 @@ document.addEventListener('DOMContentLoaded', function() {
             return cookieValue;
         };
     }
-    
-    console.log("✅ Sistema de preview carregado com sucesso!");
 });
 
-// Variáveis globais
-let cobrancasPreview = [];
-let cobrancasSelecionadas = new Set();
-
-// Função principal - gerar preview
-function gerarPreview() {
-    console.log("📊 Gerando preview...");
-    
+// ETAPA 1: Ir para Review
+function irParaReview() {
     const mes = document.getElementById('mes_referencia').value;
     const ano = document.getElementById('ano_referencia').value;
-    const data = document.getElementById('data_vencimento').value;
     const contratos = Array.from(document.getElementById('filtro_contratos').selectedOptions).map(opt => opt.value);
     
-    console.log("🔍 Contratos selecionados:", contratos);
-    console.log("📅 Período:", mes + "/" + ano);
-    
-    if (!mes || !ano || !data) {
-        alert('Preencha todos os campos obrigatórios!');
-        return false;
+    if (!mes || !ano) {
+        alert('❌ Preencha o mês e ano de referência!');
+        return;
     }
     
-    // Se nenhum contrato selecionado, usar todos
-    if (contratos.length === 0) {
-        console.log("ℹ️ Nenhum contrato selecionado - usando todos os contratos");
-    }
-    
-    // Mostrar loading
-    document.getElementById('loading-preview').classList.remove('hidden');
-    document.getElementById('resumo-preview').classList.add('hidden');
-    document.getElementById('tabela-preview').classList.add('hidden');
-    
-    const requestData = {
+    // Salvar configurações
+    configuracoes = {
         mes_referencia: parseInt(mes),
         ano_referencia: parseInt(ano),
-        data_vencimento: data,
         contratos: contratos.map(id => parseInt(id)),
-        incluir_despesas: document.getElementById('incluir_despesas').checked
+        incluir_despesas: document.getElementById('incluir_despesas').checked,
+        gerar_descricao_automatica: document.getElementById('gerar_descricao_automatica').checked
     };
     
-    console.log("📤 Enviando dados:", requestData);
+    console.log("📋 Configurações salvas:", configuracoes);
     
-    // Verificar se temos função CSRF
-    const csrfToken = typeof getCSRFToken === 'function' ? getCSRFToken() : null;
-    console.log("🔑 CSRF Token:", csrfToken ? "OK" : "ERRO");
+    // Mostrar loading e ocultar configuração
+    document.getElementById('etapa-configuracao').classList.add('hidden');
+    document.getElementById('loading-preview').classList.remove('hidden');
     
-    if (!csrfToken) {
-        console.error("❌ CSRF Token não encontrado!");
-        alert("Erro: Token de segurança não encontrado. Recarregue a página.");
-        document.getElementById('loading-preview').classList.add('hidden');
-        return false;
-    }
+    // Fazer requisição para calcular cobranças
+    calcularCobrancas();
+}
+
+// Calcular cobranças
+function calcularCobrancas() {
+    console.log("🧮 Calculando cobranças...");
     
     fetch('{% url "financeiro:cobranca_api_preview" %}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken
+            'X-CSRFToken': getCSRFToken()
         },
-        body: JSON.stringify(requestData)
+        body: JSON.stringify(configuracoes)
     })
     .then(response => {
-        console.log("📡 Resposta recebida:", response.status);
         document.getElementById('loading-preview').classList.add('hidden');
         
         if (!response.ok) {
@@ -356,278 +346,462 @@ function gerarPreview() {
         return response.json();
     })
     .then(data => {
-        console.log("✅ Preview gerado:", data);
+        console.log("✅ Cálculo concluído:", data);
         
         if (data.success) {
-            cobrancasPreview = data.cobrancas || [];
-            console.log("📋 Cobranças encontradas:", cobrancasPreview.length);
-            
-            if (cobrancasPreview.length === 0) {
-                console.log("⚠️ Nenhuma cobrança encontrada para o período");
-            }
-            
-            atualizarResumo(data);
-            atualizarTabela(data.cobrancas || []);
+            cobrancasCalculadas = data.cobrancas || [];
+            exibirReview(data);
         } else {
-            throw new Error(data.error || 'Erro desconhecido');
+            throw new Error(data.error || 'Erro no cálculo das cobranças');
         }
     })
     .catch(error => {
         console.error("❌ Erro:", error);
-        alert("Erro: " + error.message);
-        document.getElementById('loading-preview').classList.add('hidden');
+        alert('Erro ao calcular cobranças:\n\n' + error.message);
+        voltarConfiguracao();
     });
-    
-    return false;
 }
 
-// Função para atualizar resumo
-function atualizarResumo(data) {
-    console.log("📊 Atualizando resumo:", data);
+// Exibir tela de review
+function exibirReview(data) {
+    console.log("📊 Exibindo review de", data.cobrancas.length, "cobranças");
     
-    document.getElementById('total-cobrancas-preview').textContent = data.total_cobrancas || 0;
-    document.getElementById('valor-total-preview').textContent = `R$ ${(data.valor_total_geral || 0).toFixed(2).replace('.', ',')}`;
-    document.getElementById('periodo-preview').textContent = `${data.mes_nome}/${data.ano}`;
-    document.getElementById('total-selecionadas-preview').textContent = '0';
-    document.getElementById('resumo-preview').classList.remove('hidden');
+    // Atualizar informações do período
+    document.getElementById('periodo-review').textContent = `${data.mes_nome}/${data.ano} - ${data.total_cobrancas} cobrança(s)`;
+    document.getElementById('periodo-display').textContent = `${data.mes_nome}/${data.ano}`;
     
-    console.log("✅ Resumo atualizado");
+    // Atualizar estatísticas
+    document.getElementById('total-cobrancas-review').textContent = data.total_cobrancas || 0;
+    document.getElementById('total-cobrancas-count').textContent = data.total_cobrancas || 0;
+    document.getElementById('valor-total-review').textContent = formatarMoeda(data.valor_total_geral || 0);
+    
+    // Preencher tabela
+    preencherTabelaReview(data.cobrancas || []);
+    
+    // Mostrar etapa de review
+    document.getElementById('etapa-review').classList.remove('hidden');
 }
 
-// Função para atualizar tabela
-function atualizarTabela(cobrancas) {
-    console.log("📋 Atualizando tabela com", cobrancas.length, "cobranças");
-    
-    const tbody = document.getElementById('tbody-preview');
+// Preencher tabela de review - ✅ CORREÇÃO AQUI
+function preencherTabelaReview(cobrancas) {
+    const tbody = document.getElementById('tbody-review');
     tbody.innerHTML = '';
-    
-    // Limpar seleções anteriores
-    cobrancasSelecionadas.clear();
-    atualizarContadores();
     
     if (cobrancas.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="6" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                    <div class="text-center">
-                        <i class="fas fa-search text-4xl mb-4 text-gray-400"></i>
-                        <p class="text-lg font-medium">Nenhuma cobrança encontrada</p>
-                        <p class="text-sm text-gray-500 mt-2">
-                            Verifique se há contratos ativos para o período selecionado<br>
-                            ou se já existem cobranças geradas para este mês/ano.
-                        </p>
+                <td colspan="5" class="px-6 py-16 text-center">
+                    <div class="flex flex-col items-center justify-center space-y-4">
+                        <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <div class="text-center">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Nenhuma cobrança encontrada</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                Verifique se há contratos ativos para o período selecionado.
+                            </p>
+                        </div>
                     </div>
                 </td>
             </tr>
         `;
-        console.log("ℹ️ Tabela vazia - nenhuma cobrança encontrada");
-    } else {
-        cobrancas.forEach((cobranca, index) => {
-            console.log(`📄 Processando cobrança ${index + 1}:`, cobranca);
-            
-            const row = document.createElement('tr');
-            row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700';
-            
-            const valorFormatado = `R$ ${(cobranca.valor_total || 0).toFixed(2).replace('.', ',')}`;
-            const despesasTexto = `${(cobranca.despesas || []).length} despesa(s)`;
-            
-            row.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <input type="checkbox" class="cobranca-checkbox w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" 
-                           value="${cobranca.contrato_id}" onchange="atualizarSelecao(this)">
-                </td>
-                <td class="px-6 py-4">
-                    <div class="text-sm font-medium text-gray-900 dark:text-white">
-                        ${cobranca.contrato_numero || 'N/A'}
-                    </div>
-                </td>
-                <td class="px-6 py-4">
-                    <div class="text-sm text-gray-900 dark:text-white">
-                        ${cobranca.inquilino_nome || 'N/A'}
-                    </div>
-                </td>
-                <td class="px-6 py-4">
-                    <div class="text-sm font-medium text-gray-900 dark:text-white">
-                        ${valorFormatado}
-                    </div>
-                </td>
-                <td class="px-6 py-4">
-                    <div class="text-sm text-gray-700 dark:text-gray-300">
-                        ${despesasTexto}
-                    </div>
-                </td>
-                <td class="px-6 py-4 text-right">
-                    <button onclick="mostrarDetalhes(${cobranca.contrato_id})" 
-                            class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 text-sm">
-                        Ver detalhes
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
-        console.log("✅ Tabela preenchida com sucesso");
-    }
-    
-    document.getElementById('tabela-preview').classList.remove('hidden');
-}
-
-// Função para atualizar seleção
-function atualizarSelecao(checkbox) {
-    const contratoId = parseInt(checkbox.value);
-    
-    if (checkbox.checked) {
-        cobrancasSelecionadas.add(contratoId);
-    } else {
-        cobrancasSelecionadas.delete(contratoId);
-    }
-    
-    atualizarContadores();
-}
-
-// Função para atualizar contadores
-function atualizarContadores() {
-    const totalSelecionadas = cobrancasSelecionadas.size;
-    document.getElementById('total-selecionadas-preview').textContent = totalSelecionadas;
-    document.getElementById('contador-selecionadas').textContent = totalSelecionadas;
-    
-    const btnGerar = document.getElementById('btn-gerar-selecionadas');
-    btnGerar.disabled = totalSelecionadas === 0;
-    
-    // Atualizar checkbox master
-    const masterCheckbox = document.getElementById('select-all-preview');
-    const checkboxes = document.querySelectorAll('.cobranca-checkbox');
-    if (checkboxes.length > 0) {
-        masterCheckbox.checked = totalSelecionadas === checkboxes.length;
-        masterCheckbox.indeterminate = totalSelecionadas > 0 && totalSelecionadas < checkboxes.length;
-    }
-}
-
-// Funções de seleção em massa
-function selecionarTodasPreview() {
-    document.querySelectorAll('.cobranca-checkbox').forEach(checkbox => {
-        checkbox.checked = true;
-        cobrancasSelecionadas.add(parseInt(checkbox.value));
-    });
-    atualizarContadores();
-}
-
-function deselecionarTodasPreview() {
-    document.querySelectorAll('.cobranca-checkbox').forEach(checkbox => {
-        checkbox.checked = false;
-    });
-    cobrancasSelecionadas.clear();
-    atualizarContadores();
-}
-
-function toggleAllPreview(masterCheckbox) {
-    if (masterCheckbox.checked) {
-        selecionarTodasPreview();
-    } else {
-        deselecionarTodasPreview();
-    }
-}
-
-// Função para mostrar detalhes
-function mostrarDetalhes(contratoId) {
-    const cobranca = cobrancasPreview.find(c => c.contrato_id === contratoId);
-    if (cobranca) {
-        const valorFormatado = `R$ ${(cobranca.valor_total || 0).toFixed(2).replace('.', ',')}`;
-        const despesasInfo = cobranca.despesas && cobranca.despesas.length > 0 
-            ? cobranca.despesas.map(d => `• ${d.nome}: R$ ${d.valor.toFixed(2).replace('.', ',')}`).join('\n')
-            : 'Nenhuma despesa';
-            
-        alert(
-            `Detalhes da Cobrança:\n\n` +
-            `Contrato: ${cobranca.contrato_numero}\n` +
-            `Inquilino: ${cobranca.inquilino_nome}\n` +
-            `Valor do Aluguel: R$ ${(cobranca.valor_aluguel || 0).toFixed(2).replace('.', ',')}\n` +
-            `Valor Total: ${valorFormatado}\n\n` +
-            `Despesas:\n${despesasInfo}`
-        );
-    }
-}
-
-// Função para gerar cobranças selecionadas
-function gerarSelecionadas() {
-    if (cobrancasSelecionadas.size === 0) {
-        alert('Selecione pelo menos uma cobrança.');
         return;
     }
+    
+    cobrancas.forEach((cobranca, index) => {
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors';
+        
+        // ✅ CORREÇÃO: Declarar variável descricao ANTES de usar
+        let descricaoTexto = '';
+        
+        try {
+            // Gerar descrição automática de forma segura
+            descricaoTexto = gerarDescricaoAutomatica(cobranca);
+        } catch (error) {
+            console.warn('Erro ao gerar descrição:', error);
+            descricaoTexto = 'Aluguel - ' + (configuracoes.mes_referencia || '') + '/' + (configuracoes.ano_referencia || '');
+        }
+        
+        row.innerHTML = `
+            <td class="px-6 py-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+                        <span class="text-sm font-bold text-purple-600 dark:text-purple-400">#${cobranca.contrato_id || index + 1}</span>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-sm font-semibold text-gray-900 dark:text-white">
+                            Contrato #${cobranca.contrato_id || index + 1}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                            ${cobranca.endereco || 'Endereço não informado'}
+                        </div>
+                    </div>
+                </div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                        <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <div class="text-sm font-semibold text-gray-900 dark:text-white">
+                            ${cobranca.inquilino_nome || 'Cliente não informado'}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                            Inquilino
+                        </div>
+                    </div>
+                </div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 w-10 h-10 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-sm font-semibold text-gray-900 dark:text-white">
+                            ${cobranca.data_vencimento_formatada || 'Calculando...'}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                            ${cobranca.dia_pagamento_contrato ? 'Dia ' + cobranca.dia_pagamento_contrato : 'Vencimento automático'}
+                        </div>
+                    </div>
+                </div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="space-y-1">
+                    <div class="text-sm font-semibold text-gray-900 dark:text-white">
+                        ${formatarMoeda(cobranca.valor_total)}
+                    </div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                        Aluguel: ${formatarMoeda(cobranca.valor_aluguel)}
+                    </div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                        Despesas: ${formatarMoeda(cobranca.valor_despesas_liquido || 0)}
+                    </div>
+                </div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="max-w-xs">
+                    <div class="text-sm text-gray-900 dark:text-white line-clamp-3">
+                        ${descricaoTexto}
+                    </div>
+                    <button onclick="verDescricaoCompleta(${index})" 
+                            class="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 mt-1">
+                        Ver completa
+                    </button>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
 
-    const mesReferencia = document.getElementById('mes_referencia').value;
-    const anoReferencia = document.getElementById('ano_referencia').value;
-    const dataVencimento = document.getElementById('data_vencimento').value;
-    const incluirDespesas = document.getElementById('incluir_despesas').checked;
-    const gerarDescricaoAutomatica = document.getElementById('gerar_descricao_automatica').checked;
+// ✅ CORREÇÃO: Função gerarDescricaoAutomatica melhorada e mais segura
+function gerarDescricaoAutomatica(cobranca) {
+    try {
+        if (!configuracoes.gerar_descricao_automatica) {
+            return 'Cobrança de aluguel';
+        }
+        
+        const meses = [
+            '', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+        ];
+        
+        const mesNome = meses[configuracoes.mes_referencia] || 'Mês ' + configuracoes.mes_referencia;
+        const ano = configuracoes.ano_referencia || new Date().getFullYear();
+        
+        // ✅ CORREÇÃO: Inicializar descricao corretamente
+        let descricao = `Aluguel referente a ${mesNome} de ${ano}\n\n`;
+        descricao += `Valor do aluguel: ${formatarMoeda(cobranca.valor_aluguel || 0)}`;
+        
+        // Adicionar despesas se existirem
+        if (cobranca.despesas && Array.isArray(cobranca.despesas) && cobranca.despesas.length > 0) {
+            descricao += '\n\nDespesas incluídas:';
+            cobranca.despesas.forEach(despesa => {
+                const valorDespesa = despesa.valor || 0;
+                const nomeDespesa = despesa.nome || despesa.descricao || 'Despesa';
+                const tipoDespesa = despesa.tipo || 'debito';
+                
+                if (tipoDespesa === 'credito' || valorDespesa < 0) {
+                    descricao += `\n• ${nomeDespesa} (desconto): ${formatarMoeda(Math.abs(valorDespesa))}`;
+                } else {
+                    descricao += `\n• ${nomeDespesa}: ${formatarMoeda(valorDespesa)}`;
+                }
+            });
+        }
+        
+        // Linha final com valor total
+        descricao += `\n\nValor total: ${formatarMoeda(cobranca.valor_total || 0)}`;
+        
+        return descricao;
+        
+    } catch (error) {
+        console.warn('Erro na geração de descrição:', error);
+        // Fallback seguro
+        const mesNome = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][configuracoes.mes_referencia] || 'Período';
+        return `Aluguel referente a ${mesNome} de ${configuracoes.ano_referencia}\nValor: ${formatarMoeda(cobranca.valor_total || 0)}`;
+    }
+}
 
-    const mesNome = document.getElementById('mes_referencia').options[document.getElementById('mes_referencia').selectedIndex].text;
+// Ver descrição completa
+function verDescricaoCompleta(index) {
+    try {
+        const cobranca = cobrancasCalculadas[index];
+        if (!cobranca) {
+            alert('❌ Cobrança não encontrada!');
+            return;
+        }
+        
+        const descricaoCompleta = gerarDescricaoAutomatica(cobranca);
+        
+        alert(
+            `DESCRIÇÃO COMPLETA\n` +
+            `${'='.repeat(30)}\n\n` +
+            `📋 Contrato: #${cobranca.contrato_id || 'N/A'}\n` +
+            `👤 Inquilino: ${cobranca.inquilino_nome || 'N/A'}\n` +
+            `📅 Vencimento: ${cobranca.data_vencimento_formatada || 'N/A'}\n\n` +
+            `📝 DESCRIÇÃO:\n` +
+            `${'-'.repeat(20)}\n` +
+            `${descricaoCompleta}`
+        );
+    } catch (error) {
+        console.error('Erro ao exibir descrição:', error);
+        alert('❌ Erro ao exibir descrição completa!');
+    }
+}
 
+// Voltar para configuração
+function voltarConfiguracao() {
+    document.getElementById('etapa-review').classList.add('hidden');
+    document.getElementById('loading-preview').classList.add('hidden');
+    document.getElementById('etapa-configuracao').classList.remove('hidden');
+}
+
+// Confirmar geração
+function confirmarGeracao() {
+    if (!cobrancasCalculadas || cobrancasCalculadas.length === 0) {
+        alert('❌ Nenhuma cobrança para gerar!');
+        return;
+    }
+    
+    const totalCobrancas = cobrancasCalculadas.length;
+    const valorTotal = cobrancasCalculadas.reduce((sum, c) => sum + (c.valor_total || 0), 0);
+    const meses = [
+        '', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    
+    const mesNome = meses[configuracoes.mes_referencia] || 'Mês ' + configuracoes.mes_referencia;
+    
     const confirmar = confirm(
-        `Confirma a geração de ${cobrancasSelecionadas.size} cobrança(s) ` +
-        `para ${mesNome}/${anoReferencia}?\n\n` +
-        `Esta operação criará as cobranças no banco de dados.`
+        `🚀 CONFIRMAR GERAÇÃO DE COBRANÇAS\n` +
+        `${'='.repeat(40)}\n\n` +
+        `📊 Quantidade: ${totalCobrancas} cobrança(s)\n` +
+        `📅 Período: ${mesNome}/${configuracoes.ano_referencia}\n` +
+        `💰 Valor Total: ${formatarMoeda(valorTotal)}\n` +
+        `💼 Incluir Despesas: ${configuracoes.incluir_despesas ? 'Sim' : 'Não'}\n` +
+        `📝 Descrição Automática: ${configuracoes.gerar_descricao_automatica ? 'Sim' : 'Não'}\n\n` +
+        `⚠️ Esta operação criará ${totalCobrancas} cobrança(s) no banco de dados.\n\n` +
+        `Confirma a geração?`
     );
-
+    
     if (!confirmar) return;
+    
+    // Processar geração
+    processarGeracao();
+}
 
-    // Mostrar loading no botão
-    const btnGerar = document.getElementById('btn-gerar-selecionadas');
-    const originalHTML = btnGerar.innerHTML;
-    btnGerar.disabled = true;
-    btnGerar.innerHTML = `
-        <svg class="animate-spin w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
+// Processar geração
+function processarGeracao() {
+    console.log("🚀 Iniciando geração de cobranças...");
+    
+    // Desabilitar botão e mostrar loading
+    const btnConfirmar = document.getElementById('btn-confirmar-geracao');
+    const originalHTML = btnConfirmar.innerHTML;
+    btnConfirmar.disabled = true;
+    btnConfirmar.innerHTML = `
+        <svg class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
         <span>Gerando...</span>
     `;
-
+    
+    // Preparar dados para envio
+    const contratoIds = cobrancasCalculadas.map(c => c.contrato_id).filter(id => id);
+    
+    if (contratoIds.length === 0) {
+        alert('❌ Nenhum contrato válido encontrado!');
+        btnConfirmar.disabled = false;
+        btnConfirmar.innerHTML = originalHTML;
+        return;
+    }
+    
+    const dadosGeracao = {
+        mes_referencia: configuracoes.mes_referencia,
+        ano_referencia: configuracoes.ano_referencia,
+        cobrancas_selecionadas: contratoIds,
+        incluir_despesas: configuracoes.incluir_despesas,
+        gerar_descricao_automatica: configuracoes.gerar_descricao_automatica
+    };
+    
+    console.log("📤 Enviando dados:", dadosGeracao);
+    
     fetch('{% url "financeiro:cobranca_gerar_selecionadas" %}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': getCSRFToken()
         },
-        body: JSON.stringify({
-            mes_referencia: parseInt(mesReferencia),
-            ano_referencia: parseInt(anoReferencia),
-            data_vencimento: dataVencimento,
-            cobrancas_selecionadas: Array.from(cobrancasSelecionadas),
-            incluir_despesas: incluirDespesas,
-            gerar_descricao_automatica: gerarDescricaoAutomatica
-        })
+        body: JSON.stringify(dadosGeracao)
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+    })
     .then(data => {
+        console.log("✅ Resposta recebida:", data);
+        
         if (data.success) {
-            alert(`${data.cobrancas_criadas} cobrança(s) criada(s) com sucesso!`);
+            let mensagem = `✅ SUCESSO!\n\n${data.cobrancas_criadas} cobrança(s) criada(s) com sucesso!`;
             
-            if (data.erros && data.erros.length > 0) {
-                console.warn('Erros:', data.erros);
-                alert('Alguns erros ocorreram:\n' + data.erros.slice(0, 3).join('\n'));
+            if (data.detalhes && data.detalhes.length > 0) {
+                mensagem += '\n\nDetalhes:';
+                data.detalhes.slice(0, 3).forEach(detalhe => {
+                    mensagem += `\n• Contrato ${detalhe.contrato}: R$ ${detalhe.valor_total} (vence ${detalhe.data_vencimento})`;
+                });
+                
+                if (data.detalhes.length > 3) {
+                    mensagem += `\n... e mais ${data.detalhes.length - 3} cobrança(s)`;
+                }
             }
             
-            // Redirecionar para lista de cobranças
+            mensagem += '\n\nVocê será redirecionado para a lista de cobranças.';
+            alert(mensagem);
+            
+            if (data.erros && data.erros.length > 0) {
+                console.warn('Avisos:', data.erros);
+                alert(`⚠️ Alguns avisos:\n\n${data.erros.slice(0, 3).join('\n')}`);
+            }
+            
+            // Redirecionar para lista
             window.location.href = '{% url "financeiro:cobranca_list" %}';
         } else {
-            alert('Erro: ' + (data.error || 'Erro desconhecido'));
+            throw new Error(data.error || 'Erro desconhecido durante a geração');
         }
     })
     .catch(error => {
-        console.error('Erro:', error);
-        alert('Erro na comunicação com o servidor: ' + error.message);
+        console.error('❌ Erro:', error);
+        alert(`❌ Erro na geração:\n\n${error.message}\n\nVerifique o console para mais detalhes.`);
     })
     .finally(() => {
         // Restaurar botão
-        btnGerar.disabled = cobrancasSelecionadas.size === 0;
-        btnGerar.innerHTML = originalHTML;
+        btnConfirmar.disabled = false;
+        btnConfirmar.innerHTML = originalHTML;
     });
 }
 
-// Inicialização quando o DOM estiver carregado
+// ✅ CORREÇÃO: Função utilitária para formatação de moeda melhorada
+function formatarMoeda(valor) {
+    try {
+        const numeroValor = typeof valor === 'number' ? valor : parseFloat(valor) || 0;
+        return `R$ ${numeroValor.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+    } catch (error) {
+        console.warn('Erro ao formatar moeda:', error);
+        return 'R$ 0,00';
+    }
+}
+
+// CSS adicional para line-clamp (funciona melhor com Tailwind)
+const style = document.createElement('style');
+style.textContent = `
+    .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        word-wrap: break-word;
+    }
+    
+    /* Melhorar responsividade da tabela */
+    @media (max-width: 768px) {
+        .table-responsive td {
+            display: block;
+            text-align: right;
+            border: none;
+            padding-left: 50%;
+            position: relative;
+        }
+        
+        .table-responsive td:before {
+            content: attr(data-label);
+            position: absolute;
+            left: 6px;
+            width: 45%;
+            text-align: left;
+            font-weight: bold;
+        }
+    }
+`;
+document.head.appendChild(style);
+
+// ✅ CORREÇÃO: Adicionar tratamento de erro global para JavaScript
+window.addEventListener('error', function(event) {
+    console.error('❌ Erro JavaScript capturado:', {
+        message: event.message,
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+        error: event.error
+    });
+    
+    // Não exibir alert para todos os erros, apenas logar
+    // alert('Erro inesperado na página. Verifique o console para detalhes.');
+});
+
+// ✅ CORREÇÃO: Adicionar verificação de elementos DOM antes de usar
+function verificarElementosDOM() {
+    const elementos = [
+        'mes_referencia',
+        'ano_referencia', 
+        'filtro_contratos',
+        'incluir_despesas',
+        'gerar_descricao_automatica',
+        'etapa-configuracao',
+        'loading-preview',
+        'etapa-review'
+    ];
+    
+    const elementosNaoEncontrados = [];
+    
+    elementos.forEach(id => {
+        if (!document.getElementById(id)) {
+            elementosNaoEncontrados.push(id);
+        }
+    });
+    
+    if (elementosNaoEncontrados.length > 0) {
+        console.warn('⚠️ Elementos DOM não encontrados:', elementosNaoEncontrados);
+    }
+    
+    return elementosNaoEncontrados.length === 0;
+}
+
+// Verificar DOM quando a página carregar
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("🚀 Preview de Cobranças carregado");
-    console.log("✅ Sistema de preview carregado com sucesso!");
+    verificarElementosDOM();
 });
 </script>
 {% endblock %}

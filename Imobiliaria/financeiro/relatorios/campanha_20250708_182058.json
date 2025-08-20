@@ -1,0 +1,104 @@
+{
+  "campanha": "Guilherme - Sobrado Comercial Rua Itapura",
+  "resultados": [
+    {
+      "lead": "Catia Camargo",
+      "telefone": "5,51198E+12",
+      "sucesso": false,
+      "erro": "Telefone inválido",
+      "message_id": null
+    },
+    {
+      "lead": "Depilação Laser & Procedimentos Estéticos - Brasilandia - ZN",
+      "telefone": "5,51199E+12",
+      "sucesso": false,
+      "erro": "Telefone inválido",
+      "message_id": null
+    },
+    {
+      "lead": "Juliana Felgueiras • RNM",
+      "telefone": "5,51199E+12",
+      "sucesso": false,
+      "erro": "Telefone inválido",
+      "message_id": null
+    },
+    {
+      "lead": "Priscila Amorim",
+      "telefone": "5,51196E+12",
+      "sucesso": false,
+      "erro": "Telefone inválido",
+      "message_id": null
+    },
+    {
+      "lead": "Bruna Bastos",
+      "telefone": "5,51197E+12",
+      "sucesso": false,
+      "erro": "Telefone inválido",
+      "message_id": null
+    },
+    {
+      "lead": "Beatriz Pinheiro",
+      "telefone": "5,51194E+12",
+      "sucesso": false,
+      "erro": "Telefone inválido",
+      "message_id": null
+    },
+    {
+      "lead": "Sueli Rodrigues",
+      "telefone": "5,51197E+12",
+      "sucesso": false,
+      "erro": "Telefone inválido",
+      "message_id": null
+    },
+    {
+      "lead": "𝗗𝗿 𝗘𝗱𝗴𝗮𝗿 𝗦𝗲𝘀𝘁𝗮𝗿𝗶 𝗖𝗮𝗿𝗻𝗶𝗲𝗹",
+      "telefone": "5,51198E+12",
+      "sucesso": false,
+      "erro": "Telefone inválido",
+      "message_id": null
+    },
+    {
+      "lead": "Paulo Santos",
+      "telefone": "5,51197E+12",
+      "sucesso": false,
+      "erro": "Telefone inválido",
+      "message_id": null
+    },
+    {
+      "lead": "Lorena Moura",
+      "telefone": "5,51195E+12",
+      "sucesso": false,
+      "erro": "Telefone inválido",
+      "message_id": null
+    },
+    {
+      "lead": "Lucas Zebini",
+      "telefone": "5,512E+12",
+      "sucesso": false,
+      "erro": "Telefone inválido",
+      "message_id": null
+    },
+    {
+      "lead": "Róger Sampaio",
+      "telefone": "5,51198E+12",
+      "sucesso": false,
+      "erro": "Telefone inválido",
+      "message_id": null
+    },
+    {
+      "lead": "Charlina Michele Souza Pontes",
+      "telefone": "5,51195E+12",
+      "sucesso": false,
+      "erro": "Telefone inválido",
+      "message_id": null
+    }
+  ],
+  "estatisticas": {
+    "total": 13,
+    "sucessos": 0,
+    "falhas": 13,
+    "taxa_sucesso": 0.0
+  },
+  "timestamp": "20250708_182058",
+  "data_execucao": "2025-07-08T18:20:58.574093"
+}

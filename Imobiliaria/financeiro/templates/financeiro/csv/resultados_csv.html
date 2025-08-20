@@ -1,0 +1,501 @@
+<!-- financeiro/templates/financeiro/csv/resultados_csv.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Resultados do Envio CSV{% endblock %}
+
+{% block extra_css %}
+<style>
+.step-indicator {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: #e9ecef;
+    border-radius: 2rem;
+    margin: 0 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.step.completed {
+    background: #198754;
+    color: white;
+}
+
+.resultado-item {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.resultado-sucesso {
+    border-left: 4px solid #198754;
+    background-color: #f8fff9;
+}
+
+.resultado-erro {
+    border-left: 4px solid #dc3545;
+    background-color: #fff8f8;
+}
+
+.mensagem-enviada {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 0.25rem;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    white-space: pre-line;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.estatisticas {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.stat-card {
+    padding: 1rem;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    display: block;
+}
+
+.stat-label {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin-top: 0.5rem;
+}
+
+.modo-teste-banner {
+    background: #fff3cd;
+    border: 1px solid #ffecb5;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.dry-run-banner {
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.progress-ring {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+}
+
+.progress-ring-circle {
+    stroke: #fff;
+    stroke-width: 4;
+    fill: transparent;
+    r: 35;
+    cx: 40;
+    cy: 40;
+}
+
+.progress-ring-background {
+    stroke: rgba(255,255,255,0.3);
+    stroke-width: 4;
+    fill: transparent;
+    r: 35;
+    cx: 40;
+    cy: 40;
+}
+
+.filtro-resultados {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1>📊 Resultados do Envio CSV</h1>
+            
+            <!-- Indicador de Passos -->
+            <div class="step-indicator">
+                <div class="step completed">
+                    <i class="fas fa-check me-2"></i>
+                    1. Upload CSV
+                </div>
+                <div class="step completed">
+                    <i class="fas fa-check me-2"></i>
+                    2. Configurar Envio
+                </div>
+                <div class="step completed">
+                    <i class="fas fa-check me-2"></i>
+                    3. Enviar Mensagens
+                </div>
+                <div class="step completed">
+                    <i class="fas fa-check me-2"></i>
+                    4. Resultados
+                </div>
+            </div>
+            
+            <!-- Banners de Status -->
+            {% if modo_teste %}
+            <div class="modo-teste-banner">
+                <h6><i class="fas fa-flask me-2"></i>MODO TESTE ATIVO</h6>
+                <p class="mb-0">Apenas os primeiros 3 leads receberam mensagens. Se tudo estiver correto, refaça o processo completo.</p>
+            </div>
+            {% endif %}
+            
+            {% if dry_run %}
+            <div class="dry-run-banner">
+                <h6><i class="fas fa-vial me-2"></i>DRY RUN - SIMULAÇÃO</h6>
+                <p class="mb-0">As mensagens foram apenas simuladas para teste. Nenhuma mensagem real foi enviada.</p>
+            </div>
+            {% endif %}
+            
+            <!-- Estatísticas Principais -->
+            <div class="estatisticas">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <span class="stat-number">{{ resultados|length }}</span>
+                            <div class="stat-label">Total Processado</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <span class="stat-number text-success">{{ total_enviados }}</span>
+                            <div class="stat-label">Sucessos</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <span class="stat-number text-warning">{{ total_falhas }}</span>
+                            <div class="stat-label">Falhas</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            {% if resultados %}
+                            <span class="stat-number">{{ total_enviados|floatformat:0 }}/{{ resultados|length }}</span>
+                            <div class="stat-label">Taxa de Sucesso ({{ total_enviados|mul:100|div:resultados|length|floatformat:1 }}%)</div>
+                            {% else %}
+                            <span class="stat-number">0%</span>
+                            <div class="stat-label">Taxa de Sucesso</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h5>Campanha: {{ nome_campanha }}</h5>
+                        <p class="mb-0">
+                            <i class="fas fa-calendar me-2"></i>
+                            Executada em {{ "now"|date:"d/m/Y às H:i" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Filtros -->
+            <div class="filtro-resultados">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-primary active" onclick="filtrarResultados('todos')">
+                                <i class="fas fa-list me-1"></i>
+                                Todos ({{ resultados|length }})
+                            </button>
+                            <button type="button" class="btn btn-outline-success" onclick="filtrarResultados('sucesso')">
+                                <i class="fas fa-check me-1"></i>
+                                Sucessos ({{ total_enviados }})
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" onclick="filtrarResultados('erro')">
+                                <i class="fas fa-times me-1"></i>
+                                Falhas ({{ total_falhas }})
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <button type="button" class="btn btn-outline-secondary" onclick="exportarResultados()">
+                            <i class="fas fa-download me-1"></i> Exportar CSV
+                        </button>
+                        <button type="button" class="btn btn-outline-info" onclick="copiarResumo()">
+                            <i class="fas fa-copy me-1"></i> Copiar Resumo
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Lista de Resultados -->
+            <div class="row">
+                <div class="col-12">
+                    {% for resultado in resultados %}
+                    <div class="resultado-item {% if resultado.sucesso %}resultado-sucesso{% else %}resultado-erro{% endif %}" 
+                         data-status="{% if resultado.sucesso %}sucesso{% else %}erro{% endif %}">
+                        
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="d-flex align-items-center">
+                                    {% if resultado.sucesso %}
+                                        <i class="fas fa-check-circle text-success fa-lg me-3"></i>
+                                    {% else %}
+                                        <i class="fas fa-times-circle text-danger fa-lg me-3"></i>
+                                    {% endif %}
+                                    
+                                    <div>
+                                        <h6 class="mb-1">{{ resultado.nome }}</h6>
+                                        <div class="text-muted">
+                                            <i class="fas fa-phone me-1"></i>{{ resultado.telefone }}
+                                        </div>
+                                        
+                                        {% if resultado.sucesso %}
+                                            <small class="text-success">
+                                                <i class="fas fa-check me-1"></i>Mensagem enviada com sucesso
+                                            </small>
+                                        {% else %}
+                                            <small class="text-danger">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>{{ resultado.erro }}
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 text-end">
+                                {% if resultado.mensagem %}
+                                <button type="button" class="btn btn-sm btn-outline-primary" 
+                                        onclick="toggleMensagem('mensagem-{{ forloop.counter }}')">
+                                    <i class="fas fa-eye"></i> Ver Mensagem
+                                </button>
+                                {% endif %}
+                                
+                                {% if resultado.sucesso %}
+                                <span class="badge bg-success ms-2">Enviado</span>
+                                {% else %}
+                                <span class="badge bg-danger ms-2">Falha</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        {% if resultado.mensagem %}
+                        <div id="mensagem-{{ forloop.counter }}" class="mensagem-enviada" style="display: none;">
+                            <strong>Mensagem enviada:</strong><br>
+                            {{ resultado.mensagem }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-info-circle fa-2x mb-3"></i>
+                        <h5>Nenhum resultado encontrado</h5>
+                        <p class="mb-0">Não há resultados de envio para exibir.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Ações Finais -->
+            <div class="row mt-4">
+                <div class="col-12 text-center">
+                    {% if modo_teste %}
+                    <a href="{% url 'financeiro:upload_csv_leads' %}" class="btn btn-primary btn-lg me-3">
+                        <i class="fas fa-redo"></i> Enviar para Todos os Leads
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'financeiro:upload_csv_leads' %}" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-plus"></i> Novo Upload CSV
+                    </a>
+                    <a href="{% url 'financeiro:lembrete_list' %}" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-list"></i> Histórico de Lembretes
+                    </a>
+                    <a href="{% url 'financeiro:dashboard_lembretes' %}" class="btn btn-outline-info">
+                        <i class="fas fa-chart-bar"></i> Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Filtrar resultados
+function filtrarResultados(filtro) {
+    const itens = document.querySelectorAll('.resultado-item');
+    const botoes = document.querySelectorAll('.btn-group .btn');
+    
+    // Remover classe active de todos os botões
+    botoes.forEach(btn => btn.classList.remove('active'));
+    
+    // Adicionar classe active ao botão clicado
+    event.target.classList.add('active');
+    
+    itens.forEach(item => {
+        const status = item.getAttribute('data-status');
+        
+        if (filtro === 'todos') {
+            item.style.display = 'block';
+        } else if (filtro === 'sucesso' && status === 'sucesso') {
+            item.style.display = 'block';
+        } else if (filtro === 'erro' && status === 'erro') {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+// Toggle visualização da mensagem
+function toggleMensagem(id) {
+    const elemento = document.getElementById(id);
+    const botao = event.target.closest('button');
+    
+    if (elemento.style.display === 'none') {
+        elemento.style.display = 'block';
+        botao.innerHTML = '<i class="fas fa-eye-slash"></i> Ocultar Mensagem';
+    } else {
+        elemento.style.display = 'none';
+        botao.innerHTML = '<i class="fas fa-eye"></i> Ver Mensagem';
+    }
+}
+
+// Exportar resultados para CSV
+function exportarResultados() {
+    const resultados = [
+        ['Nome', 'Telefone', 'Status', 'Erro', 'Mensagem']
+    ];
+    
+    // Coletar dados dos resultados
+    {% for resultado in resultados %}
+    resultados.push([
+        '{{ resultado.nome|escapejs }}',
+        '{{ resultado.telefone|escapejs }}',
+        '{% if resultado.sucesso %}Sucesso{% else %}Falha{% endif %}',
+        '{{ resultado.erro|default:""|escapejs }}',
+        '{{ resultado.mensagem|default:""|escapejs }}'
+    ]);
+    {% endfor %}
+    
+    // Converter para CSV
+    const csvContent = resultados.map(row => 
+        row.map(field => `"${field.replace(/"/g, '""')}"`).join(',')
+    ).join('\n');
+    
+    // Download do arquivo
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `resultados_campanha_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+}
+
+// Copiar resumo para clipboard
+function copiarResumo() {
+    const resumo = `📊 RESUMO DA CAMPANHA: {{ nome_campanha }}
+
+🗓️ Data: {{ "now"|date:"d/m/Y às H:i" }}
+📱 Canal: WhatsApp
+{% if modo_teste %}🧪 Modo: TESTE (3 leads){% else %}📤 Modo: COMPLETO{% endif %}
+{% if dry_run %}🔬 Simulação: DRY RUN{% endif %}
+
+📈 RESULTADOS:
+• Total processado: {{ resultados|length }}
+• Sucessos: {{ total_enviados }}
+• Falhas: {{ total_falhas }}
+• Taxa de sucesso: {{ total_enviados|mul:100|div:resultados|length|floatformat:1 }}%
+
+{% if total_falhas > 0 %}❌ PRINCIPAIS ERROS:{% for resultado in resultados %}{% if not resultado.sucesso %}
+• {{ resultado.nome }}: {{ resultado.erro }}{% endif %}{% endfor %}{% endif %}`;
+
+    navigator.clipboard.writeText(resumo).then(function() {
+        // Mostrar feedback visual
+        const botao = event.target.closest('button');
+        const textoOriginal = botao.innerHTML;
+        botao.innerHTML = '<i class="fas fa-check text-success"></i> Copiado!';
+        botao.classList.add('btn-success');
+        botao.classList.remove('btn-outline-info');
+        
+        setTimeout(() => {
+            botao.innerHTML = textoOriginal;
+            botao.classList.remove('btn-success');
+            botao.classList.add('btn-outline-info');
+        }, 2000);
+    }).catch(function(err) {
+        alert('Erro ao copiar para clipboard');
+    });
+}
+
+// Animação de entrada dos itens
+document.addEventListener('DOMContentLoaded', function() {
+    const itens = document.querySelectorAll('.resultado-item');
+    
+    itens.forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            item.style.transition = 'all 0.3s ease';
+            item.style.opacity = '1';
+            item.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+    
+    // Auto-scroll para resultados se houver muitos
+    if (itens.length > 5) {
+        setTimeout(() => {
+            document.querySelector('.filtro-resultados').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 1000);
+    }
+});
+
+// Estatísticas em tempo real
+function atualizarEstatisticas() {
+    const itensVisiveis = document.querySelectorAll('.resultado-item[style*="block"], .resultado-item:not([style])');
+    const sucessosVisiveis = Array.from(itensVisiveis).filter(item => 
+        item.getAttribute('data-status') === 'sucesso'
+    ).length;
+    const falhasVisiveis = itensVisiveis.length - sucessosVisiveis;
+    
+    // Atualizar contadores se necessário
+    console.log(`Visíveis: ${itensVisiveis.length}, Sucessos: ${sucessosVisiveis}, Falhas: ${falhasVisiveis}`);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,622 @@
+<!-- financeiro/templates/financeiro/csv/configurar_envio.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Configurar Envio CSV{% endblock %}
+
+{% block extra_css %}
+<style>
+.step-indicator {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: #e9ecef;
+    border-radius: 2rem;
+    margin: 0 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.step.active {
+    background: #0d6efd;
+    color: white;
+}
+
+.step.completed {
+    background: #198754;
+    color: white;
+}
+
+.config-section {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.preview-leads {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.lead-item {
+    border-bottom: 1px solid #e9ecef;
+    padding: 0.5rem 0;
+}
+
+.lead-item:last-child {
+    border-bottom: none;
+}
+
+.campo-mapping {
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.template-preview {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-top: 0.5rem;
+    min-height: 100px;
+    white-space: pre-line;
+}
+
+.placeholder-help {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+.stats-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.dry-run-warning {
+    background: #fff3cd;
+    border: 1px solid #ffecb5;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1>⚙️ Configurar Envio CSV</h1>
+            
+            <!-- Indicador de Passos -->
+            <div class="step-indicator">
+                <div class="step completed">
+                    <i class="fas fa-check me-2"></i>
+                    1. Upload CSV
+                </div>
+                <div class="step active">
+                    <i class="fas fa-cogs me-2"></i>
+                    2. Configurar Envio
+                </div>
+                <div class="step">
+                    <i class="fas fa-paper-plane me-2"></i>
+                    3. Enviar Mensagens
+                </div>
+                <div class="step">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    4. Resultados
+                </div>
+            </div>
+            
+            {% if dry_run_ativo %}
+            <div class="dry-run-warning">
+                <strong>🧪 MODO DRY RUN ATIVO</strong><br>
+                As mensagens não serão enviadas de verdade - apenas simuladas para teste.
+            </div>
+            {% endif %}
+            
+            <div class="row">
+                <div class="col-lg-8">
+                    <form method="post" id="config-form">
+                        {% csrf_token %}
+                        
+                        <!-- Configurações Básicas -->
+                        <div class="config-section">
+                            <h5 class="mb-3">📋 Configurações da Campanha</h5>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label">{{ form.nome_campanha.label }}</label>
+                                    {{ form.nome_campanha }}
+                                    <small class="form-text text-muted">{{ form.nome_campanha.help_text }}</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">{{ form.tipo_envio.label }}</label>
+                                    {{ form.tipo_envio }}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">{{ form.tipo_campanha.label }}</label>
+                                    {{ form.tipo_campanha }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Mapeamento de Campos -->
+                        <div class="config-section">
+                            <h5 class="mb-3">🔗 Mapeamento de Campos</h5>
+                            <p class="text-muted mb-3">Selecione quais colunas do seu CSV correspondem a cada informação:</p>
+                            
+                            <div class="campo-mapping">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">{{ form.campo_nome.label }} <span class="text-danger">*</span></label>
+                                        {{ form.campo_nome }}
+                                        <small class="form-text text-muted">{{ form.campo_nome.help_text }}</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">{{ form.campo_telefone.label }} <span class="text-danger">*</span></label>
+                                        {{ form.campo_telefone }}
+                                        <small class="form-text text-muted">{{ form.campo_telefone.help_text }}</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mt-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">{{ form.campo_email.label }}</label>
+                                        {{ form.campo_email }}
+                                        <small class="form-text text-muted">{{ form.campo_email.help_text }}</small>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">{{ form.campo_adicional_1.label }}</label>
+                                        {{ form.campo_adicional_1 }}
+                                        <small class="form-text text-muted">{{ form.campo_adicional_1.help_text }}</small>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">{{ form.campo_adicional_2.label }}</label>
+                                        {{ form.campo_adicional_2 }}
+                                        <small class="form-text text-muted">{{ form.campo_adicional_2.help_text }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Assunto (para email) -->
+                        <div class="config-section" id="secao-assunto" style="display: none;">
+                            <h5 class="mb-3">📧 Assunto do E-mail</h5>
+                            <label class="form-label">{{ form.assunto.label }}</label>
+                            {{ form.assunto }}
+                        </div>
+                        
+                        <!-- Mensagem -->
+                        <div class="config-section">
+                            <h5 class="mb-3">💬 Mensagem</h5>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">{{ form.mensagem.label }}</label>
+                                {{ form.mensagem }}
+                                <div class="placeholder-help">
+                                    <strong>Placeholders disponíveis:</strong>
+                                    <span class="badge bg-secondary me-1">{nome}</span>
+                                    <span class="badge bg-secondary me-1">{primeiro_nome}</span>
+                                    <span class="badge bg-secondary me-1">{email}</span>
+                                    <span class="badge bg-secondary me-1">{telefone}</span>
+                                    <span class="badge bg-secondary me-1">{campo1}</span>
+                                    <span class="badge bg-secondary me-1">{campo2}</span>
+                                    <span class="badge bg-secondary me-1">{data_atual}</span>
+                                </div>
+                            </div>
+                            
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="inserirTemplate()">
+                                <i class="fas fa-magic"></i> Inserir Template para Leads
+                            </button>
+                        </div>
+                        
+                        <!-- Filtros -->
+                        <div class="config-section">
+                            <h5 class="mb-3">🔍 Filtros</h5>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check mb-3">
+                                        {{ form.filtrar_por_estagio }}
+                                        <label class="form-check-label" for="{{ form.filtrar_por_estagio.id_for_label }}">
+                                            {{ form.filtrar_por_estagio.label }}
+                                        </label>
+                                    </div>
+                                    
+                                    <div id="campo-estagio" style="display: none;">
+                                        <label class="form-label">{{ form.estagio_selecionado.label }}</label>
+                                        {{ form.estagio_selecionado }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check mb-3">
+                                        {{ form.ignorar_telefones_invalidos }}
+                                        <label class="form-check-label" for="{{ form.ignorar_telefones_invalidos.id_for_label }}">
+                                            {{ form.ignorar_telefones_invalidos.label }}
+                                        </label>
+                                        <small class="form-text text-muted d-block">{{ form.ignorar_telefones_invalidos.help_text }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Opções de Envio -->
+                        <div class="config-section">
+                            <h5 class="mb-3">⚙️ Opções de Envio</h5>
+                            
+                            <div class="form-check mb-3">
+                                {{ form.testar_antes }}
+                                <label class="form-check-label" for="{{ form.testar_antes.id_for_label }}">
+                                    {{ form.testar_antes.label }}
+                                </label>
+                                <small class="form-text text-muted d-block">{{ form.testar_antes.help_text }}</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Botões -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Enviar Mensagens
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="visualizarPreview()">
+                                <i class="fas fa-eye"></i> Preview da Mensagem
+                            </button>
+                            <a href="{% url 'financeiro:upload_csv_leads' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Voltar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="col-lg-4">
+                    <!-- Estatísticas -->
+                    <div class="stats-card mb-4">
+                        <h6 class="mb-3">📊 Dados do CSV</h6>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="fs-2 fw-bold">{{ total_leads }}</div>
+                                <div>Total de Leads</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="fs-2 fw-bold">{{ colunas|length }}</div>
+                                <div>Campos Disponíveis</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Preview dos Leads -->
+                    <div class="config-section">
+                        <h6 class="mb-3">👥 Preview dos Leads</h6>
+                        <div class="preview-leads">
+                            {% for lead in preview_leads %}
+                            <div class="lead-item">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <strong>{{ lead.Nome|default:"Nome não encontrado" }}</strong><br>
+                                        <small class="text-muted">
+                                            📞 {{ lead.Telefone|default:"Sem telefone" }}<br>
+                                            📧 {{ lead.Email|default:"Sem email" }}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted">
+                                            {{ lead.Estágio|default:"Sem estágio" }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            
+                            {% if total_leads > 5 %}
+                            <div class="text-center mt-2">
+                                <small class="text-muted">... e mais {{ total_leads|add:"-5" }} leads</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Campos Disponíveis -->
+                    <div class="config-section">
+                        <h6 class="mb-3">📋 Campos Disponíveis</h6>
+                        <div class="d-flex flex-wrap gap-1">
+                            {% for coluna in colunas %}
+                            <span class="badge bg-light text-dark border">{{ coluna }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Preview da Mensagem -->
+                    <div class="config-section">
+                        <h6 class="mb-3">👀 Preview da Mensagem</h6>
+                        <div id="preview-mensagem" class="template-preview">
+                            <em class="text-muted">Digite uma mensagem para ver o preview...</em>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="atualizarPreview()">
+                            <i class="fas fa-refresh"></i> Atualizar Preview
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação -->
+<div class="modal fade" id="modal-confirmacao" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Envio de Mensagens</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="confirmacao-conteudo">
+                    <p>Você está prestes a enviar mensagens para <strong id="total-leads-envio">0</strong> leads.</p>
+                    <p><strong>Canal:</strong> <span id="canal-envio"></span></p>
+                    <p><strong>Campanha:</strong> <span id="nome-campanha-envio"></span></p>
+                    
+                    {% if dry_run_ativo %}
+                    <div class="alert alert-warning">
+                        <strong>🧪 MODO DRY RUN:</strong> As mensagens serão apenas simuladas.
+                    </div>
+                    {% endif %}
+                    
+                    <div id="modo-teste-info" style="display: none;">
+                        <div class="alert alert-info">
+                            <strong>🧪 MODO TESTE:</strong> Apenas os primeiros 3 leads receberão mensagens.
+                        </div>
+                    </div>
+                    
+                    <p>Deseja continuar?</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmar-envio">Confirmar Envio</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Preview da Mensagem -->
+<div class="modal fade" id="modal-preview-mensagem" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Preview da Mensagem</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Mensagem com placeholders:</h6>
+                <div class="template-preview mb-3" id="mensagem-original"></div>
+                
+                <h6>Exemplo personalizado (usando primeiro lead):</h6>
+                <div class="template-preview" id="mensagem-personalizada"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Dados dos leads para preview
+const previewLeads = {{ preview_leads|safe }};
+const totalLeads = {{ total_leads }};
+
+// Controle de exibição de campos
+document.getElementById('{{ form.tipo_envio.id_for_label }}').addEventListener('change', function() {
+    const secaoAssunto = document.getElementById('secao-assunto');
+    secaoAssunto.style.display = this.value === 'email' ? 'block' : 'none';
+});
+
+document.getElementById('{{ form.filtrar_por_estagio.id_for_label }}').addEventListener('change', function() {
+    const campoEstagio = document.getElementById('campo-estagio');
+    campoEstagio.style.display = this.checked ? 'block' : 'none';
+});
+
+// Preview da mensagem
+function atualizarPreview() {
+    const mensagem = document.getElementById('{{ form.mensagem.id_for_label }}').value;
+    const preview = document.getElementById('preview-mensagem');
+    
+    if (mensagem.trim() && previewLeads.length > 0) {
+        const primeiroLead = previewLeads[0];
+        
+        // Obter campos selecionados
+        const campoNome = document.getElementById('{{ form.campo_nome.id_for_label }}').value;
+        const campoTelefone = document.getElementById('{{ form.campo_telefone.id_for_label }}').value;
+        const campoEmail = document.getElementById('{{ form.campo_email.id_for_label }}').value;
+        const campo1 = document.getElementById('{{ form.campo_adicional_1.id_for_label }}').value;
+        const campo2 = document.getElementById('{{ form.campo_adicional_2.id_for_label }}').value;
+        
+        // Extrair dados do lead
+        const nome = primeiroLead[campoNome] || 'Nome do Lead';
+        const primeiroNome = nome.split(' ')[0] || 'Lead';
+        const email = primeiroLead[campoEmail] || 'email@exemplo.com';
+        const telefone = primeiroLead[campoTelefone] || '11999999999';
+        const valorCampo1 = primeiroLead[campo1] || 'Campo1';
+        const valorCampo2 = primeiroLead[campo2] || 'Campo2';
+        
+        // Aplicar substituições
+        let mensagemPreview = mensagem
+            .replace(/{nome}/g, `<span class="text-primary">${nome}</span>`)
+            .replace(/{primeiro_nome}/g, `<span class="text-primary">${primeiroNome}</span>`)
+            .replace(/{email}/g, `<span class="text-primary">${email}</span>`)
+            .replace(/{telefone}/g, `<span class="text-primary">${telefone}</span>`)
+            .replace(/{campo1}/g, `<span class="text-primary">${valorCampo1}</span>`)
+            .replace(/{campo2}/g, `<span class="text-primary">${valorCampo2}</span>`)
+            .replace(/{data_atual}/g, `<span class="text-primary">${new Date().toLocaleDateString('pt-BR')}</span>`);
+        
+        preview.innerHTML = mensagemPreview.replace(/\n/g, '<br>');
+    } else {
+        preview.innerHTML = '<em class="text-muted">Digite uma mensagem e configure os campos para ver o preview...</em>';
+    }
+}
+
+// Atualizar preview quando mensagem ou campos mudarem
+document.getElementById('{{ form.mensagem.id_for_label }}').addEventListener('input', atualizarPreview);
+document.getElementById('{{ form.campo_nome.id_for_label }}').addEventListener('change', atualizarPreview);
+document.getElementById('{{ form.campo_telefone.id_for_label }}').addEventListener('change', atualizarPreview);
+document.getElementById('{{ form.campo_email.id_for_label }}').addEventListener('change', atualizarPreview);
+document.getElementById('{{ form.campo_adicional_1.id_for_label }}').addEventListener('change', atualizarPreview);
+document.getElementById('{{ form.campo_adicional_2.id_for_label }}').addEventListener('change', atualizarPreview);
+
+// Inserir template para leads
+function inserirTemplate() {
+    const templateLeads = `Olá {primeiro_nome}!
+
+Obrigado por demonstrar interesse em nossos imóveis.
+
+Vi que você se interessou pelo nosso formulário "{campo1}" e gostaria de apresentar algumas oportunidades exclusivas:
+
+🏢 Imóveis comerciais em localizações estratégicas
+📍 Região valorizada e de alto movimento
+💰 Condições especiais de locação
+📋 Documentação simplificada
+
+Algumas informações sobre você:
+• Nome: {nome}
+• E-mail: {email}
+• Telefone: {telefone}
+
+Gostaria de agendar uma conversa para conhecer melhor suas necessidades?
+
+Entre em contato conosco:
+📞 WhatsApp: (11) 99999-9999
+📧 E-mail: contato@exemplo.com
+
+Estamos à disposição!
+
+Atenciosamente,
+Equipe de Relacionamento
+
+---
+Mensagem enviada em {data_atual}`;
+
+    document.getElementById('{{ form.mensagem.id_for_label }}').value = templateLeads;
+    atualizarPreview();
+}
+
+// Visualizar preview completo
+function visualizarPreview() {
+    const mensagem = document.getElementById('{{ form.mensagem.id_for_label }}').value;
+    
+    if (!mensagem.trim()) {
+        alert('Digite uma mensagem primeiro!');
+        return;
+    }
+    
+    // Mostrar mensagem original
+    document.getElementById('mensagem-original').textContent = mensagem;
+    
+    // Gerar exemplo personalizado se há leads
+    if (previewLeads.length > 0) {
+        const primeiroLead = previewLeads[0];
+        
+        const campoNome = document.getElementById('{{ form.campo_nome.id_for_label }}').value;
+        const campoTelefone = document.getElementById('{{ form.campo_telefone.id_for_label }}').value;
+        const campoEmail = document.getElementById('{{ form.campo_email.id_for_label }}').value;
+        const campo1 = document.getElementById('{{ form.campo_adicional_1.id_for_label }}').value;
+        const campo2 = document.getElementById('{{ form.campo_adicional_2.id_for_label }}').value;
+        
+        const nome = primeiroLead[campoNome] || 'Nome do Lead';
+        const primeiroNome = nome.split(' ')[0] || 'Lead';
+        const email = primeiroLead[campoEmail] || 'email@exemplo.com';
+        const telefone = primeiroLead[campoTelefone] || '11999999999';
+        const valorCampo1 = primeiroLead[campo1] || 'Campo1';
+        const valorCampo2 = primeiroLead[campo2] || 'Campo2';
+        
+        const mensagemPersonalizada = mensagem
+            .replace(/{nome}/g, nome)
+            .replace(/{primeiro_nome}/g, primeiroNome)
+            .replace(/{email}/g, email)
+            .replace(/{telefone}/g, telefone)
+            .replace(/{campo1}/g, valorCampo1)
+            .replace(/{campo2}/g, valorCampo2)
+            .replace(/{data_atual}/g, new Date().toLocaleDateString('pt-BR'));
+        
+        document.getElementById('mensagem-personalizada').textContent = mensagemPersonalizada;
+    } else {
+        document.getElementById('mensagem-personalizada').innerHTML = '<em class="text-muted">Nenhum lead disponível para preview</em>';
+    }
+    
+    // Mostrar modal
+    new bootstrap.Modal(document.getElementById('modal-preview-mensagem')).show();
+}
+
+// Confirmação de envio
+document.getElementById('config-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Validar campos obrigatórios
+    const campoNome = document.getElementById('{{ form.campo_nome.id_for_label }}').value;
+    const campoTelefone = document.getElementById('{{ form.campo_telefone.id_for_label }}').value;
+    const mensagem = document.getElementById('{{ form.mensagem.id_for_label }}').value;
+    const nomeCampanha = document.getElementById('{{ form.nome_campanha.id_for_label }}').value;
+    
+    if (!campoNome || !campoTelefone || !mensagem.trim() || !nomeCampanha.trim()) {
+        alert('Por favor, preencha todos os campos obrigatórios!');
+        return;
+    }
+    
+    // Atualizar modal de confirmação
+    const tipoEnvio = document.getElementById('{{ form.tipo_envio.id_for_label }}');
+    const testarAntes = document.getElementById('{{ form.testar_antes.id_for_label }}').checked;
+    
+    document.getElementById('total-leads-envio').textContent = testarAntes ? '3 (modo teste)' : totalLeads;
+    document.getElementById('canal-envio').textContent = tipoEnvio.options[tipoEnvio.selectedIndex].text;
+    document.getElementById('nome-campanha-envio').textContent = nomeCampanha;
+    
+    // Mostrar/ocultar aviso de modo teste
+    const modoTesteInfo = document.getElementById('modo-teste-info');
+    modoTesteInfo.style.display = testarAntes ? 'block' : 'none';
+    
+    // Mostrar modal
+    new bootstrap.Modal(document.getElementById('modal-confirmacao')).show();
+});
+
+// Confirmar envio
+document.getElementById('confirmar-envio').addEventListener('click', function() {
+    // Mostrar loading
+    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+    this.disabled = true;
+    
+    // Submeter formulário
+    document.getElementById('config-form').submit();
+});
+
+// Inicializar
+document.addEventListener('DOMContentLoaded', function() {
+    // Configurar estado inicial dos campos
+    document.getElementById('{{ form.tipo_envio.id_for_label }}').dispatchEvent(new Event('change'));
+    document.getElementById('{{ form.filtrar_por_estagio.id_for_label }}').dispatchEvent(new Event('change'));
+    
+    // Preview inicial
+    atualizarPreview();
+});
+</script>
+{% endblock %}

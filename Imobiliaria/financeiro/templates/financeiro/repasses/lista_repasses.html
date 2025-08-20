@@ -1,10 +1,11 @@
-<!-- financeiro/templates/financeiro/repasses/lista_repasses.html -->
 {% extends 'base/base.html' %}
 {% load static %}
 
 {% block title %}Gestão de Repasses{% endblock %}
 
 {% block content %}
+<meta name="csrf-token" content="{{ csrf_token }}">
+
 <div class="min-h-screen bg-gray-900 py-6">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
@@ -15,17 +16,17 @@
                     Gestão de Repasses
                 </h2>
                 <p class="mt-1 text-sm text-gray-400">
-                    Gerencie repasses para proprietários de forma automática ou manual
+                    Gerencie repasses para proprietários
                 </p>
             </div>
             <div class="mt-4 flex md:mt-0 md:ml-4 space-x-3">
-                <button onclick="gerarRepasses()" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500">
+                <button id="btn-gerar-repasses" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
                     <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                     Gerar Automático
                 </button>
-                <a href="/financeiro/repasses/novo/" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-green-500">
+                <a href="{% url 'financeiro:repasse_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700">
                     <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
@@ -36,9 +37,7 @@
 
         <!-- Cards de Estatísticas -->
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-            
-            <!-- Total Pendente -->
-            <div class="bg-gray-800 border border-gray-700 overflow-hidden shadow rounded-lg">
+            <div class="bg-gradient-to-r from-yellow-900 to-yellow-800 border border-yellow-600 overflow-hidden shadow rounded-lg">
                 <div class="p-5">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
@@ -50,10 +49,12 @@
                         </div>
                         <div class="ml-5 w-0 flex-1">
                             <dl>
-                                <dt class="text-sm font-medium text-gray-400 truncate">Pendentes</dt>
+                                <dt class="text-sm font-medium text-yellow-200 truncate">Pendentes</dt>
                                 <dd class="text-lg font-semibold text-white">
-                                    R$ {{ total_stats.total_pendente|default:"0,00"|floatformat:2 }}
-                                    <div class="text-sm text-gray-400">{{ total_stats.count_pendente|default:0 }} repasses</div>
+                                    <span class="valor-total-stat" data-valor="{{ total_stats.total_pendente|default:0 }}">
+                                        R$ {{ total_stats.total_pendente|default:0 }}
+                                    </span>
+                                    <div class="text-sm text-yellow-200">{{ total_stats.count_pendente|default:0 }} repasses</div>
                                 </dd>
                             </dl>
                         </div>
@@ -61,8 +62,7 @@
                 </div>
             </div>
 
-            <!-- Total Efetuado -->
-            <div class="bg-gray-800 border border-gray-700 overflow-hidden shadow rounded-lg">
+            <div class="bg-gradient-to-r from-green-900 to-green-800 border border-green-600 overflow-hidden shadow rounded-lg">
                 <div class="p-5">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
@@ -74,10 +74,12 @@
                         </div>
                         <div class="ml-5 w-0 flex-1">
                             <dl>
-                                <dt class="text-sm font-medium text-gray-400 truncate">Efetuados</dt>
+                                <dt class="text-sm font-medium text-green-200 truncate">Efetuados</dt>
                                 <dd class="text-lg font-semibold text-white">
-                                    R$ {{ total_stats.total_efetuado|default:"0,00"|floatformat:2 }}
-                                    <div class="text-sm text-gray-400">{{ total_stats.count_efetuado|default:0 }} repasses</div>
+                                    <span class="valor-total-stat" data-valor="{{ total_stats.total_efetuado|default:0 }}">
+                                        R$ {{ total_stats.total_efetuado|default:0 }}
+                                    </span>
+                                    <div class="text-sm text-green-200">{{ total_stats.count_efetuado|default:0 }} repasses</div>
                                 </dd>
                             </dl>
                         </div>
@@ -85,8 +87,7 @@
                 </div>
             </div>
 
-            <!-- Em Atraso -->
-            <div class="bg-gray-800 border border-gray-700 overflow-hidden shadow rounded-lg">
+            <div class="bg-gradient-to-r from-red-900 to-red-800 border border-red-600 overflow-hidden shadow rounded-lg">
                 <div class="p-5">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
@@ -98,11 +99,11 @@
                         </div>
                         <div class="ml-5 w-0 flex-1">
                             <dl>
-                                <dt class="text-sm font-medium text-gray-400 truncate">Em Atraso</dt>
-                                <dd class="text-lg font-semibold text-red-400">
+                                <dt class="text-sm font-medium text-red-200 truncate">Em Atraso</dt>
+                                <dd class="text-lg font-semibold text-white">
                                     {{ total_stats.count_atrasado|default:0 }}
                                     {% if total_stats.count_atrasado > 0 %}
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-900 text-red-200 ml-2">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-700 text-red-100 ml-2 animate-pulse">
                                             URGENTE
                                         </span>
                                     {% endif %}
@@ -113,8 +114,7 @@
                 </div>
             </div>
 
-            <!-- Total do Mês -->
-            <div class="bg-gray-800 border border-gray-700 overflow-hidden shadow rounded-lg">
+            <div class="bg-gradient-to-r from-blue-900 to-blue-800 border border-blue-600 overflow-hidden shadow rounded-lg">
                 <div class="p-5">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
@@ -126,11 +126,11 @@
                         </div>
                         <div class="ml-5 w-0 flex-1">
                             <dl>
-                                <dt class="text-sm font-medium text-gray-400 truncate">Total Mês</dt>
+                                <dt class="text-sm font-medium text-blue-200 truncate">Total Mês</dt>
                                 <dd class="text-lg font-semibold text-white">
-                                    {% widthratio total_stats.total_pendente|default:0 1 1 as pendente %}
-                                    {% widthratio total_stats.total_efetuado|default:0 1 1 as efetuado %}
-                                    R$ {{ pendente|add:efetuado|floatformat:2 }}
+                                    <span class="valor-total-stat" id="total-mes-calculado" data-valor="0">
+                                        R$ 0,00
+                                    </span>
                                 </dd>
                             </dl>
                         </div>
@@ -139,15 +139,13 @@
             </div>
         </div>
 
-        <!-- Filtros -->
+        <!-- Filtros com altura uniforme -->
         <div class="bg-gray-800 border border-gray-700 shadow rounded-lg mb-6">
             <div class="px-4 py-5 sm:p-6">
-                <form method="get" class="grid grid-cols-1 gap-6 sm:grid-cols-4">
-                    
-                    <!-- Status -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300">Status</label>
-                        <select name="status" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                <form method="get" class="grid grid-cols-1 gap-6 sm:grid-cols-5">
+                    <div class="flex flex-col">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Status</label>
+                        <select name="status" class="block w-full h-10 px-3 py-2 rounded-md bg-gray-700 border border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                             <option value="">Todos</option>
                             <option value="pendente" {% if filtros.status == 'pendente' %}selected{% endif %}>Pendente</option>
                             <option value="efetuado" {% if filtros.status == 'efetuado' %}selected{% endif %}>Efetuado</option>
@@ -155,10 +153,9 @@
                         </select>
                     </div>
 
-                    <!-- Mês -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300">Mês</label>
-                        <select name="mes" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <div class="flex flex-col">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Mês</label>
+                        <select name="mes" class="block w-full h-10 px-3 py-2 rounded-md bg-gray-700 border border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                             <option value="">Todos</option>
                             <option value="1" {% if filtros.mes == "1" %}selected{% endif %}>Janeiro</option>
                             <option value="2" {% if filtros.mes == "2" %}selected{% endif %}>Fevereiro</option>
@@ -175,10 +172,9 @@
                         </select>
                     </div>
 
-                    <!-- Ano -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300">Ano</label>
-                        <select name="ano" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <div class="flex flex-col">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Ano</label>
+                        <select name="ano" class="block w-full h-10 px-3 py-2 rounded-md bg-gray-700 border border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                             <option value="">Todos</option>
                             <option value="2024" {% if filtros.ano == "2024" %}selected{% endif %}>2024</option>
                             <option value="2025" {% if filtros.ano == "2025" %}selected{% endif %}>2025</option>
@@ -186,14 +182,23 @@
                         </select>
                     </div>
 
-                    <!-- Busca e Botão -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300">Buscar</label>
+                    <div class="flex flex-col">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Agrupar por</label>
+                        <select name="agrupamento" class="block w-full h-10 px-3 py-2 rounded-md bg-gray-700 border border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option value="data" {% if filtros.agrupamento == 'data' or not filtros.agrupamento %}selected{% endif %}>Data</option>
+                            <option value="proprietario" {% if filtros.agrupamento == 'proprietario' %}selected{% endif %}>Proprietário</option>
+                            <option value="status" {% if filtros.agrupamento == 'status' %}selected{% endif %}>Status</option>
+                            <option value="nenhum" {% if filtros.agrupamento == 'nenhum' %}selected{% endif %}>Lista simples</option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Buscar</label>
                         <div class="flex space-x-2">
                             <input type="text" name="search" value="{{ filtros.search }}" 
-                                   class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" 
-                                   placeholder="Proprietário...">
-                            <button type="submit" class="mt-1 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500">
+                                class="block w-full h-10 px-3 py-2 rounded-md bg-gray-700 border border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" 
+                                placeholder="Proprietário...">
+                            <button type="submit" class="inline-flex items-center px-4 py-2 h-10 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                 Filtrar
                             </button>
                         </div>
@@ -203,184 +208,223 @@
         </div>
 
         <!-- Lista de Repasses -->
-        <div class="bg-gray-800 border border-gray-700 shadow overflow-hidden sm:rounded-md">
-            {% if repasses %}
-            <ul role="list" class="divide-y divide-gray-700">
-                {% for repasse in repasses %}
-                <li class="hover:bg-gray-750 transition-colors duration-200">
-                    <div class="px-4 py-4 flex items-center justify-between">
-                        <div class="flex items-center">
-                            <!-- Status Icon -->
-                            <div class="flex-shrink-0">
-                                {% if repasse.status == 'pendente' %}
-                                    {% if repasse.esta_atrasado %}
-                                        <div class="w-10 h-10 bg-red-900 border border-red-600 rounded-full flex items-center justify-center">
-                                            <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.728-.833-2.498 0L4.316 15.5c-.77.833.192 2.5 1.732 2.5z" />
-                                            </svg>
-                                        </div>
-                                    {% else %}
-                                        <div class="w-10 h-10 bg-yellow-900 border border-yellow-600 rounded-full flex items-center justify-center">
-                                            <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                    {% endif %}
-                                {% elif repasse.status == 'efetuado' %}
-                                    <div class="w-10 h-10 bg-green-900 border border-green-600 rounded-full flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    </div>
-                                {% else %}
-                                    <div class="w-10 h-10 bg-gray-700 border border-gray-600 rounded-full flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <!-- Informações do Repasse -->
-                            <div class="ml-4">
-                                <div class="flex items-center">
-                                    <div class="text-sm font-medium text-white">
-                                        {{ repasse.proprietario.nome }}
-                                    </div>
-                                    <div class="ml-2">
-                                        {% if repasse.status == 'pendente' %}
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-900 text-yellow-200 border border-yellow-700">
-                                                Pendente
-                                                {% if repasse.esta_atrasado %}
-                                                    ({{ repasse.dias_atraso }} dias atraso)
-                                                {% endif %}
-                                            </span>
-                                        {% elif repasse.status == 'efetuado' %}
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900 text-green-200 border border-green-700">
-                                                Efetuado
-                                            </span>
+        <div class="space-y-6">
+            {% if repasses_agrupados %}
+                {% for grupo in repasses_agrupados %}
+                
+                <!-- Cabeçalho do Grupo -->
+                <div class="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+                    <div class="bg-gradient-to-r from-gray-700 to-gray-600 px-6 py-4 border-b border-gray-600">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-white">
+                                        {% if grupo.data_formatada %}
+                                            {{ grupo.data_formatada }}
+                                        {% elif grupo.proprietario %}
+                                            {{ grupo.proprietario }}
+                                        {% elif grupo.status_nome %}
+                                            {{ grupo.status_nome }}
+                                        {% elif grupo.status %}
+                                            {{ grupo.status|title }}
                                         {% else %}
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-gray-300 border border-gray-600">
-                                                Cancelado
-                                            </span>
+                                            Grupo {{ forloop.counter }}
                                         {% endif %}
-                                    </div>
-                                    <!-- Badge da Política -->
-                                    {% if repasse.contrato.politica_repasse %}
-                                        <div class="ml-2">
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-900 text-blue-200 border border-blue-700">
-                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                                </svg>
-                                                {{ repasse.contrato.politica_repasse.get_periodicidade_display }}
-                                                {% if repasse.contrato.politica_repasse.tipo_dias == 'uteis' %}
-                                                    (Úteis)
-                                                {% else %}
-                                                    (Corridos)
-                                                {% endif %}
-                                            </span>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                <div class="text-sm text-gray-400">
-                                    {{ repasse.contrato.imovel.endereco|truncatechars:50 }}
-                                </div>
-                                <div class="text-xs text-gray-500">
-                                    Ref: {{ repasse.mes_referencia|stringformat:"02d" }}/{{ repasse.ano_referencia }} | 
-                                    Previsto: {{ repasse.data_prevista|date:"d/m/Y" }}
-                                    {% if repasse.data_efetivacao %}
-                                        | Efetuado: {{ repasse.data_efetivacao|date:"d/m/Y" }}
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Valores e Ações -->
-                        <div class="flex items-center space-x-4">
-                            <div class="text-right">
-                                <div class="text-sm font-medium text-white">
-                                    R$ {{ repasse.valor_liquido|floatformat:2 }}
-                                </div>
-                                <div class="text-xs text-gray-400">
-                                    Valor: R$ {{ repasse.valor|floatformat:2 }}
-                                    {% if repasse.valor_desconto > 0 %}
-                                        | Desc: R$ {{ repasse.valor_desconto|floatformat:2 }}
-                                    {% endif %}
-                                    {% if repasse.valor_taxa_admin > 0 %}
-                                        | Taxa: R$ {{ repasse.valor_taxa_admin|floatformat:2 }}
-                                    {% endif %}
+                                    </h3>
+                                    <p class="text-sm text-gray-300">
+                                        {{ grupo.repasses|length }} repasse{{ grupo.repasses|length|pluralize }}
+                                        {% if grupo.eh_hoje %}
+                                            • <span class="text-blue-400">Hoje</span>
+                                        {% elif grupo.eh_passado %}
+                                            • <span class="text-red-400">Atrasado</span>
+                                        {% elif grupo.eh_futuro %}
+                                            • <span class="text-green-400">Futuro</span>
+                                        {% endif %}
+                                    </p>
                                 </div>
                             </div>
                             
-                            <div class="flex items-center space-x-2">
-                                <a href="/financeiro/repasses/{{ repasse.pk }}/" 
-                                   class="text-indigo-400 hover:text-indigo-300 text-sm font-medium">
-                                    Ver
-                                </a>
-                                
-                                {% if repasse.status == 'pendente' %}
-                                    <a href="/financeiro/repasses/{{ repasse.pk }}/processar/" 
-                                       class="text-green-400 hover:text-green-300 text-sm font-medium">
-                                        Processar
-                                    </a>
-                                    <button onclick="cancelarRepasse({{ repasse.pk }})" 
-                                            class="text-red-400 hover:text-red-300 text-sm font-medium">
-                                        Cancelar
-                                    </button>
-                                {% endif %}
+                            <!-- Resumo do Grupo -->
+                            <div class="flex items-center space-x-4">
+                                <div class="text-right">
+                                    <div class="text-sm font-medium text-gray-300">Total:</div>
+                                    <div class="text-lg font-bold text-white">
+                                        <span class="valor-total-grupo" data-grupo="{{ forloop.counter }}">
+                                            R$ {{ grupo.valor_total|default:0 }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <button onclick="toggleGroup('grupo_{{ forloop.counter }}')" class="text-gray-400 hover:text-white transition-colors">
+                                    <svg id="icon_grupo_{{ forloop.counter }}" class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
                             </div>
                         </div>
                     </div>
-                </li>
+                    
+                    <!-- Lista dos Repasses do Grupo -->
+                    <div id="grupo_{{ forloop.counter }}" class="divide-y divide-gray-700">
+                        {% for repasse in grupo.repasses %}
+                        <div class="px-6 py-4 hover:bg-gray-750 transition-colors duration-200">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <!-- Status Icon -->
+                                    <div class="flex-shrink-0">
+                                        {% if repasse.status == 'pendente' %}
+                                            <div class="w-8 h-8 bg-yellow-900 border border-yellow-600 rounded-full flex items-center justify-center">
+                                                <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            </div>
+                                        {% elif repasse.status == 'efetuado' %}
+                                            <div class="w-8 h-8 bg-green-900 border border-green-600 rounded-full flex items-center justify-center">
+                                                <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                        {% else %}
+                                            <div class="w-8 h-8 bg-gray-700 border border-gray-600 rounded-full flex items-center justify-center">
+                                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Informações do Repasse -->
+                                    <div class="flex-1">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="text-sm font-medium text-white">
+                                                {{ repasse.proprietario.nome|default:"Proprietário não informado" }}
+                                            </div>
+                                            
+                                            <!-- Badge de Status -->
+                                            {% if repasse.status == 'pendente' %}
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-900 text-yellow-200 border border-yellow-700">
+                                                    Pendente
+                                                </span>
+                                            {% elif repasse.status == 'efetuado' %}
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-900 text-green-200 border border-green-700">
+                                                    Efetuado
+                                                </span>
+                                            {% else %}
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-gray-300 border border-gray-600">
+                                                    {{ repasse.status|title }}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="mt-1 text-sm text-gray-400">
+                                            {% if repasse.contrato.imovel %}
+                                                {{ repasse.contrato.imovel.endereco_completo|default:"Endereço não informado"|truncatechars:50 }}
+                                            {% else %}
+                                                Contrato {{ repasse.contrato.id }}
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="mt-1 text-xs text-gray-500">
+                                            Ref: {{ repasse.mes_referencia|stringformat:"02d" }}/{{ repasse.ano_referencia }} • 
+                                            Previsto: {{ repasse.data_prevista|date:"d/m/Y" }}
+                                            {% if repasse.data_efetivacao %}
+                                                • Efetuado: {{ repasse.data_efetivacao|date:"d/m/Y" }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Valores Corrigidos -->
+                                <div class="flex items-center space-x-6">
+                                    <div class="text-right">
+                                        <div class="text-sm font-medium text-white">
+                                            <span class="valor-liquido-repasse" 
+                                                  data-bruto="{{ repasse.valor|default:0 }}"
+                                                  data-taxa="{{ repasse.valor_taxa_admin|default:0 }}"
+                                                  data-desconto="{{ repasse.valor_desconto|default:0 }}"
+                                                  data-grupo="{{ forloop.parentloop.counter }}">
+                                                R$ {{ repasse.valor|default:0 }}
+                                            </span>
+                                        </div>
+                                        <div class="text-xs text-gray-400">
+                                            <span class="calculo-detalhado">
+                                                Bruto: R$ {{ repasse.valor|default:0 }}
+                                                {% if repasse.valor_taxa_admin and repasse.valor_taxa_admin > 0 %}
+                                                    - Taxa: R$ {{ repasse.valor_taxa_admin }}
+                                                {% endif %}
+                                                {% if repasse.valor_desconto and repasse.valor_desconto > 0 %}
+                                                    - Desc: R$ {{ repasse.valor_desconto }}
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Ações -->
+                                    <div class="flex items-center space-x-2">
+                                        <a href="{% url 'financeiro:repasse_detail' repasse.pk %}" 
+                                        class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-indigo-400 hover:text-indigo-300 hover:bg-indigo-900 transition-colors">
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                            Ver
+                                        </a>
+                                        
+                                        {% if repasse.status == 'pendente' %}
+                                            <a href="{% url 'financeiro:processar_repasse' repasse.pk %}" 
+                                            class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-green-400 hover:text-green-300 hover:bg-green-900 transition-colors">
+                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                Processar
+                                            </a>
+                                            <button onclick="cancelarRepasse({{ repasse.pk }})" 
+                                                    class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-red-400 hover:text-red-300 hover:bg-red-900 transition-colors">
+                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                                Cancelar
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
                 {% endfor %}
-            </ul>
-            
+                
             {% else %}
             <!-- Estado vazio -->
-            <div class="text-center py-12">
-                <svg class="mx-auto h-12 w-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <h3 class="mt-2 text-sm font-medium text-white">Nenhum repasse encontrado</h3>
-                <p class="mt-1 text-sm text-gray-400">Comece criando um novo repasse ou ajuste os filtros.</p>
-                <div class="mt-6">
-                    <a href="/financeiro/repasses/novo/" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500">
-                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                        Novo Repasse
-                    </a>
+            <div class="bg-gray-800 border border-gray-700 rounded-lg">
+                <div class="text-center py-12">
+                    <svg class="mx-auto h-12 w-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-white">Nenhum repasse encontrado</h3>
+                    <p class="mt-1 text-sm text-gray-400">Comece criando um novo repasse ou ajuste os filtros.</p>
+                    <div class="mt-6">
+                        <a href="{% url 'financeiro:repasse_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Novo Repasse
+                        </a>
+                    </div>
                 </div>
             </div>
             {% endif %}
-        </div>
-
-        <!-- Ação Rápida: Configurar Políticas -->
-        <div class="mt-6">
-            <div class="bg-blue-900 border border-blue-700 rounded-lg p-4">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-                        </svg>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm text-blue-200">
-                            <strong>Otimize seus repasses:</strong> 
-                            Configure políticas automáticas específicas para cada contrato com dias úteis/corridos.
-                            <a href="{% url 'financeiro:politica_contrato_list' %}" class="underline font-medium hover:text-blue-100">
-                                Configurar agora
-                            </a>
-                        </p>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
 
 <!-- Modal de Cancelamento -->
-<div id="cancelModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 overflow-y-auto h-full w-full hidden">
+<div id="cancelModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 overflow-y-auto h-full w-full hidden z-50">
     <div class="relative top-20 mx-auto p-5 border border-gray-600 w-96 shadow-lg rounded-md bg-gray-800">
         <div class="mt-3 text-center">
             <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-900 border border-red-600">
@@ -392,71 +436,634 @@
             <div class="mt-2 px-7 py-3">
                 <form id="cancelForm" method="post">
                     {% csrf_token %}
-                    <textarea name="motivo" rows="3" class="w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-red-500 focus:ring-red-500" placeholder="Motivo do cancelamento..."></textarea>
+                    <textarea name="motivo" rows="3" class="w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 shadow-sm focus:border-red-500 focus:ring-red-500" placeholder="Motivo do cancelamento..." required></textarea>
                 </form>
             </div>
             <div class="items-center px-4 py-3">
-                <button onclick="submitCancel()" class="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-red-500">
+                <button onclick="submitCancel()" class="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-700">
                     Confirmar Cancelamento
                 </button>
-                <button onclick="closeModal()" class="mt-3 px-4 py-2 bg-gray-600 text-gray-200 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-gray-500">
-                    Fechar
+                <button onclick="closeModal()" class="mt-3 px-4 py-2 bg-gray-600 text-gray-200 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-500">
+                    Cancelar
                 </button>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Loading Modal -->
+<div id="loadingModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-1/2 mx-auto p-5 w-96 transform -translate-y-1/2">
+        <div class="bg-gray-800 border border-gray-600 rounded-lg p-6 text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto"></div>
+            <h3 class="text-lg font-medium text-white mt-4">Processando...</h3>
+            <p class="text-sm text-gray-400 mt-2">Aguarde enquanto processamos os repasses.</p>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-let currentRepasseId = null;
-
-function cancelarRepasse(repasseId) {
-    currentRepasseId = repasseId;
-    document.getElementById('cancelModal').classList.remove('hidden');
-}
-
-function closeModal() {
-    document.getElementById('cancelModal').classList.add('hidden');
-    currentRepasseId = null;
-}
-
-function submitCancel() {
-    if (currentRepasseId) {
+    let currentRepasseId = null;
+    
+    // Função para obter CSRF token
+    function getCsrfToken() {
+        const metaToken = document.querySelector('meta[name="csrf-token"]');
+        if (metaToken) {
+            return metaToken.getAttribute('content');
+        }
+        
+        const formToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (formToken) {
+            return formToken.value;
+        }
+        
+        return getCookie('csrftoken');
+    }
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Função CORRIGIDA para formatação de moeda brasileira
+    function formatarMoeda(valor) {
+        // Converter para número se for string
+        const numero = typeof valor === 'string' ? parseFloat(valor.replace(',', '.')) : valor;
+        
+        // Verificar se é um número válido
+        if (isNaN(numero)) {
+            return 'R$ 0,00';
+        }
+        
+        // Formatar usando toLocaleString para padrão brasileiro
+        return numero.toLocaleString('pt-BR', {
+            style: 'currency',
+            currency: 'BRL',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+    
+    // Função para calcular valor líquido
+    function calcularValorLiquido(bruto, taxa, desconto) {
+        const valorBruto = parseFloat(bruto) || 0;
+        const valorTaxa = parseFloat(taxa) || 0;
+        const valorDesconto = parseFloat(desconto) || 0;
+        
+        return valorBruto - valorTaxa - valorDesconto;
+    }
+    
+    function showLoading() {
+        document.getElementById('loadingModal').classList.remove('hidden');
+    }
+    
+    function hideLoading() {
+        document.getElementById('loadingModal').classList.add('hidden');
+    }
+    
+    function showAlert(message, type = 'info') {
+        const alertClass = type === 'error' ? 'bg-red-600' : type === 'success' ? 'bg-green-600' : 'bg-blue-600';
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-md ${alertClass} text-white`;
+        alertDiv.innerHTML = `
+            <div class="flex items-center">
+                <div class="flex-1">
+                    <p class="text-sm font-medium">${message}</p>
+                </div>
+                <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(alertDiv);
+        
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 5000);
+    }
+    
+    // Função CORRIGIDA para calcular valores líquidos
+    function calcularValoresLiquidos() {
+        console.log('🔢 Calculando valores líquidos...');
+        
+        const totaisPorGrupo = {};
+        
+        // Calcular valores individuais
+        document.querySelectorAll('.valor-liquido-repasse').forEach(elemento => {
+            const bruto = parseFloat(elemento.getAttribute('data-bruto')) || 0;
+            const taxa = parseFloat(elemento.getAttribute('data-taxa')) || 0;
+            const desconto = parseFloat(elemento.getAttribute('data-desconto')) || 0;
+            const grupo = elemento.getAttribute('data-grupo');
+            
+            // CORREÇÃO: Valor líquido = Bruto - Taxa - Desconto
+            const liquido = bruto - taxa - desconto;
+            
+            console.log(`📊 Repasse: Bruto=${bruto}, Taxa=${taxa}, Desconto=${desconto}, Líquido=${liquido}`);
+            
+            // Formatar valor usando a função corrigida
+            elemento.textContent = formatarMoeda(liquido);
+            
+            // Acumular total por grupo
+            if (!totaisPorGrupo[grupo]) {
+                totaisPorGrupo[grupo] = 0;
+            }
+            totaisPorGrupo[grupo] += liquido;
+            
+            // Adicionar classe CSS baseada no valor
+            elemento.classList.remove('text-red-400', 'text-green-400', 'text-white');
+            if (liquido < 0) {
+                elemento.classList.add('text-red-400');
+            } else if (liquido > 0) {
+                elemento.classList.add('text-green-400');
+            } else {
+                elemento.classList.add('text-white');
+            }
+        });
+        
+        // Atualizar totais dos grupos
+        Object.keys(totaisPorGrupo).forEach(grupo => {
+            const totalGrupo = totaisPorGrupo[grupo];
+            const elementoTotal = document.querySelector(`[data-grupo="${grupo}"].valor-total-grupo`);
+            
+            if (elementoTotal) {
+                elementoTotal.textContent = formatarMoeda(totalGrupo);
+                console.log(`📊 Grupo ${grupo}: Total = ${formatarMoeda(totalGrupo)}`);
+            }
+        });
+        
+        // Recalcular estatísticas no topo
+        recalcularEstatisticas();
+    }
+    
+    // Função para recalcular estatísticas
+    function recalcularEstatisticas() {
+        document.querySelectorAll('.valor-total-stat').forEach(elemento => {
+            const valor = parseFloat(elemento.getAttribute('data-valor')) || 0;
+            elemento.textContent = formatarMoeda(valor);
+        });
+        
+        // Atualizar também os detalhes dos cálculos
+        document.querySelectorAll('.calculo-detalhado').forEach(elemento => {
+            const repasseElement = elemento.closest('.text-right').querySelector('.valor-liquido-repasse');
+            if (repasseElement) {
+                const bruto = parseFloat(repasseElement.getAttribute('data-bruto')) || 0;
+                const taxa = parseFloat(repasseElement.getAttribute('data-taxa')) || 0;
+                const desconto = parseFloat(repasseElement.getAttribute('data-desconto')) || 0;
+                
+                let detalhes = `Bruto: ${formatarMoeda(bruto)}`;
+                
+                if (taxa > 0) {
+                    detalhes += ` - Taxa: ${formatarMoeda(taxa)}`;
+                }
+                
+                if (desconto > 0) {
+                    detalhes += ` - Desc: ${formatarMoeda(desconto)}`;
+                }
+                
+                elemento.textContent = detalhes;
+            }
+        });
+    }
+    
+    function gerarRepasses() {
+        if (!confirm('Deseja gerar repasses automáticos baseados nas políticas dos contratos?')) {
+            return;
+        }
+        
+        const button = document.getElementById('btn-gerar-repasses');
+        const originalText = button.innerHTML;
+        
+        showLoading();
+        button.disabled = true;
+        button.innerHTML = '<span class="animate-spin mr-2">⟳</span>Gerando...';
+        
+        const csrfToken = getCsrfToken();
+        
+        if (!csrfToken) {
+            hideLoading();
+            button.disabled = false;
+            button.innerHTML = originalText;
+            showAlert('Erro: Token CSRF não encontrado. Recarregue a página.', 'error');
+            return;
+        }
+        
+        fetch('{% url "financeiro:gerar_repasse_automatico" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                let mensagem = 'Processamento concluído!';
+                if (data.criados > 0) mensagem += ` ${data.criados} repasse(s) criado(s).`;
+                if (data.processados > 0) mensagem += ` ${data.processados} processado(s).`;
+                if (data.agendados > 0) mensagem += ` ${data.agendados} agendado(s).`;
+                
+                showAlert(mensagem, 'success');
+                
+                if (data.criados > 0 || data.processados > 0) {
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                }
+            } else {
+                showAlert(`Erro: ${data.error || 'Erro desconhecido'}`, 'error');
+            }
+        })
+        .catch(error => {
+            showAlert(`Erro de comunicação: ${error.message}`, 'error');
+        })
+        .finally(() => {
+            hideLoading();
+            setTimeout(() => {
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }, 1000);
+        });
+    }
+    
+    function cancelarRepasse(repasseId) {
+        currentRepasseId = repasseId;
+        document.getElementById('cancelModal').classList.remove('hidden');
+    }
+    
+    function closeModal() {
+        document.getElementById('cancelModal').classList.add('hidden');
+        currentRepasseId = null;
+    }
+    
+    function submitCancel() {
+        if (!currentRepasseId) {
+            showAlert('Erro: Nenhum repasse selecionado', 'error');
+            return;
+        }
+        
         const form = document.getElementById('cancelForm');
+        const motivo = form.querySelector('textarea[name="motivo"]').value;
+        
+        if (!motivo.trim()) {
+            showAlert('Por favor, informe o motivo do cancelamento', 'error');
+            return;
+        }
+        
         form.action = `/financeiro/repasses/${currentRepasseId}/cancelar/`;
         form.submit();
     }
-}
-
-function gerarRepasses() {
-    if (confirm('Deseja gerar repasses automáticos baseados nas políticas ativas dos contratos?')) {
-        fetch('/financeiro/repasses/gerar-automatico/', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                'Content-Type': 'application/json',
-            }
-        }).then(response => {
-            if (response.ok) {
-                location.reload();
-            } else {
-                alert('Erro ao gerar repasses');
-            }
-        }).catch(error => {
-            alert('Erro ao gerar repasses');
-        });
+    
+    function toggleGroup(groupId) {
+        const group = document.getElementById(groupId);
+        const icon = document.getElementById('icon_' + groupId);
+        
+        if (group.style.display === 'none') {
+            group.style.display = 'block';
+            icon.style.transform = 'rotate(0deg)';
+        } else {
+            group.style.display = 'none';
+            icon.style.transform = 'rotate(-90deg)';
+        }
     }
+    
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 Inicializando página de repasses...');
+        
+        // Calcular valores líquidos
+        calcularValoresLiquidos();
+        
+        // Event listener para botão gerar repasses
+        const btnGerar = document.getElementById('btn-gerar-repasses');
+        if (btnGerar) {
+            btnGerar.addEventListener('click', gerarRepasses);
+        }
+        
+        // Filtros automáticos
+        document.querySelectorAll('select[name="status"], select[name="mes"], select[name="ano"], select[name="agrupamento"]').forEach(element => {
+            element.addEventListener('change', function() {
+                this.form.submit();
+            });
+        });
+        
+        // Inicializar grupos como expandidos
+        document.querySelectorAll('[id^="grupo_"]').forEach(group => {
+            group.style.display = 'block';
+        });
+        
+        // Atalhos de teclado
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+            if (e.ctrlKey && e.key === 'g') {
+                e.preventDefault();
+                gerarRepasses();
+            }
+        });
+        
+        console.log('✅ Inicialização concluída');
+    });
+
+// Função CORRIGIDA para converter números brasileiros
+function converterNumero(valor) {
+    if (typeof valor === 'number') {
+        return valor;
+    }
+    
+    if (typeof valor === 'string') {
+        // Remove espaços, converte vírgula para ponto e trata números com muitos decimais
+        let valorLimpo = valor.replace(',', '.').trim();
+        
+        // Se o número tem muitos decimais (como 9434,36000000000), arredondar para 2 casas
+        let numero = parseFloat(valorLimpo) || 0;
+        
+        // Arredondar para 2 casas decimais para evitar problemas de precisão
+        return Math.round(numero * 100) / 100;
+    }
+    
+    return 0;
 }
 
-// Auto-submit do formulário de filtros quando campos mudam
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('select[name="status"], select[name="mes"], select[name="ano"]').forEach(element => {
-        element.addEventListener('change', function() {
-            this.form.submit();
-        });
+// Função CORRIGIDA para formatação de moeda brasileira
+function formatarMoeda(valor) {
+    const numero = converterNumero(valor);
+    
+    return numero.toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
     });
-});
+}
+
+// Função CORRIGIDA para calcular valores líquidos
+function calcularValoresLiquidos() {
+    console.log('🔢 Calculando valores líquidos...');
+    
+    const totaisPorGrupo = {};
+    
+    // Calcular valores individuais
+    document.querySelectorAll('.valor-liquido-repasse').forEach(elemento => {
+        const brutoStr = elemento.getAttribute('data-bruto');
+        const taxaStr = elemento.getAttribute('data-taxa');
+        const descontoStr = elemento.getAttribute('data-desconto');
+        const grupo = elemento.getAttribute('data-grupo');
+        
+        // CORREÇÃO: Usar função converterNumero para lidar com vírgulas
+        const bruto = converterNumero(brutoStr);
+        const taxa = converterNumero(taxaStr);
+        const desconto = converterNumero(descontoStr);
+        
+        const liquido = bruto - taxa - desconto;
+        
+        console.log(`📊 Repasse: Bruto="${brutoStr}"(${bruto}), Taxa="${taxaStr}"(${taxa}), Desconto="${descontoStr}"(${desconto}), Líquido=${liquido}`);
+        
+        // Formatar valor usando a função corrigida
+        elemento.textContent = formatarMoeda(liquido);
+        
+        // Acumular total por grupo
+        if (!totaisPorGrupo[grupo]) {
+            totaisPorGrupo[grupo] = 0;
+        }
+        totaisPorGrupo[grupo] += liquido;
+        
+        // Adicionar classe CSS baseada no valor
+        elemento.classList.remove('text-red-400', 'text-green-400', 'text-white');
+        if (liquido < 0) {
+            elemento.classList.add('text-red-400');
+        } else if (liquido > 0) {
+            elemento.classList.add('text-green-400');
+        } else {
+            elemento.classList.add('text-white');
+        }
+    });
+    
+    // Atualizar totais dos grupos
+    Object.keys(totaisPorGrupo).forEach(grupo => {
+        const totalGrupo = totaisPorGrupo[grupo];
+        const elementoTotal = document.querySelector(`[data-grupo="${grupo}"].valor-total-grupo`);
+        
+        if (elementoTotal) {
+            elementoTotal.textContent = formatarMoeda(totalGrupo);
+            console.log(`📊 Grupo ${grupo}: Total = ${formatarMoeda(totalGrupo)}`);
+        }
+    });
+    
+    // Recalcular estatísticas no topo
+    recalcularEstatisticas();
+}
+
+// Função CORRIGIDA para recalcular estatísticas
+function recalcularEstatisticas() {
+    let totalPendente = 0;
+    let totalEfetuado = 0;
+    
+    const elementos = document.querySelectorAll('.valor-total-stat');
+    
+    elementos.forEach((elemento, index) => {
+        const valorStr = elemento.getAttribute('data-valor');
+        const valor = converterNumero(valorStr);
+        
+        console.log(`📈 Estatística ${index}: valor="${valorStr}" convertido para ${valor}`);
+        
+        // Não formatar o elemento total-mes-calculado aqui, ele será calculado depois
+        if (elemento.id !== 'total-mes-calculado') {
+            elemento.textContent = formatarMoeda(valor);
+        }
+        
+        // Capturar valores para calcular total do mês
+        // Assumindo a ordem: Pendentes (0), Efetuados (1), Em Atraso (2), Total Mês (3)
+        if (index === 0) totalPendente = valor; // Pendentes
+        if (index === 1) totalEfetuado = valor; // Efetuados
+    });
+    
+    // Calcular e atualizar Total Mês
+    const totalMes = totalPendente + totalEfetuado;
+    const elementoTotalMes = document.getElementById('total-mes-calculado');
+    if (elementoTotalMes) {
+        elementoTotalMes.textContent = formatarMoeda(totalMes);
+        elementoTotalMes.setAttribute('data-valor', totalMes.toString());
+        console.log(`📊 Total Mês calculado: ${formatarMoeda(totalMes)} (${totalPendente} + ${totalEfetuado})`);
+    } else {
+        // Se não encontrar o elemento por ID, usar o último elemento da lista
+        const ultimoElemento = elementos[elementos.length - 1];
+        if (ultimoElemento) {
+            ultimoElemento.textContent = formatarMoeda(totalMes);
+            ultimoElemento.setAttribute('data-valor', totalMes.toString());
+            console.log(`📊 Total Mês calculado (fallback): ${formatarMoeda(totalMes)}`);
+        }
+    }
+    
+    // Atualizar também os detalhes dos cálculos
+    document.querySelectorAll('.calculo-detalhado').forEach(elemento => {
+        const repasseElement = elemento.closest('.text-right').querySelector('.valor-liquido-repasse');
+        if (repasseElement) {
+            const brutoStr = repasseElement.getAttribute('data-bruto');
+            const taxaStr = repasseElement.getAttribute('data-taxa');
+            const descontoStr = repasseElement.getAttribute('data-desconto');
+            
+            const bruto = converterNumero(brutoStr);
+            const taxa = converterNumero(taxaStr);
+            const desconto = converterNumero(descontoStr);
+            
+            let detalhes = `Bruto: ${formatarMoeda(bruto)}`;
+            
+            if (taxa > 0) {
+                detalhes += ` - Taxa: ${formatarMoeda(taxa)}`;
+            }
+            
+            if (desconto > 0) {
+                detalhes += ` - Desc: ${formatarMoeda(desconto)}`;
+            }
+            
+            elemento.textContent = detalhes;
+        }
+    });
+}
+
+// Função adicional para debug das estatísticas
+function debugEstatisticas() {
+    console.log('🔍 DEBUG ESTATÍSTICAS:');
+    
+    document.querySelectorAll('.valor-total-stat').forEach((elemento, index) => {
+        const valorStr = elemento.getAttribute('data-valor');
+        const texto = elemento.textContent;
+        const id = elemento.id || 'sem-id';
+        
+        console.log(`Stat ${index} (${id}): data-valor="${valorStr}", texto="${texto}"`);
+    });
+}
+
+// Função para testar as conversões
+function testarConversoes() {
+    console.log('🧪 TESTANDO CONVERSÕES:');
+    
+    const testes = [
+        '2176,38',
+        '100,76', 
+        '1300,00',
+        '62,50',
+        '9434,36000000000',  // Caso problemático
+        '9434.36000000000',  // Versão com ponto
+        0,
+        '0,00',
+        null,
+        undefined,
+        ''
+    ];
+    
+    testes.forEach(teste => {
+        const resultado = converterNumero(teste);
+        const formatado = formatarMoeda(resultado);
+        console.log(`"${teste}" → ${resultado} → ${formatado}`);
+    });
+}
+
+// Função específica para testar o valor problemático
+function testarValorProblematico() {
+    console.log('🔍 TESTANDO VALOR PROBLEMÁTICO:');
+    
+    const valorProblematico = '9434,36000000000';
+    
+    console.log('Valor original:', valorProblematico);
+    console.log('Após replace vírgula:', valorProblematico.replace(',', '.'));
+    console.log('parseFloat:', parseFloat(valorProblematico.replace(',', '.')));
+    console.log('Math.round * 100 / 100:', Math.round(parseFloat(valorProblematico.replace(',', '.')) * 100) / 100);
+    console.log('Resultado final:', converterNumero(valorProblematico));
+    console.log('Formatado:', formatarMoeda(converterNumero(valorProblematico)));
+}
+
+// Execute os testes
+testarConversoes();
+testarValorProblematico();
+
+// Execute debug quando a página carregar
+if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            debugEstatisticas();
+        }, 2000);
+    });
+}
 </script>
+
+<style>
+    /* Melhorias de CSS */
+    .hover\:bg-gray-750:hover {
+        background-color: rgb(55 65 81);
+    }
+    
+    /* Transições suaves */
+    [id^="grupo_"] {
+        transition: all 0.3s ease-in-out;
+    }
+    
+    /* Hover effects */
+    .bg-gray-800:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease-in-out;
+    }
+    
+    /* Filtros uniformes */
+    .filtro-campo {
+        height: 40px;
+        display: flex;
+        align-items: center;
+    }
+    
+    /* Valores destacados */
+    .valor-liquido-repasse {
+        font-weight: 600;
+        transition: color 0.3s ease;
+    }
+    
+    .valor-total-grupo {
+        font-weight: 700;
+        font-size: 1.125rem;
+    }
+    
+    /* Indicadores visuais */
+    .text-red-400 {
+        color: #f87171 !important;
+    }
+    
+    .text-green-400 {
+        color: #4ade80 !important;
+    }
+    
+    /* Animações */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+</style>
 {% endblock %}

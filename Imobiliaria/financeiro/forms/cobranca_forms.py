@@ -1,7 +1,7 @@
 # financeiro/forms/cobranca_forms.py
 """
-Formulários para Cobranças - Refatorados
-========================================
+Formulários para Cobranças - Corrigidos para o novo modelo
+=========================================================
 """
 
 from django import forms
@@ -30,14 +30,14 @@ class CobrancaBaseForm(forms.ModelForm):
         model = Cobranca
         fields = [
             'contrato', 'mes_referencia', 'ano_referencia',
-            'valor_aluguel', 'data_vencimento', 'descricao', 'observacoes'
+            'valor', 'data_vencimento', 'descricao', 'observacoes'  # CORRIGIDO: valor em vez de valor_aluguel
         ]
         
         labels = {
             'contrato': 'Contrato',
             'mes_referencia': 'Mês de Referência',
             'ano_referencia': 'Ano de Referência',
-            'valor_aluguel': 'Valor do Aluguel (R$)',
+            'valor': 'Valor da Cobrança (R$)',  # CORRIGIDO
             'data_vencimento': 'Data de Vencimento',
             'descricao': 'Descrição da Cobrança',
             'observacoes': 'Observações Internas'
@@ -47,7 +47,7 @@ class CobrancaBaseForm(forms.ModelForm):
             'contrato': 'Selecione o contrato para esta cobrança',
             'mes_referencia': 'Mês ao qual se refere esta cobrança',
             'ano_referencia': 'Ano de referência da cobrança',
-            'valor_aluguel': 'Valor base do aluguel do contrato',
+            'valor': 'Valor total da cobrança (aluguel + despesas)',  # CORRIGIDO
             'data_vencimento': 'Data limite para pagamento',
             'descricao': 'Descrição detalhada que aparecerá na cobrança',
             'observacoes': 'Observações internas (não aparecem na cobrança)'
@@ -70,9 +70,9 @@ class CobrancaBaseForm(forms.ModelForm):
                     'class': self.CSS_CLASSES['default']
                 })
         
-        # Campos monetários
-        if 'valor_aluguel' in self.fields:
-            self.fields['valor_aluguel'].widget.attrs.update({
+        # Campo monetário - CORRIGIDO para 'valor'
+        if 'valor' in self.fields:
+            self.fields['valor'].widget.attrs.update({
                 'class': self.CSS_CLASSES['currency'],
                 'step': '0.01',
                 'min': '0',
@@ -172,11 +172,11 @@ class CobrancaBaseForm(forms.ModelForm):
                 raise ValidationError('Ano inválido.')
         return ano
     
-    def clean_valor_aluguel(self):
-        """Validação específica do valor do aluguel"""
-        valor = self.cleaned_data.get('valor_aluguel')
+    def clean_valor(self):  # CORRIGIDO: clean_valor em vez de clean_valor_aluguel
+        """Validação específica do valor"""
+        valor = self.cleaned_data.get('valor')
         if valor is not None and valor <= 0:
-            raise ValidationError('Valor do aluguel deve ser maior que zero.')
+            raise ValidationError('Valor da cobrança deve ser maior que zero.')
         return valor
     
     def clean_data_vencimento(self):
@@ -214,6 +214,16 @@ class CobrancaCreateForm(CobrancaBaseForm):
     """
     
     # Campos adicionais para criação
+    calcular_automaticamente = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={
+            'class': CobrancaBaseForm.CSS_CLASSES['checkbox']
+        }),
+        label='Calcular Valor Automaticamente',
+        help_text='Calcular valor baseado no contrato + despesas'
+    )
+    
     incluir_despesas = forms.BooleanField(
         required=False,
         initial=True,
@@ -222,12 +232,6 @@ class CobrancaCreateForm(CobrancaBaseForm):
         }),
         label='Incluir Despesas do Contrato',
         help_text='Incluir automaticamente as despesas ativas do contrato no valor total'
-    )
-    
-    despesas_selecionadas = forms.CharField(
-        required=False,
-        widget=forms.HiddenInput(),
-        help_text='IDs das despesas selecionadas (separadas por vírgula)'
     )
     
     gerar_descricao_automatica = forms.BooleanField(
@@ -240,26 +244,15 @@ class CobrancaCreateForm(CobrancaBaseForm):
         help_text='Gerar automaticamente a descrição com detalhes do aluguel e despesas'
     )
     
-    class Meta(CobrancaBaseForm.Meta):
-        fields = CobrancaBaseForm.Meta.fields + ['valor_total']
-        
-        labels = dict(CobrancaBaseForm.Meta.labels, **{
-            'valor_total': 'Valor Total (R$)'
-        })
-        
-        help_texts = dict(CobrancaBaseForm.Meta.help_texts, **{
-            'valor_total': 'Valor total incluindo aluguel e despesas (calculado automaticamente)'
-        })
-    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        # Configurar valor total como readonly
-        if 'valor_total' in self.fields:
-            self.fields['valor_total'].widget.attrs.update({
+        # Se calcular automaticamente, campo valor fica readonly
+        if self.data.get('calcular_automaticamente', 'on') == 'on':
+            self.fields['valor'].widget.attrs.update({
                 'class': self.CSS_CLASSES['readonly'],
                 'readonly': True,
-                'placeholder': 'Calculado automaticamente'
+                'placeholder': 'Será calculado automaticamente'
             })
     
     def clean(self):
@@ -269,33 +262,31 @@ class CobrancaCreateForm(CobrancaBaseForm):
         # Verificar duplicata
         self._verificar_duplicata()
         
-        # Calcular valor total se incluir despesas
-        contrato = cleaned_data.get('contrato')
-        incluir_despesas = cleaned_data.get('incluir_despesas', False)
-        valor_aluguel = cleaned_data.get('valor_aluguel', Decimal('0.00'))
-        
-        if contrato and incluir_despesas:
-            from financeiro.services.cobranca.cobranca_calculadora_service import CobrancaCalculadoraService
-            
-            # Buscar despesas do contrato
-            mes = cleaned_data.get('mes_referencia')
-            ano = cleaned_data.get('ano_referencia')
-            
-            if mes and ano:
-                despesas = CobrancaCalculadoraService.buscar_despesas_periodo(contrato, mes, ano)
-                valor_despesas = CobrancaCalculadoraService.calcular_valor_despesas(despesas)
-                valor_total = valor_aluguel + valor_despesas
-                cleaned_data['valor_total'] = valor_total
-            else:
-                cleaned_data['valor_total'] = valor_aluguel
-        else:
-            cleaned_data['valor_total'] = valor_aluguel
-        
-        # Pré-carregar valor do aluguel do contrato se não informado
-        if contrato and not valor_aluguel:
-            valor_contrato = getattr(contrato, 'valor_aluguel', None) or getattr(contrato, 'valor_base', None)
-            if valor_contrato:
-                cleaned_data['valor_aluguel'] = valor_contrato
+        # Se deve calcular automaticamente
+        if cleaned_data.get('calcular_automaticamente', True):
+            contrato = cleaned_data.get('contrato')
+            if contrato:
+                # Pegar valor base do contrato
+                valor_base = getattr(contrato, 'valor_aluguel', None) or getattr(contrato, 'valor_base', Decimal('0.00'))
+                
+                # Calcular despesas se solicitado
+                valor_despesas = Decimal('0.00')
+                if cleaned_data.get('incluir_despesas', True):
+                    try:
+                        # Tentar usar service se existir
+                        from ..services.cobranca.cobranca_calculadora_service import CobrancaCalculadoraService
+                        mes = cleaned_data.get('mes_referencia')
+                        ano = cleaned_data.get('ano_referencia')
+                        if mes and ano:
+                            valor_despesas = CobrancaCalculadoraService.calcular_despesas_periodo(
+                                contrato, mes, ano
+                            )
+                    except ImportError:
+                        # Service ainda não existe, usar valor zero
+                        pass
+                
+                # Calcular valor total
+                cleaned_data['valor'] = valor_base + valor_despesas
         
         return cleaned_data
     
@@ -303,31 +294,29 @@ class CobrancaCreateForm(CobrancaBaseForm):
         """Save customizado para criação"""
         cobranca = super().save(commit=False)
         
-        # Garantir que valor_total está definido
-        if not cobranca.valor_total:
-            cobranca.valor_total = cobranca.valor_aluguel or Decimal('0.00')
+        # Garantir que valor está definido
+        if not cobranca.valor:
+            cobranca.valor = Decimal('0.00')
+        
+        # Poplar detalhes_calculo para transparência
+        if self.cleaned_data.get('calcular_automaticamente', True):
+            contrato = cobranca.contrato
+            valor_base = getattr(contrato, 'valor_aluguel', None) or getattr(contrato, 'valor_base', Decimal('0.00'))
+            valor_despesas = cobranca.valor - valor_base
+            
+            cobranca.detalhes_calculo = {
+                'valor_base': float(valor_base),
+                'valor_despesas': float(valor_despesas),
+                'data_calculo': date.today().isoformat(),
+                'metodo': 'automatico'
+            }
         
         # Gerar descrição automática se solicitado
         if self.cleaned_data.get('gerar_descricao_automatica', True):
-            from ..services.cobranca_descricao_service import CobrancaDescricaoService
-            
-            # Criar objeto temporário para gerar descrição
-            temp_cobranca = Cobranca(
-                contrato=cobranca.contrato,
-                mes_referencia=cobranca.mes_referencia,
-                ano_referencia=cobranca.ano_referencia,
-                valor_aluguel=cobranca.valor_aluguel,
-                valor_total=cobranca.valor_total
-            )
-            
-            cobranca.descricao = CobrancaDescricaoService.gerar_descricao_completa(temp_cobranca)
+            cobranca.descricao = cobranca.gerar_descricao_automatica()
         
         if commit:
             cobranca.save()
-            
-            # Atualizar valor total incluindo despesas após salvar
-            if self.cleaned_data.get('incluir_despesas', False):
-                cobranca.atualizar_valor_total()
         
         return cobranca
 
@@ -359,15 +348,13 @@ class CobrancaUpdateForm(CobrancaBaseForm):
     )
     
     class Meta(CobrancaBaseForm.Meta):
-        fields = CobrancaBaseForm.Meta.fields + ['valor_total', 'status']
+        fields = CobrancaBaseForm.Meta.fields + ['status']
         
         labels = dict(CobrancaBaseForm.Meta.labels, **{
-            'valor_total': 'Valor Total (R$)',
             'status': 'Status da Cobrança'
         })
         
         help_texts = dict(CobrancaBaseForm.Meta.help_texts, **{
-            'valor_total': 'Valor total da cobrança',
             'status': 'Status atual da cobrança'
         })
     
@@ -377,26 +364,31 @@ class CobrancaUpdateForm(CobrancaBaseForm):
         # Configurar campos baseado no status atual
         if self.instance.pk:
             self._configurar_campos_por_status()
+            self._mostrar_detalhes_calculo()
     
     def _configurar_campos_por_status(self):
         """Configura campos baseado no status da cobrança"""
         
         # Se já foi integrada com Asaas, limitar edições
-        if hasattr(self.instance, 'asaas_integracao') and self.instance.asaas_integracao.asaas_id:
-            # Campos que não podem ser alterados após integração
-            campos_readonly = ['valor_aluguel', 'valor_total', 'data_vencimento']
-            
-            for campo in campos_readonly:
-                if campo in self.fields:
-                    self.fields[campo].widget.attrs.update({
-                        'class': self.CSS_CLASSES['readonly'],
-                        'readonly': True
-                    })
-                    self.fields[campo].help_text += " (Não pode ser alterado - cobrança já integrada)"
+        if hasattr(self.instance, 'asaas_integracao'):
+            try:
+                if self.instance.asaas_integracao and self.instance.asaas_integracao.asaas_id:
+                    # Campos que não podem ser alterados após integração
+                    campos_readonly = ['valor', 'data_vencimento']
+                    
+                    for campo in campos_readonly:
+                        if campo in self.fields:
+                            self.fields[campo].widget.attrs.update({
+                                'class': self.CSS_CLASSES['readonly'],
+                                'readonly': True
+                            })
+                            self.fields[campo].help_text += " (Não pode ser alterado - cobrança já integrada)"
+            except:
+                pass
         
         # Se já foi paga, bloquear alterações críticas
         if self.instance.status == 'paga':
-            campos_readonly = ['valor_aluguel', 'valor_total', 'contrato', 'mes_referencia', 'ano_referencia']
+            campos_readonly = ['valor', 'contrato', 'mes_referencia', 'ano_referencia']
             
             for campo in campos_readonly:
                 if campo in self.fields:
@@ -405,6 +397,16 @@ class CobrancaUpdateForm(CobrancaBaseForm):
                         'readonly': True
                     })
                     self.fields[campo].help_text += " (Não pode ser alterado - cobrança já foi paga)"
+    
+    def _mostrar_detalhes_calculo(self):
+        """Mostra detalhes do cálculo original"""
+        if self.instance.detalhes_calculo:
+            detalhes = self.instance.detalhes_calculo
+            valor_base = detalhes.get('valor_base', 0)
+            valor_despesas = detalhes.get('valor_despesas', 0)
+            
+            help_text = f"Cálculo original: Base R$ {valor_base:.2f} + Despesas R$ {valor_despesas:.2f}"
+            self.fields['valor'].help_text = help_text
     
     def clean(self):
         """Validação geral do formulário de edição"""
@@ -422,7 +424,7 @@ class CobrancaUpdateForm(CobrancaBaseForm):
         
         # Validações específicas por status
         if self.instance.status == 'paga':
-            campos_criticos = ['valor_total', 'contrato']
+            campos_criticos = ['valor', 'contrato']
             for campo in campos_criticos:
                 if campo in cleaned_data and cleaned_data[campo] != getattr(self.instance, campo):
                     raise ValidationError(f'Não é possível alterar {campo} de uma cobrança já paga.')
@@ -435,18 +437,11 @@ class CobrancaUpdateForm(CobrancaBaseForm):
         
         # Recalcular valores se solicitado
         if self.cleaned_data.get('recalcular_valores', False):
-            from financeiro.services.cobranca.cobranca_calculadora_service import CobrancaCalculadoraService
-            
-            despesas = CobrancaCalculadoraService.buscar_despesas_periodo(
-                cobranca.contrato, cobranca.mes_referencia, cobranca.ano_referencia
-            )
-            valor_despesas = CobrancaCalculadoraService.calcular_valor_despesas(despesas)
-            cobranca.valor_total = cobranca.valor_aluguel + valor_despesas
+            cobranca.recalcular_valor_total()
         
         # Atualizar descrição se solicitado
         if self.cleaned_data.get('atualizar_descricao', False):
-            from ..services.cobranca_descricao_service import CobrancaDescricaoService
-            cobranca.descricao = CobrancaDescricaoService.gerar_descricao_completa(cobranca)
+            cobranca.descricao = cobranca.gerar_descricao_automatica()
         
         if commit:
             cobranca.save()
@@ -694,3 +689,342 @@ class CobrancaLoteForm(forms.Form):
         if data and data < date.today():
             raise ValidationError('Data de vencimento não pode ser anterior a hoje.')
         return data
+
+
+class CobrancaPreviewForm(forms.Form):
+    """
+    Formulário para configuração do preview de cobranças em lote
+    """
+    
+    MES_CHOICES = [
+        (1, 'Janeiro'), (2, 'Fevereiro'), (3, 'Março'), (4, 'Abril'),
+        (5, 'Maio'), (6, 'Junho'), (7, 'Julho'), (8, 'Agosto'),
+        (9, 'Setembro'), (10, 'Outubro'), (11, 'Novembro'), (12, 'Dezembro')
+    ]
+    
+    CSS_CLASS = 'w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm'
+    CSS_CHECKBOX = 'w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2'
+    
+    mes_referencia = forms.ChoiceField(
+        choices=MES_CHOICES,
+        widget=forms.Select(attrs={'class': CSS_CLASS}),
+        label='Mês de Referência'
+    )
+    
+    ano_referencia = forms.IntegerField(
+        min_value=2020,
+        max_value=2030,
+        initial=date.today().year,
+        widget=forms.NumberInput(attrs={'class': CSS_CLASS}),
+        label='Ano de Referência'
+    )
+    
+    data_vencimento = forms.DateField(
+        widget=forms.DateInput(attrs={
+            'class': CSS_CLASS,
+            'type': 'date'
+        }),
+        label='Data de Vencimento'
+    )
+    
+    filtro_contratos = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
+        help_text='IDs dos contratos selecionados (separados por vírgula)'
+    )
+    
+    incluir_despesas = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={'class': CSS_CHECKBOX}),
+        label='Incluir despesas automaticamente',
+        help_text='Incluir despesas rateadas no cálculo'
+    )
+    
+    gerar_descricao_automatica = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={'class': CSS_CHECKBOX}),
+        label='Gerar descrição automaticamente',
+        help_text='Gerar descrição automática baseada nos valores'
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Valores padrão
+        hoje = date.today()
+        self.fields['mes_referencia'].initial = hoje.month
+        
+        # Data de vencimento padrão: dia 10 do próximo mês
+        if hoje.month == 12:
+            vencimento_padrao = date(hoje.year + 1, 1, 10)
+        else:
+            vencimento_padrao = date(hoje.year, hoje.month + 1, 10)
+        
+        self.fields['data_vencimento'].initial = vencimento_padrao
+    
+    def clean_data_vencimento(self):
+        """Validação da data de vencimento"""
+        data = self.cleaned_data.get('data_vencimento')
+        if data and data < date.today():
+            raise ValidationError('Data de vencimento não pode ser anterior a hoje.')
+        return data
+
+
+class CobrancaAcaoMassaForm(forms.Form):
+    """
+    Formulário para ações em massa nas cobranças
+    """
+    
+    ACAO_CHOICES = [
+        ('', 'Selecione uma ação...'),
+        ('marcar_paga', 'Marcar como Paga'),
+        ('enviar_lembrete', 'Enviar Lembrete'),
+        ('cancelar', 'Cancelar'),
+        ('reenviar_email', 'Reenviar por Email'),
+        ('exportar_pdf', 'Exportar PDF'),
+        ('integrar_asaas', 'Integrar com Asaas'),
+    ]
+    
+    CSS_CLASS = 'w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500'
+    
+    acao = forms.ChoiceField(
+        choices=ACAO_CHOICES,
+        widget=forms.Select(attrs={'class': CSS_CLASS}),
+        label='Ação'
+    )
+    
+    cobrancas_ids = forms.CharField(
+        widget=forms.HiddenInput(),
+        help_text='IDs das cobranças selecionadas'
+    )
+    
+    data_pagamento = forms.DateField(
+        required=False,
+        initial=date.today,
+        widget=forms.DateInput(attrs={
+            'class': CSS_CLASS,
+            'type': 'date'
+        }),
+        label='Data do Pagamento',
+        help_text='Para ação "Marcar como Paga"'
+    )
+    
+    motivo = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': CSS_CLASS,
+            'rows': 3,
+            'placeholder': 'Motivo da ação...'
+        }),
+        label='Motivo/Observações',
+        help_text='Para ações como cancelamento'
+    )
+    
+    def clean(self):
+        """Validação geral do formulário"""
+        cleaned_data = super().clean()
+        acao = cleaned_data.get('acao')
+        
+        # Validações específicas por ação
+        if acao == 'marcar_paga' and not cleaned_data.get('data_pagamento'):
+            cleaned_data['data_pagamento'] = date.today()
+            
+        if acao == 'cancelar' and not cleaned_data.get('motivo'):
+            raise ValidationError({'motivo': 'Motivo é obrigatório para cancelamento'})
+        
+        # Validar se há cobranças selecionadas
+        cobrancas_ids = cleaned_data.get('cobrancas_ids', '')
+        if not cobrancas_ids.strip():
+            raise ValidationError({'cobrancas_ids': 'Selecione pelo menos uma cobrança'})
+        
+        return cleaned_data
+    
+    def clean_data_pagamento(self):
+        """Validação da data de pagamento"""
+        data = self.cleaned_data.get('data_pagamento')
+        if data and data > date.today():
+            raise ValidationError('Data de pagamento não pode ser futura.')
+        return data
+
+
+class CobrancaBuscaForm(forms.Form):
+    """
+    Formulário avançado para busca de cobranças
+    """
+    
+    CSS_CLASS = 'w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500'
+    
+    termo_busca = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': CSS_CLASS,
+            'placeholder': 'Buscar por número da cobrança, contrato, inquilino...'
+        }),
+        label='Busca Geral'
+    )
+    
+    valor_min = forms.DecimalField(
+        required=False,
+        widget=forms.NumberInput(attrs={
+            'class': CSS_CLASS,
+            'step': '0.01',
+            'placeholder': '0,00'
+        }),
+        label='Valor Mínimo'
+    )
+    
+    valor_max = forms.DecimalField(
+        required=False,
+        widget=forms.NumberInput(attrs={
+            'class': CSS_CLASS,
+            'step': '0.01',
+            'placeholder': '0,00'
+        }),
+        label='Valor Máximo'
+    )
+    
+    data_vencimento_inicio = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'class': CSS_CLASS,
+            'type': 'date'
+        }),
+        label='Vencimento de'
+    )
+    
+    data_vencimento_fim = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'class': CSS_CLASS,
+            'type': 'date'
+        }),
+        label='Vencimento até'
+    )
+    
+    apenas_atrasadas = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={
+            'class': 'w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500'
+        }),
+        label='Apenas Atrasadas'
+    )
+    
+    apenas_integradas_asaas = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={
+            'class': 'w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500'
+        }),
+        label='Apenas Integradas com Asaas'
+    )
+    
+    def clean(self):
+        """Validação geral"""
+        cleaned_data = super().clean()
+        
+        # Validar intervalo de valores
+        valor_min = cleaned_data.get('valor_min')
+        valor_max = cleaned_data.get('valor_max')
+        
+        if valor_min and valor_max and valor_min > valor_max:
+            raise ValidationError({'valor_max': 'Valor máximo deve ser maior que o mínimo'})
+        
+        # Validar intervalo de datas
+        data_inicio = cleaned_data.get('data_vencimento_inicio')
+        data_fim = cleaned_data.get('data_vencimento_fim')
+        
+        if data_inicio and data_fim and data_inicio > data_fim:
+            raise ValidationError({'data_vencimento_fim': 'Data final deve ser maior que a inicial'})
+        
+        return cleaned_data
+
+
+# === VALIDATORS CUSTOMIZADOS ===
+
+def validar_numero_cobranca(value):
+    """Validator para formato do número da cobrança"""
+    import re
+    
+    if not re.match(r'^COB\d{6}\d{4}$', value):
+        raise ValidationError(
+            'Número da cobrança deve ter o formato COB seguido de 10 dígitos (ex: COB2024100001)'
+        )
+
+
+def validar_valor_positivo(value):
+    """Validator para garantir valor positivo"""
+    if value <= 0:
+        raise ValidationError('Valor deve ser maior que zero')
+
+
+def validar_periodo_valido(mes, ano):
+    """Validator para período válido"""
+    try:
+        import datetime
+        datetime.date(ano, mes, 1)
+    except ValueError:
+        raise ValidationError('Período inválido')
+    
+    # Validar se não é muito antigo ou futuro
+    hoje = date.today()
+    limite_passado = date(hoje.year - 2, 1, 1)
+    limite_futuro = date(hoje.year + 1, 12, 31)
+    
+    periodo = date(ano, mes, 1)
+    
+    if periodo < limite_passado:
+        raise ValidationError('Período muito antigo')
+    if periodo > limite_futuro:
+        raise ValidationError('Período muito distante no futuro')
+
+
+# === HELPERS PARA WIDGETS ===
+
+class CurrencyWidget(forms.NumberInput):
+    """Widget customizado para campos monetários"""
+    
+    def __init__(self, attrs=None):
+        default_attrs = {
+            'class': 'w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg pl-12 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500',
+            'step': '0.01',
+            'min': '0',
+            'placeholder': '0,00'
+        }
+        if attrs:
+            default_attrs.update(attrs)
+        super().__init__(default_attrs)
+    
+    def format_value(self, value):
+        """Formata valor para exibição"""
+        if value is None or value == '':
+            return ''
+        try:
+            return f"{float(value):.2f}".replace('.', ',')
+        except (ValueError, TypeError):
+            return value
+
+
+class DatePickerWidget(forms.DateInput):
+    """Widget customizado para datas"""
+    
+    def __init__(self, attrs=None):
+        default_attrs = {
+            'class': 'w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500',
+            'type': 'date'
+        }
+        if attrs:
+            default_attrs.update(attrs)
+        super().__init__(default_attrs)
+
+
+class SelectWidget(forms.Select):
+    """Widget customizado para selects"""
+    
+    def __init__(self, attrs=None):
+        default_attrs = {
+            'class': 'w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500'
+        }
+        if attrs:
+            default_attrs.update(attrs)
+        super().__init__(default_attrs)

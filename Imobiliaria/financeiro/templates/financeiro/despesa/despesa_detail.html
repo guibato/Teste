@@ -16,8 +16,19 @@
                 {% else %}
                     <span class="ml-3 bg-gray-600 text-gray-100 px-2 py-1 rounded-full text-sm font-medium">Inativa</span>
                 {% endif %}
+                
+                <!-- Indicador de Taxa Administrativa -->
+                {% if despesa.tem_incidencia_taxa %}
+                    <span class="ml-2 bg-yellow-600 text-yellow-100 px-2 py-1 rounded-full text-xs font-medium" title="Tem incidência de taxa administrativa">
+                        <i class="fas fa-percentage mr-1"></i>Taxa Admin
+                    </span>
+                {% else %}
+                    <span class="ml-2 bg-gray-500 text-gray-100 px-2 py-1 rounded-full text-xs font-medium" title="Isenta de taxa administrativa">
+                        <i class="fas fa-ban mr-1"></i>Sem Taxa
+                    </span>
+                {% endif %}
             </h1>
-            <p class="text-gray-400 mt-1">{{ despesa.tipo.nome }} - {{ despesa.contrato }}</p>
+            <p class="text-gray-400 mt-1">{{ despesa.tipo.nome }} ({{ despesa.tipo.get_categoria_display }}) - {{ despesa.contrato }}</p>
         </div>
         <div class="mt-4 md:mt-0">
             <!-- Dropdown de ações -->
@@ -76,8 +87,13 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-400 mb-1">Tipo de Despesa</label>
                             <p class="text-white">{{ despesa.tipo.nome }}</p>
+                            <div class="flex items-center mt-1">
+                                <span class="text-xs bg-purple-600 text-purple-100 px-2 py-1 rounded-full">
+                                    {{ despesa.tipo.get_categoria_display }}
+                                </span>
+                            </div>
                             {% if despesa.tipo.descricao %}
-                                <p class="text-gray-400 text-sm">{{ despesa.tipo.descricao }}</p>
+                                <p class="text-gray-400 text-sm mt-1">{{ despesa.tipo.descricao }}</p>
                             {% endif %}
                         </div>
                         
@@ -85,6 +101,14 @@
                             <label class="block text-sm font-medium text-gray-400 mb-1">Descrição</label>
                             <p class="text-white">{{ despesa.descricao|default:despesa.get_descricao_padrao }}</p>
                         </div>
+
+                        <!-- Nova: Referência de Cobrança -->
+                        {% if despesa.cobranca_referencia %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Referência</label>
+                            <p class="text-white">{{ despesa.cobranca_referencia }}</p>
+                        </div>
+                        {% endif %}
                     </div>
                     
                     <div class="space-y-4">
@@ -114,11 +138,75 @@
                             <p class="text-white">{{ despesa.data_fim_prevista|date:"d/m/Y" }}</p>
                         </div>
                         {% endif %}
+
+                        <!-- Nova: Data de Encerramento -->
+                        {% if despesa.data_encerramento %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Data de Encerramento</label>
+                            <p class="text-white">{{ despesa.data_encerramento|date:"d/m/Y" }}</p>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
 
-            <!-- Card de valores -->
+            <!-- NOVO: Card de Taxa Administrativa -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-bold text-white mb-4 flex items-center">
+                    <i class="fas fa-percentage text-yellow-400 mr-2"></i>
+                    Taxa de Administração
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Incidência de Taxa</label>
+                            <span class="px-3 py-1 rounded-full text-sm font-medium
+                                {% if despesa.incidencia_taxa_admin == 'sim' %}bg-yellow-600 text-yellow-100
+                                {% elif despesa.incidencia_taxa_admin == 'parcial' %}bg-orange-600 text-orange-100
+                                {% else %}bg-gray-600 text-gray-100{% endif %}">
+                                {{ despesa.get_incidencia_taxa_admin_display }}
+                            </span>
+                        </div>
+                        
+                        {% if despesa.incidencia_taxa_admin == 'parcial' %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Percentual com Incidência</label>
+                            <p class="text-white">{{ despesa.percentual_com_incidencia }}%</p>
+                        </div>
+                        {% endif %}
+
+                        {% if despesa.taxa_admin_especifica %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Taxa Específica</label>
+                            <p class="text-white">{{ despesa.taxa_admin_especifica }}%</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <!-- Cálculo dinâmico via view context -->
+                        {% if composicao_financeira %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Valor com Incidência</label>
+                            <p class="text-white font-medium">R$ {{ composicao_financeira.valor_com_incidencia|floatformat:2 }}</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Valor sem Incidência</label>
+                            <p class="text-white font-medium">R$ {{ composicao_financeira.valor_sem_incidencia|floatformat:2 }}</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Taxa Administrativa</label>
+                            <p class="text-yellow-400 font-medium">R$ {{ composicao_financeira.valor_taxa_admin|floatformat:2 }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de valores - Atualizado -->
             <div class="bg-gray-800 rounded-lg p-6">
                 <h2 class="text-xl font-bold text-white mb-4 flex items-center">
                     <i class="fas fa-calculator text-green-400 mr-2"></i>
@@ -142,11 +230,43 @@
                     </div>
                     
                     <div class="bg-gray-700 rounded-lg p-4 text-center">
-                        <div class="text-2xl font-bold text-purple-400">R$ {{ valor_repassado|floatformat:2 }}</div>
-                        <div class="text-gray-400 text-sm">Valor Repassado</div>
-                        <div class="text-gray-500 text-xs">{{ despesa.percentual_repassado }}%</div>
+                        <div class="text-2xl font-bold text-purple-400">{{ despesa.percentual_repassado }}%</div>
+                        <div class="text-gray-400 text-sm">% Repassado</div>
                     </div>
                 </div>
+
+                <!-- NOVA: Composição Financeira Detalhada -->
+                {% if composicao_financeira %}
+                <div class="mt-6 p-4 bg-gray-900 rounded-lg">
+                    <h3 class="text-lg font-medium text-white mb-3">Impacto no Repasse</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Valor com incidência:</span>
+                            <span class="text-white">R$ {{ composicao_financeira.valor_com_incidencia|floatformat:2 }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Taxa admin ({{ composicao_financeira.taxa_admin_percentual }}%):</span>
+                            <span class="text-yellow-400">-R$ {{ composicao_financeira.valor_taxa_admin|floatformat:2 }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Valor líquido c/ taxa:</span>
+                            <span class="text-white">R$ {{ composicao_financeira.valor_liquido_com_incidencia|floatformat:2 }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Valor sem incidência:</span>
+                            <span class="text-white">R$ {{ composicao_financeira.valor_sem_incidencia|floatformat:2 }}</span>
+                        </div>
+                        <hr class="border-gray-600">
+                        <div class="flex justify-between text-lg font-bold">
+                            <span class="text-gray-300">Impacto no repasse:</span>
+                            <span class="{% if composicao_financeira.impacto_repasse >= 0 %}text-green-400{% else %}text-red-400{% endif %}">
+                                {% if composicao_financeira.impacto_repasse >= 0 %}+{% endif %}R$ {{ composicao_financeira.impacto_repasse|floatformat:2 }}
+                            </span>
+                        </div>
+                        <div class="text-sm text-gray-400">{{ composicao_financeira.detalhamento }}</div>
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
             <!-- Card de observações -->
@@ -157,6 +277,24 @@
                     Observações
                 </h2>
                 <p class="text-gray-300 whitespace-pre-line">{{ despesa.observacoes }}</p>
+            </div>
+            {% endif %}
+
+            <!-- NOVO: Card de Comprovante -->
+            {% if despesa.comprovante %}
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-bold text-white mb-4 flex items-center">
+                    <i class="fas fa-file-alt text-blue-400 mr-2"></i>
+                    Comprovante
+                </h2>
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-paperclip text-gray-400"></i>
+                    <a href="{{ despesa.comprovante.url }}" target="_blank" 
+                       class="text-blue-400 hover:text-blue-300 underline">
+                        Ver Comprovante
+                    </a>
+                    <span class="text-gray-400 text-sm">({{ despesa.comprovante.size|filesizeformat }})</span>
+                </div>
             </div>
             {% endif %}
         </div>
@@ -200,6 +338,16 @@
                             <span class="text-green-400"><i class="fas fa-check-circle"></i> Sim</span>
                         {% else %}
                             <span class="text-gray-400"><i class="fas fa-times-circle"></i> Não</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- NOVO: Taxa Admin Info -->
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">Taxa Admin:</span>
+                        {% if despesa.tem_incidencia_taxa %}
+                            <span class="text-yellow-400"><i class="fas fa-percentage"></i> Com incidência</span>
+                        {% else %}
+                            <span class="text-gray-400"><i class="fas fa-ban"></i> Sem incidência</span>
                         {% endif %}
                     </div>
                 </div>

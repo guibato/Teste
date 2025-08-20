@@ -183,9 +183,7 @@ class Imovel(models.Model):
         return endereco_base
 
 class Contrato(models.Model):
-    class Meta:
-        ordering = ['-ativo', 'dia_pagamento', '-data_inicio']
-
+    
     CONTRATO_CHOICES = [
         ('residencial', 'Residencial'),
         ('comercial', 'Comercial'),
@@ -250,7 +248,114 @@ class Contrato(models.Model):
     valor_seguro_incendio = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor do Seguro", null=True, blank=True, default=Decimal('0.00'))
     vencimento_seguro_incendio = models.DateField(verbose_name="Vencimento do Seguro", null=True, blank=True)
     documentos = models.FileField(upload_to='contratos/documentos/', null=True, blank=True, verbose_name="Documentos")
+    data_encerramento = models.DateField(null=True, blank=True, verbose_name="Data de Encerramento Real", help_text="Data em que o contrato foi efetivamente encerrado (se diferente da data_fim)")
+    motivo_encerramento = models.CharField(
+        max_length=200,
+        null=True,
+        blank=True,
+        choices=[
+            ('rescisao_inquilino', 'Rescisão por Inquilino'),
+            ('rescisao_proprietario', 'Rescisão por Proprietário'),
+            ('fim_contrato', 'Fim do Contrato'),
+            ('inadimplencia', 'Inadimplência'),
+            ('outros', 'Outros'),
+        ],
+        verbose_name="Motivo do Encerramento"
+)
     
+    # Campos de auditoria
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+    usuario_atualizacao = models.ForeignKey(
+        'auth.User', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        verbose_name="Último Usuário que Alterou"
+    )
+    
+    class Meta:
+        ordering = ['-ativo', 'dia_pagamento', '-data_inicio']
+    
+    def esta_vigente_em(self, data_referencia):
+        """
+        Verifica se o contrato estava vigente em uma data específica
+        
+        Args:
+            data_referencia (date): Data para verificar
+            
+        Returns:
+            bool: True se estava vigente
+        """
+        # Deve ter iniciado antes ou na data
+        if self.data_inicio > data_referencia:
+            return False
+        
+        # Se tem data de encerramento real, usar ela
+        if self.data_encerramento:
+            return self.data_encerramento >= data_referencia
+        
+        # Senão, verificar se está ativo (ignora data_fim original)
+        return self.ativo
+    
+    def esta_vigente_no_periodo(self, data_inicio, data_fim):
+        """
+        Verifica se o contrato estava vigente em algum momento do período
+        
+        Args:
+            data_inicio (date): Início do período
+            data_fim (date): Fim do período
+            
+        Returns:
+            bool: True se estava vigente no período
+        """
+        # Contrato deve ter iniciado antes ou durante o período
+        if self.data_inicio > data_fim:
+            return False
+        
+        # Se tem data de encerramento, não pode ter encerrado antes do período
+        if self.data_encerramento and self.data_encerramento < data_inicio:
+            return False
+        
+        # Se não tem data de encerramento, verificar se está ativo
+        if not self.data_encerramento:
+            return self.ativo
+        
+        return True
+    
+    @property
+    def status_vigencia(self):
+        """
+        Retorna o status atual da vigência do contrato
+        """
+        hoje = date.today()
+        
+        if not self.ativo:
+            return 'inativo'
+        
+        if self.data_inicio > hoje:
+            return 'futuro'
+        
+        if self.data_encerramento and self.data_encerramento < hoje:
+            return 'encerrado'
+        
+        if self.data_fim < hoje and not self.data_encerramento:
+            return 'vencido_ativo'  # Venceu mas continua ativo
+        
+        return 'vigente'
+    
+    def save(self, *args, **kwargs):
+        # Se está sendo marcado como inativo e não tem data_encerramento
+        if not self.ativo and not self.data_encerramento:
+            self.data_encerramento = date.today()
+        
+        # Se está sendo reativado, limpar data de encerramento
+        if self.ativo and self.data_encerramento:
+            self.data_encerramento = None
+            self.motivo_encerramento = None
+        
+        super().save(*args, **kwargs)
+
 
     def __str__(self):
         endereco = self.imovel.endereco or ''
@@ -413,6 +518,38 @@ class Contrato(models.Model):
         Retorna o valor atual do aluguel.
         """
         return self.valor_aluguel_atual()
+    
+    def get_valor_atual(self, data_referencia=None):
+        """
+        Retorna o valor atual do contrato considerando reajustes
+        """
+        if data_referencia is None:
+            from datetime import date
+            data_referencia = date.today()
+        
+        # Buscar o último reajuste até a data de referência
+        ultimo_reajuste = self.reajustes.filter(
+            data_reajuste__lte=data_referencia
+        ).order_by('-data_reajuste').first()
+        
+        if ultimo_reajuste:
+            return ultimo_reajuste.valor_reajustado
+        else:
+            return self.valor_base
+    
+    def get_historico_valores(self):
+        """
+        Retorna histórico de valores do contrato
+        """
+        historico = []
+        
+        # Valor inicial
+        historico.append({
+            'data': self.data_inicio,
+            'valor': self.valor_base,
+            'tipo': 'inicial',
+            'descricao': 'Valor inicial do contrato'
+        })
 
 
 class Cobranca(models.Model):
@@ -548,12 +685,14 @@ class Cobranca(models.Model):
     
     @property
     def despesas_inquilino(self):
-        """
-        Soma todas as despesas atribuídas ao inquilino, ativas no mês/ano da cobrança.
-        """
+        try:
+            data_referencia = date(self.ano_referencia, self.mes_referencia, 1)
+        except ValueError as e:
+            print(f"Erro ao criar data de referência: ano={self.ano_referencia}, mes={self.mes_referencia} -> {e}")
+            raise
+
         despesas = self.contrato.despesas.all()
         total = Decimal("0.00")
-        data_referencia = date(self.ano_referencia, self.mes_referencia, 1)
         for despesa in despesas:
             if despesa.paga == 'inquilino' and despesa.parcela_atual_ativa(data_referencia):
                 total += despesa.calcular_valor_parcela()

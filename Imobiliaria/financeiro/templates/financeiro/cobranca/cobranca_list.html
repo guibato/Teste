@@ -77,7 +77,7 @@
             <label class="block text-sm font-medium text-gray-300 mb-1">Status</label>
             <select name="status" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="this.form.submit();">
                 <option value="todos" {% if filtro_status == 'todos' %}selected{% endif %}>Todos</option>
-                <option value="pendente" {% if filtro_status == 'pendente' %}selected{% endif %}>Pendentes</option>
+                <option value="pendente" {% if filtro_status == 'pendente' or filtro_status == '' %}selected{% endif %}>Pendentes</option>
                 <option value="paga" {% if filtro_status == 'paga' %}selected{% endif %}>Pagas</option>
                 <option value="atrasada" {% if filtro_status == 'atrasada' %}selected{% endif %}>Atrasadas</option>
                 <option value="cancelada" {% if filtro_status == 'cancelada' %}selected{% endif %}>Canceladas</option>
@@ -202,9 +202,7 @@
                         <div class="text-sm font-medium text-white">
                             R$ {{ cobranca.valor_total|floatformat:2|default:"0,00" }}
                         </div>
-                        <div class="text-sm text-gray-400">
-                            Aluguel: R$ {{ cobranca.valor_aluguel|floatformat:2|default:"0,00" }}
-                        </div>
+                        
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm text-white">
@@ -273,7 +271,7 @@
                             </a>
                             {% endif %}
                             {% if cobranca.status in 'pendente,atrasada' %}
-                            <form method="post" action="{% url 'financeiro:marcar_paga' cobranca.pk %}" class="inline" onsubmit="return confirm('Marcar esta cobrança como paga?');">
+                            <form method="post" action="{% url 'financeiro:cobranca_marcar_paga' cobranca.pk %}" class="inline" onsubmit="return confirm('Marcar esta cobrança como paga?');">
                                 {% csrf_token %}
                                 <input type="hidden" name="data_pagamento" value="{{ today|date:'Y-m-d' }}">
                                 <button type="submit" class="text-green-400 hover:text-green-300" title="Marcar como paga">

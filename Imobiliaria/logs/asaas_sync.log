@@ -4,3 +4,1669 @@ INFO 2025-06-09 12:16:30,227 asaas_service AsaasService inicializado - Ambiente:
 INFO 2025-06-09 12:16:30,227 asaas_service Base URL: https://www.asaas.com/api/v3/
 INFO 2025-06-09 12:17:35,247 asaas_service AsaasService inicializado - Ambiente: production
 INFO 2025-06-09 12:17:35,247 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-09 13:21:34,569 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-09 13:21:34,569 asaas_service Base URL: https://www.asaas.com/api/v3/
+ERROR 2025-06-09 13:21:36,555 signals Erro ao criar repasse automático para cobrança 133: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-06-09 13:21:36,604 signals Erro ao criar repasse automático para cobrança 134: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-06-09 13:21:36,653 signals Erro ao criar repasse automático para cobrança 135: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-06-09 13:21:36,851 signals Erro ao criar repasse automático para cobrança 139: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-06-09 13:21:36,960 signals Erro ao criar repasse automático para cobrança 141: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-06-09 13:21:37,029 signals Erro ao criar repasse automático para cobrança 142: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-06-09 13:21:37,094 signals Erro ao criar repasse automático para cobrança 143: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-06-09 13:21:37,187 signals Erro ao criar repasse automático para cobrança 144: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-06-09 13:21:37,282 signals Erro ao criar repasse automático para cobrança 145: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-06-09 13:21:37,350 signals Erro ao criar repasse automático para cobrança 146: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-06-09 13:21:37,406 signals Erro ao criar repasse automático para cobrança 147: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-06-09 13:21:37,480 signals Erro ao criar repasse automático para cobrança 148: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-06-09 13:21:37,562 signals Erro ao criar repasse automático para cobrança 149: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-06-09 13:21:37,660 signals Erro ao criar repasse automático para cobrança 150: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-06-09 13:21:37,766 signals Erro ao criar repasse automático para cobrança 151: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-06-09 13:21:37,888 signals Erro ao criar repasse automático para cobrança 152: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-06-09 13:21:37,974 signals Erro ao criar repasse automático para cobrança 153: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-06-09 13:21:38,067 signals Erro ao criar repasse automático para cobrança 154: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-06-09 13:21:38,171 signals Erro ao criar repasse automático para cobrança 155: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-06-09 13:21:38,322 signals Erro ao criar repasse automático para cobrança 156: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-06-09 13:21:38,397 signals Erro ao criar repasse automático para cobrança 157: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+INFO 2025-06-17 15:43:03,335 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-17 15:43:03,337 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-17 15:48:46,936 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-17 15:48:46,938 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-17 15:50:18,003 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-17 15:50:18,005 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-17 15:54:42,396 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-17 15:54:42,407 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-17 16:00:10,249 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-17 16:00:10,250 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-17 16:00:28,755 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-17 16:00:28,757 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-17 16:00:29,084 asaas_service Cliente existente encontrado: cus_000118360514
+INFO 2025-06-17 16:01:48,082 asaas_service Criando cobrança - Valor: 1764.45
+INFO 2025-06-18 01:08:20,909 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-18 01:08:20,916 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-18 01:08:21,355 asaas_service Cliente existente encontrado: cus_000118156507
+INFO 2025-06-18 01:08:21,593 asaas_service Criando cobrança - Valor: 5300.0
+WARNING 2025-06-18 12:25:15,532 asaas_mixin Integração 35 não pode ser processada: ['Cobrança já foi integrada com o Asaas', 'Cliente deve ter CPF ou CNPJ cadastrado']
+WARNING 2025-06-18 12:49:36,130 asaas_mixin Integração 37 não pode ser processada: ['Cliente deve ter email cadastrado']
+INFO 2025-06-18 12:52:29,278 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-18 12:52:29,279 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-18 12:52:29,279 asaas_mixin Iniciando integração da cobrança 118 com Asaas
+INFO 2025-06-18 12:52:29,424 asaas_service Cliente existente encontrado: cus_000118150766
+INFO 2025-06-18 12:52:29,631 asaas_mixin Cliente Asaas: cus_000118150766
+INFO 2025-06-18 12:52:29,634 asaas_service Criando cobrança - Valor: 4444.91
+INFO 2025-06-18 12:52:30,106 asaas_mixin Integração concluída - Asaas ID: pay_il3rkqm2lsjgjl8o
+WARNING 2025-06-18 12:52:34,164 asaas_mixin Integração 37 não pode ser processada: ['Cobrança já foi integrada com o Asaas']
+WARNING 2025-06-18 20:52:44,163 asaas_mixin Integração 38 não pode ser processada: ['Cliente deve ter CPF ou CNPJ cadastrado']
+WARNING 2025-06-18 21:29:09,717 asaas_mixin Integração 38 não pode ser processada: ['Cliente deve ter CPF ou CNPJ cadastrado']
+INFO 2025-06-18 21:37:38,778 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-18 21:37:38,781 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-18 21:37:38,783 asaas_mixin Iniciando integração da cobrança 107 com Asaas
+INFO 2025-06-18 21:37:39,067 asaas_service Cliente existente encontrado: cus_000118148479
+INFO 2025-06-18 21:37:39,456 asaas_mixin Cliente Asaas: cus_000118148479
+INFO 2025-06-18 21:37:39,457 asaas_service Criando cobrança - Valor: 1300.0
+INFO 2025-06-18 21:37:39,968 asaas_mixin Integração concluída - Asaas ID: pay_xzdgepgffwjp6mig
+INFO 2025-06-18 21:38:00,096 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-18 21:38:00,098 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-18 21:38:00,099 asaas_mixin Iniciando integração da cobrança 108 com Asaas
+INFO 2025-06-18 21:38:00,204 asaas_service Cliente existente encontrado: cus_000118148533
+INFO 2025-06-18 21:38:00,572 asaas_mixin Cliente Asaas: cus_000118148533
+INFO 2025-06-18 21:38:00,573 asaas_service Criando cobrança - Valor: 2176.38
+INFO 2025-06-18 21:38:01,059 asaas_mixin Integração concluída - Asaas ID: pay_9n8as8r60z5fkg4y
+INFO 2025-06-18 21:39:33,278 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-18 21:39:33,282 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-18 21:39:33,287 asaas_mixin Iniciando integração da cobrança 119 com Asaas
+INFO 2025-06-18 21:39:33,422 asaas_service Cliente existente encontrado: cus_000118150888
+INFO 2025-06-18 21:39:33,657 asaas_mixin Cliente Asaas: cus_000118150888
+INFO 2025-06-18 21:39:33,658 asaas_service Criando cobrança - Valor: 1465.0
+INFO 2025-06-18 21:39:34,114 asaas_mixin Integração concluída - Asaas ID: pay_5upp5u8p24jc2n8o
+INFO 2025-06-18 21:39:34,521 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-18 21:39:34,521 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-18 21:39:34,522 asaas_mixin Iniciando integração da cobrança 117 com Asaas
+INFO 2025-06-18 21:39:34,647 asaas_service Cliente existente encontrado: cus_000118150852
+INFO 2025-06-18 21:39:34,852 asaas_mixin Cliente Asaas: cus_000118150852
+INFO 2025-06-18 21:39:34,853 asaas_service Criando cobrança - Valor: 963.24
+INFO 2025-06-18 21:39:35,385 asaas_mixin Integração concluída - Asaas ID: pay_mvml2xfua22nchs7
+INFO 2025-06-18 21:39:35,687 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-18 21:39:35,687 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-18 21:39:35,688 asaas_mixin Iniciando integração da cobrança 116 com Asaas
+INFO 2025-06-18 21:39:35,820 asaas_service Cliente existente encontrado: cus_000118148519
+INFO 2025-06-18 21:39:36,061 asaas_mixin Cliente Asaas: cus_000118148519
+INFO 2025-06-18 21:39:36,062 asaas_service Criando cobrança - Valor: 4905.94
+INFO 2025-06-18 21:39:36,484 asaas_mixin Integração concluída - Asaas ID: pay_51wfaehxi9dfkkek
+INFO 2025-06-18 21:39:36,782 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-18 21:39:36,783 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-18 21:39:36,786 asaas_mixin Iniciando integração da cobrança 115 com Asaas
+INFO 2025-06-18 21:39:36,906 asaas_service Cliente existente encontrado: cus_000118148440
+INFO 2025-06-18 21:39:37,108 asaas_mixin Cliente Asaas: cus_000118148440
+INFO 2025-06-18 21:39:37,109 asaas_service Criando cobrança - Valor: 3003.04
+INFO 2025-06-18 21:39:37,537 asaas_mixin Integração concluída - Asaas ID: pay_rgmyyvuh36t6n6ji
+INFO 2025-06-18 21:39:37,825 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-18 21:39:37,826 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-18 21:39:37,827 asaas_mixin Iniciando integração da cobrança 114 com Asaas
+INFO 2025-06-18 21:39:37,951 asaas_service Cliente existente encontrado: cus_000118150825
+INFO 2025-06-18 21:39:38,238 asaas_mixin Cliente Asaas: cus_000118150825
+INFO 2025-06-18 21:39:38,238 asaas_service Criando cobrança - Valor: 1150.0
+INFO 2025-06-18 21:39:38,651 asaas_mixin Integração concluída - Asaas ID: pay_c2elpkdhmbea4o94
+INFO 2025-06-18 21:39:39,019 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-18 21:39:39,020 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-18 21:39:39,020 asaas_mixin Iniciando integração da cobrança 113 com Asaas
+INFO 2025-06-18 21:39:39,132 asaas_service Cliente existente encontrado: cus_000118148497
+INFO 2025-06-18 21:39:39,366 asaas_mixin Cliente Asaas: cus_000118148497
+INFO 2025-06-18 21:39:39,367 asaas_service Criando cobrança - Valor: 5115.32
+INFO 2025-06-18 21:39:39,799 asaas_mixin Integração concluída - Asaas ID: pay_41laqlzmk32yhyav
+INFO 2025-06-18 21:39:40,054 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-18 21:39:40,055 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-18 21:39:40,055 asaas_mixin Iniciando integração da cobrança 112 com Asaas
+INFO 2025-06-18 21:39:40,157 asaas_service Cliente existente encontrado: cus_000118148463
+INFO 2025-06-18 21:39:40,378 asaas_mixin Cliente Asaas: cus_000118148463
+INFO 2025-06-18 21:39:40,379 asaas_service Criando cobrança - Valor: 2175.82
+INFO 2025-06-18 21:39:40,795 asaas_mixin Integração concluída - Asaas ID: pay_rax3sm3cup9kmofo
+INFO 2025-06-18 21:39:41,143 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-18 21:39:41,144 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-18 21:39:41,145 asaas_mixin Iniciando integração da cobrança 111 com Asaas
+INFO 2025-06-18 21:39:41,501 asaas_service Cliente existente encontrado: cus_000118150575
+INFO 2025-06-18 21:39:41,861 asaas_mixin Cliente Asaas: cus_000118150575
+INFO 2025-06-18 21:39:41,861 asaas_service Criando cobrança - Valor: 1624.41
+INFO 2025-06-18 21:39:42,672 asaas_mixin Integração concluída - Asaas ID: pay_axes0zx37g5awet2
+INFO 2025-06-18 21:39:42,958 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-18 21:39:42,958 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-18 21:39:42,959 asaas_mixin Iniciando integração da cobrança 110 com Asaas
+INFO 2025-06-18 21:39:43,218 asaas_service Cliente existente encontrado: cus_000118150627
+INFO 2025-06-18 21:39:43,594 asaas_mixin Cliente Asaas: cus_000118150627
+INFO 2025-06-18 21:39:43,595 asaas_service Criando cobrança - Valor: 1800.0
+INFO 2025-06-18 21:39:44,448 asaas_mixin Integração concluída - Asaas ID: pay_rw8fex377b2cp9qd
+INFO 2025-06-18 21:39:44,788 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-18 21:39:44,789 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-18 21:39:44,789 asaas_mixin Iniciando integração da cobrança 109 com Asaas
+INFO 2025-06-18 21:39:44,970 asaas_service Cliente existente encontrado: cus_000118150605
+INFO 2025-06-18 21:39:45,323 asaas_mixin Cliente Asaas: cus_000118150605
+INFO 2025-06-18 21:39:45,323 asaas_service Criando cobrança - Valor: 1141.94
+INFO 2025-06-18 21:39:45,885 asaas_mixin Integração concluída - Asaas ID: pay_lgiwk19ds7t357of
+INFO 2025-06-18 21:41:27,811 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-18 21:41:27,811 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-18 21:41:27,814 asaas_mixin Iniciando integração da cobrança 125 com Asaas
+INFO 2025-06-18 21:41:27,935 asaas_service Cliente existente encontrado: cus_000118359530
+INFO 2025-06-18 21:41:28,169 asaas_mixin Cliente Asaas: cus_000118359530
+INFO 2025-06-18 21:41:28,170 asaas_service Criando cobrança - Valor: 2350.51
+INFO 2025-06-18 21:41:29,188 asaas_mixin Integração concluída - Asaas ID: pay_svxsw1y1qetow0a9
+INFO 2025-06-18 21:41:29,489 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-18 21:41:29,490 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-18 21:41:29,491 asaas_mixin Iniciando integração da cobrança 124 com Asaas
+INFO 2025-06-18 21:41:29,598 asaas_service Cliente existente encontrado: cus_000118243800
+INFO 2025-06-18 21:41:29,810 asaas_mixin Cliente Asaas: cus_000118243800
+INFO 2025-06-18 21:41:29,811 asaas_service Criando cobrança - Valor: 3760.62
+INFO 2025-06-18 21:41:30,645 asaas_mixin Integração concluída - Asaas ID: pay_7xvpbcr5hdyu1q6a
+INFO 2025-06-18 21:41:30,897 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-18 21:41:30,898 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-18 21:41:30,899 asaas_mixin Iniciando integração da cobrança 123 com Asaas
+INFO 2025-06-18 21:41:31,007 asaas_service Cliente existente encontrado: cus_000118358133
+INFO 2025-06-18 21:41:31,241 asaas_mixin Cliente Asaas: cus_000118358133
+INFO 2025-06-18 21:41:31,242 asaas_service Criando cobrança - Valor: 3410.09
+INFO 2025-06-18 21:41:31,681 asaas_mixin Integração concluída - Asaas ID: pay_72sdll84891zmvvl
+INFO 2025-06-18 21:41:31,972 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-18 21:41:31,973 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-18 21:41:31,973 asaas_mixin Iniciando integração da cobrança 121 com Asaas
+INFO 2025-06-18 21:41:32,220 asaas_service Cliente existente encontrado: cus_000118150535
+INFO 2025-06-18 21:41:32,448 asaas_mixin Cliente Asaas: cus_000118150535
+INFO 2025-06-18 21:41:32,449 asaas_service Criando cobrança - Valor: 2500.0
+INFO 2025-06-18 21:41:32,867 asaas_mixin Integração concluída - Asaas ID: pay_ei3qcwvr7fjjb1ju
+INFO 2025-06-18 21:41:33,136 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-18 21:41:33,137 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-18 21:41:33,138 asaas_mixin Iniciando integração da cobrança 120 com Asaas
+INFO 2025-06-18 21:41:33,244 asaas_service Cliente existente encontrado: cus_000118148562
+INFO 2025-06-18 21:41:33,609 asaas_mixin Cliente Asaas: cus_000118148562
+INFO 2025-06-18 21:41:33,609 asaas_service Criando cobrança - Valor: 5324.53
+INFO 2025-06-18 21:41:34,094 asaas_mixin Integração concluída - Asaas ID: pay_73lthq2r5phvepts
+INFO 2025-06-19 09:23:02,927 lembrete_views Enviando WhatsApp para 5511986148105 via Z-API
+ERROR 2025-06-19 09:23:03,263 lembrete_views Erro Z-API: Erro desconhecido na Z-API
+ERROR 2025-06-19 09:23:03,264 lembrete_views Falha ao enviar lembrete para Action 360: Erro desconhecido na Z-API
+INFO 2025-06-19 11:26:43,373 lembrete_views Enviando WhatsApp para 5511960614367 via Z-API
+ERROR 2025-06-19 11:26:43,649 lembrete_views Erro Z-API: Erro desconhecido na Z-API
+ERROR 2025-06-19 11:26:43,650 lembrete_views Falha ao enviar lembrete para Artur Carlos de Figueiredo Pacheco Filho: Erro desconhecido na Z-API
+INFO 2025-06-19 11:28:45,287 lembrete_views Enviando WhatsApp para 5511960614367 via Z-API
+ERROR 2025-06-19 11:28:45,373 lembrete_views Erro Z-API: Erro desconhecido na Z-API
+ERROR 2025-06-19 11:28:45,374 lembrete_views Falha ao enviar lembrete para Artur Carlos de Figueiredo Pacheco Filho: Erro desconhecido na Z-API
+INFO 2025-06-20 03:31:22,029 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-20 03:31:22,031 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-20 03:31:22,361 asaas_utils Atualizando integração Asaas para cobrança 127, Asaas ID: pay_sst5wdq12okv10gu
+INFO 2025-06-20 03:31:22,363 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-20 03:31:22,364 asaas_service Base URL: https://www.asaas.com/api/v3/
+ERROR 2025-06-20 03:31:22,365 asaas_utils Erro ao atualizar integração Asaas para cobrança 127: 'AsaasService' object has no attribute 'atualizar_dados_pagamento_completos'
+INFO 2025-06-20 03:31:22,366 asaas_utils Atualizando integração Asaas para cobrança 127, Asaas ID: pay_sst5wdq12okv10gu
+INFO 2025-06-20 03:31:22,366 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-20 03:31:22,367 asaas_service Base URL: https://www.asaas.com/api/v3/
+ERROR 2025-06-20 03:31:22,368 asaas_utils Erro ao atualizar integração Asaas para cobrança 127: 'AsaasService' object has no attribute 'atualizar_dados_pagamento_completos'
+WARNING 2025-06-20 03:31:22,368 asaas_utils Não foi possível enriquecer mensagem com dados Asaas: ["Erro: 'AsaasService' object has no attribute 'atualizar_dados_pagamento_completos'"]
+INFO 2025-06-20 03:38:39,700 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-20 03:38:39,701 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-20 03:38:39,939 asaas_utils Atualizando integração Asaas para cobrança 127, Asaas ID: pay_sst5wdq12okv10gu
+INFO 2025-06-20 03:38:39,940 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-20 03:38:39,941 asaas_service Base URL: https://www.asaas.com/api/v3/
+ERROR 2025-06-20 03:38:39,941 asaas_utils Erro ao atualizar integração Asaas para cobrança 127: 'AsaasService' object has no attribute 'atualizar_dados_pagamento_completos'
+INFO 2025-06-20 03:38:39,942 asaas_utils Atualizando integração Asaas para cobrança 127, Asaas ID: pay_sst5wdq12okv10gu
+INFO 2025-06-20 03:38:39,943 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-20 03:38:39,943 asaas_service Base URL: https://www.asaas.com/api/v3/
+ERROR 2025-06-20 03:38:39,944 asaas_utils Erro ao atualizar integração Asaas para cobrança 127: 'AsaasService' object has no attribute 'atualizar_dados_pagamento_completos'
+WARNING 2025-06-20 03:38:39,944 asaas_utils Não foi possível enriquecer mensagem com dados Asaas: ["Erro: 'AsaasService' object has no attribute 'atualizar_dados_pagamento_completos'"]
+INFO 2025-06-20 03:40:01,082 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-20 03:40:01,082 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-20 03:40:01,343 asaas_utils Atualizando integração Asaas para cobrança 127, Asaas ID: pay_sst5wdq12okv10gu
+INFO 2025-06-20 03:40:01,344 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-20 03:40:01,344 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-20 03:40:01,344 asaas_service Atualizando dados completos para: pay_sst5wdq12okv10gu
+INFO 2025-06-20 03:40:01,574 asaas_service Buscando código de barras para: pay_sst5wdq12okv10gu
+INFO 2025-06-20 03:40:01,665 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-20 03:40:01,667 asaas_service Buscando PIX detalhado para: pay_sst5wdq12okv10gu
+INFO 2025-06-20 03:40:01,883 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-20 03:40:01,894 asaas_service Dados completos coletados para pay_sst5wdq12okv10gu - Erros: 0
+INFO 2025-06-20 03:40:01,910 asaas_utils Integração Asaas atualizada com sucesso para cobrança 127
+INFO 2025-06-20 03:40:01,913 asaas_utils Atualizando integração Asaas para cobrança 127, Asaas ID: pay_sst5wdq12okv10gu
+INFO 2025-06-20 03:40:01,914 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-20 03:40:01,916 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-20 03:40:01,917 asaas_service Atualizando dados completos para: pay_sst5wdq12okv10gu
+INFO 2025-06-20 03:40:02,103 asaas_service Buscando código de barras para: pay_sst5wdq12okv10gu
+INFO 2025-06-20 03:40:02,195 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-20 03:40:02,197 asaas_service Buscando PIX detalhado para: pay_sst5wdq12okv10gu
+INFO 2025-06-20 03:40:02,359 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-20 03:40:02,359 asaas_service Dados completos coletados para pay_sst5wdq12okv10gu - Erros: 0
+INFO 2025-06-20 03:40:02,373 asaas_utils Integração Asaas atualizada com sucesso para cobrança 127
+INFO 2025-06-20 03:40:02,374 asaas_utils Mensagem enriquecida com dados Asaas para cobrança 127
+INFO 2025-06-20 03:47:15,940 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-20 03:47:15,941 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-20 03:47:16,145 asaas_utils Atualizando integração Asaas para cobrança 127, Asaas ID: pay_sst5wdq12okv10gu
+INFO 2025-06-20 03:47:16,147 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-20 03:47:16,147 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-20 03:47:16,148 asaas_service Atualizando dados completos para: pay_sst5wdq12okv10gu
+INFO 2025-06-20 03:47:16,259 asaas_service Buscando código de barras para: pay_sst5wdq12okv10gu
+INFO 2025-06-20 03:47:16,423 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-20 03:47:16,424 asaas_service Buscando PIX detalhado para: pay_sst5wdq12okv10gu
+INFO 2025-06-20 03:47:16,583 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-20 03:47:16,583 asaas_service Dados completos coletados para pay_sst5wdq12okv10gu - Erros: 0
+INFO 2025-06-20 03:47:16,590 asaas_utils Integração Asaas atualizada com sucesso para cobrança 127
+INFO 2025-06-20 03:47:16,590 asaas_utils Mensagem enriquecida com dados Asaas para cobrança 127
+INFO 2025-06-20 14:51:04,085 lembrete_views DRY RUN - Lembrete para Artur Carlos de Figueiredo Pacheco Filho - ID: DRY_7ba3e334
+INFO 2025-06-20 23:43:15,057 lembrete_views DRY RUN - Lembrete para Artur Carlos de Figueiredo Pacheco Filho - ID: DRY_beb21442
+INFO 2025-06-21 00:06:26,989 lembrete_views DRY RUN - Lembrete para Action 360 - ID: DRY_01f566a7
+INFO 2025-06-21 00:06:27,006 lembrete_views DRY RUN - Lembrete para Marcelo Cesar da Silva Santos - ID: DRY_98256183
+INFO 2025-06-21 00:06:27,027 lembrete_views DRY RUN - Lembrete para Decio Cardozo Mourao - ID: DRY_7f887477
+INFO 2025-06-22 03:22:41,866 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-22 03:22:41,887 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-22 03:22:42,345 asaas_service Atualizando dados completos para: pay_sst5wdq12okv10gu
+INFO 2025-06-22 03:22:42,493 asaas_service Buscando código de barras para: pay_sst5wdq12okv10gu
+INFO 2025-06-22 03:22:42,595 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:22:42,596 asaas_service Buscando PIX detalhado para: pay_sst5wdq12okv10gu
+INFO 2025-06-22 03:22:42,815 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:22:42,815 asaas_service Dados completos coletados para pay_sst5wdq12okv10gu - Erros: 0
+INFO 2025-06-22 03:22:42,819 asaas_service Atualizando dados completos para: pay_21rdin9ksrfwdykk
+INFO 2025-06-22 03:22:42,948 asaas_service Buscando código de barras para: pay_21rdin9ksrfwdykk
+INFO 2025-06-22 03:22:43,034 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:22:43,035 asaas_service Buscando PIX detalhado para: pay_21rdin9ksrfwdykk
+INFO 2025-06-22 03:22:43,346 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:22:43,347 asaas_service Dados completos coletados para pay_21rdin9ksrfwdykk - Erros: 0
+INFO 2025-06-22 03:22:43,375 asaas_service Atualizando dados completos para: pay_svxsw1y1qetow0a9
+INFO 2025-06-22 03:22:43,573 asaas_service Buscando código de barras para: pay_svxsw1y1qetow0a9
+INFO 2025-06-22 03:22:43,675 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:22:43,676 asaas_service Buscando PIX detalhado para: pay_svxsw1y1qetow0a9
+INFO 2025-06-22 03:22:43,929 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:22:43,930 asaas_service Dados completos coletados para pay_svxsw1y1qetow0a9 - Erros: 0
+INFO 2025-06-22 03:22:43,942 asaas_service Atualizando dados completos para: pay_7xvpbcr5hdyu1q6a
+INFO 2025-06-22 03:22:44,069 asaas_service Buscando código de barras para: pay_7xvpbcr5hdyu1q6a
+INFO 2025-06-22 03:22:44,176 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:22:44,176 asaas_service Buscando PIX detalhado para: pay_7xvpbcr5hdyu1q6a
+INFO 2025-06-22 03:22:44,365 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:22:44,365 asaas_service Dados completos coletados para pay_7xvpbcr5hdyu1q6a - Erros: 0
+INFO 2025-06-22 03:22:44,379 asaas_service Atualizando dados completos para: pay_72sdll84891zmvvl
+INFO 2025-06-22 03:22:44,504 asaas_service Buscando código de barras para: pay_72sdll84891zmvvl
+INFO 2025-06-22 03:22:44,762 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:22:44,762 asaas_service Buscando PIX detalhado para: pay_72sdll84891zmvvl
+INFO 2025-06-22 03:22:44,995 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:22:44,996 asaas_service Dados completos coletados para pay_72sdll84891zmvvl - Erros: 0
+INFO 2025-06-22 03:22:45,005 asaas_service Atualizando dados completos para: pay_ei3qcwvr7fjjb1ju
+INFO 2025-06-22 03:22:45,141 asaas_service Buscando código de barras para: pay_ei3qcwvr7fjjb1ju
+INFO 2025-06-22 03:22:45,241 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:22:45,241 asaas_service Buscando PIX detalhado para: pay_ei3qcwvr7fjjb1ju
+INFO 2025-06-22 03:22:45,446 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:22:45,446 asaas_service Dados completos coletados para pay_ei3qcwvr7fjjb1ju - Erros: 0
+INFO 2025-06-22 03:22:45,456 asaas_service Atualizando dados completos para: pay_73lthq2r5phvepts
+INFO 2025-06-22 03:22:45,643 asaas_service Buscando código de barras para: pay_73lthq2r5phvepts
+INFO 2025-06-22 03:22:45,807 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:22:45,807 asaas_service Buscando PIX detalhado para: pay_73lthq2r5phvepts
+INFO 2025-06-22 03:22:46,060 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:22:46,060 asaas_service Dados completos coletados para pay_73lthq2r5phvepts - Erros: 0
+INFO 2025-06-22 03:22:46,070 asaas_service Atualizando dados completos para: pay_5upp5u8p24jc2n8o
+INFO 2025-06-22 03:22:46,172 asaas_service Buscando código de barras para: pay_5upp5u8p24jc2n8o
+INFO 2025-06-22 03:22:46,304 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:22:46,304 asaas_service Buscando PIX detalhado para: pay_5upp5u8p24jc2n8o
+INFO 2025-06-22 03:22:46,523 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:22:46,523 asaas_service Dados completos coletados para pay_5upp5u8p24jc2n8o - Erros: 0
+INFO 2025-06-22 03:22:46,537 asaas_service Atualizando dados completos para: pay_il3rkqm2lsjgjl8o
+INFO 2025-06-22 03:22:46,728 asaas_service Buscando código de barras para: pay_il3rkqm2lsjgjl8o
+INFO 2025-06-22 03:22:46,812 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:22:46,813 asaas_service Buscando PIX detalhado para: pay_il3rkqm2lsjgjl8o
+INFO 2025-06-22 03:22:47,013 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:22:47,014 asaas_service Dados completos coletados para pay_il3rkqm2lsjgjl8o - Erros: 0
+INFO 2025-06-22 03:22:47,028 asaas_service Atualizando dados completos para: pay_mvml2xfua22nchs7
+INFO 2025-06-22 03:22:47,253 asaas_service Buscando código de barras para: pay_mvml2xfua22nchs7
+INFO 2025-06-22 03:22:47,390 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:22:47,391 asaas_service Buscando PIX detalhado para: pay_mvml2xfua22nchs7
+INFO 2025-06-22 03:22:47,589 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:22:47,590 asaas_service Dados completos coletados para pay_mvml2xfua22nchs7 - Erros: 0
+INFO 2025-06-22 03:22:47,598 asaas_service Atualizando dados completos para: pay_51wfaehxi9dfkkek
+INFO 2025-06-22 03:22:47,698 asaas_service Buscando código de barras para: pay_51wfaehxi9dfkkek
+INFO 2025-06-22 03:22:47,836 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:22:47,836 asaas_service Buscando PIX detalhado para: pay_51wfaehxi9dfkkek
+INFO 2025-06-22 03:22:48,052 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:22:48,053 asaas_service Dados completos coletados para pay_51wfaehxi9dfkkek - Erros: 0
+INFO 2025-06-22 03:22:48,063 asaas_service Atualizando dados completos para: pay_rgmyyvuh36t6n6ji
+INFO 2025-06-22 03:22:48,196 asaas_service Buscando código de barras para: pay_rgmyyvuh36t6n6ji
+INFO 2025-06-22 03:22:48,275 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:22:48,276 asaas_service Buscando PIX detalhado para: pay_rgmyyvuh36t6n6ji
+INFO 2025-06-22 03:22:48,538 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:22:48,539 asaas_service Dados completos coletados para pay_rgmyyvuh36t6n6ji - Erros: 0
+INFO 2025-06-22 03:22:48,548 asaas_service Atualizando dados completos para: pay_c2elpkdhmbea4o94
+INFO 2025-06-22 03:22:48,666 asaas_service Buscando código de barras para: pay_c2elpkdhmbea4o94
+INFO 2025-06-22 03:22:48,759 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:22:48,759 asaas_service Buscando PIX detalhado para: pay_c2elpkdhmbea4o94
+INFO 2025-06-22 03:22:48,939 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:22:48,939 asaas_service Dados completos coletados para pay_c2elpkdhmbea4o94 - Erros: 0
+INFO 2025-06-22 03:22:48,950 asaas_service Atualizando dados completos para: pay_41laqlzmk32yhyav
+INFO 2025-06-22 03:22:49,083 asaas_service Buscando código de barras para: pay_41laqlzmk32yhyav
+INFO 2025-06-22 03:22:49,157 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:22:49,158 asaas_service Buscando PIX detalhado para: pay_41laqlzmk32yhyav
+INFO 2025-06-22 03:22:49,382 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:22:49,383 asaas_service Dados completos coletados para pay_41laqlzmk32yhyav - Erros: 0
+INFO 2025-06-22 03:22:49,393 asaas_service Atualizando dados completos para: pay_rax3sm3cup9kmofo
+INFO 2025-06-22 03:22:49,592 asaas_service Buscando código de barras para: pay_rax3sm3cup9kmofo
+INFO 2025-06-22 03:22:49,677 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:22:49,678 asaas_service Buscando PIX detalhado para: pay_rax3sm3cup9kmofo
+INFO 2025-06-22 03:22:49,886 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:22:49,887 asaas_service Dados completos coletados para pay_rax3sm3cup9kmofo - Erros: 0
+INFO 2025-06-22 03:22:49,895 asaas_service Atualizando dados completos para: pay_axes0zx37g5awet2
+INFO 2025-06-22 03:22:50,006 asaas_service Buscando código de barras para: pay_axes0zx37g5awet2
+INFO 2025-06-22 03:22:50,088 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:22:50,089 asaas_service Buscando PIX detalhado para: pay_axes0zx37g5awet2
+INFO 2025-06-22 03:22:50,268 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:22:50,269 asaas_service Dados completos coletados para pay_axes0zx37g5awet2 - Erros: 0
+INFO 2025-06-22 03:22:50,282 asaas_service Atualizando dados completos para: pay_rw8fex377b2cp9qd
+INFO 2025-06-22 03:22:50,404 asaas_service Buscando código de barras para: pay_rw8fex377b2cp9qd
+INFO 2025-06-22 03:22:50,481 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:22:50,481 asaas_service Buscando PIX detalhado para: pay_rw8fex377b2cp9qd
+INFO 2025-06-22 03:22:50,667 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:22:50,668 asaas_service Dados completos coletados para pay_rw8fex377b2cp9qd - Erros: 0
+INFO 2025-06-22 03:22:50,679 asaas_service Atualizando dados completos para: pay_lgiwk19ds7t357of
+INFO 2025-06-22 03:22:50,873 asaas_service Buscando código de barras para: pay_lgiwk19ds7t357of
+INFO 2025-06-22 03:22:50,967 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:22:50,968 asaas_service Buscando PIX detalhado para: pay_lgiwk19ds7t357of
+INFO 2025-06-22 03:22:51,170 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:22:51,170 asaas_service Dados completos coletados para pay_lgiwk19ds7t357of - Erros: 0
+INFO 2025-06-22 03:22:51,179 asaas_service Atualizando dados completos para: pay_9n8as8r60z5fkg4y
+INFO 2025-06-22 03:22:51,420 asaas_service Buscando código de barras para: pay_9n8as8r60z5fkg4y
+INFO 2025-06-22 03:22:51,516 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:22:51,517 asaas_service Buscando PIX detalhado para: pay_9n8as8r60z5fkg4y
+INFO 2025-06-22 03:22:51,731 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:22:51,731 asaas_service Dados completos coletados para pay_9n8as8r60z5fkg4y - Erros: 0
+INFO 2025-06-22 03:22:51,742 asaas_service Atualizando dados completos para: pay_xzdgepgffwjp6mig
+INFO 2025-06-22 03:22:51,951 asaas_service Buscando código de barras para: pay_xzdgepgffwjp6mig
+INFO 2025-06-22 03:22:52,125 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:22:52,125 asaas_service Buscando PIX detalhado para: pay_xzdgepgffwjp6mig
+INFO 2025-06-22 03:22:52,331 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:22:52,332 asaas_service Dados completos coletados para pay_xzdgepgffwjp6mig - Erros: 0
+INFO 2025-06-22 03:26:44,543 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-22 03:26:44,544 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-22 03:26:44,690 asaas_service Atualizando dados completos para: pay_sst5wdq12okv10gu
+INFO 2025-06-22 03:26:44,811 asaas_service Buscando código de barras para: pay_sst5wdq12okv10gu
+INFO 2025-06-22 03:26:44,905 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:26:44,905 asaas_service Buscando PIX detalhado para: pay_sst5wdq12okv10gu
+INFO 2025-06-22 03:26:45,049 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:26:45,049 asaas_service Dados completos coletados para pay_sst5wdq12okv10gu - Erros: 0
+INFO 2025-06-22 03:26:45,051 asaas_service Atualizando dados completos para: pay_21rdin9ksrfwdykk
+INFO 2025-06-22 03:26:45,150 asaas_service Buscando código de barras para: pay_21rdin9ksrfwdykk
+INFO 2025-06-22 03:26:45,303 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:26:45,304 asaas_service Buscando PIX detalhado para: pay_21rdin9ksrfwdykk
+INFO 2025-06-22 03:26:45,459 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:26:45,460 asaas_service Dados completos coletados para pay_21rdin9ksrfwdykk - Erros: 0
+INFO 2025-06-22 03:26:45,460 asaas_service Atualizando dados completos para: pay_svxsw1y1qetow0a9
+INFO 2025-06-22 03:26:45,560 asaas_service Buscando código de barras para: pay_svxsw1y1qetow0a9
+INFO 2025-06-22 03:26:45,637 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:26:45,638 asaas_service Buscando PIX detalhado para: pay_svxsw1y1qetow0a9
+INFO 2025-06-22 03:26:45,807 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:26:45,807 asaas_service Dados completos coletados para pay_svxsw1y1qetow0a9 - Erros: 0
+INFO 2025-06-22 03:26:45,809 asaas_service Atualizando dados completos para: pay_7xvpbcr5hdyu1q6a
+INFO 2025-06-22 03:26:45,921 asaas_service Buscando código de barras para: pay_7xvpbcr5hdyu1q6a
+INFO 2025-06-22 03:26:46,044 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:26:46,044 asaas_service Buscando PIX detalhado para: pay_7xvpbcr5hdyu1q6a
+INFO 2025-06-22 03:26:46,211 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:26:46,211 asaas_service Dados completos coletados para pay_7xvpbcr5hdyu1q6a - Erros: 0
+INFO 2025-06-22 03:26:46,212 asaas_service Atualizando dados completos para: pay_72sdll84891zmvvl
+INFO 2025-06-22 03:26:46,309 asaas_service Buscando código de barras para: pay_72sdll84891zmvvl
+INFO 2025-06-22 03:26:46,406 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:26:46,406 asaas_service Buscando PIX detalhado para: pay_72sdll84891zmvvl
+INFO 2025-06-22 03:26:46,626 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:26:46,626 asaas_service Dados completos coletados para pay_72sdll84891zmvvl - Erros: 0
+INFO 2025-06-22 03:26:46,627 asaas_service Atualizando dados completos para: pay_ei3qcwvr7fjjb1ju
+INFO 2025-06-22 03:26:46,742 asaas_service Buscando código de barras para: pay_ei3qcwvr7fjjb1ju
+INFO 2025-06-22 03:26:46,817 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:26:46,818 asaas_service Buscando PIX detalhado para: pay_ei3qcwvr7fjjb1ju
+INFO 2025-06-22 03:26:46,982 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:26:46,983 asaas_service Dados completos coletados para pay_ei3qcwvr7fjjb1ju - Erros: 0
+INFO 2025-06-22 03:26:46,984 asaas_service Atualizando dados completos para: pay_73lthq2r5phvepts
+INFO 2025-06-22 03:26:47,089 asaas_service Buscando código de barras para: pay_73lthq2r5phvepts
+INFO 2025-06-22 03:26:47,196 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:26:47,196 asaas_service Buscando PIX detalhado para: pay_73lthq2r5phvepts
+INFO 2025-06-22 03:26:47,339 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:26:47,339 asaas_service Dados completos coletados para pay_73lthq2r5phvepts - Erros: 0
+INFO 2025-06-22 03:26:47,340 asaas_service Atualizando dados completos para: pay_5upp5u8p24jc2n8o
+INFO 2025-06-22 03:26:47,511 asaas_service Buscando código de barras para: pay_5upp5u8p24jc2n8o
+INFO 2025-06-22 03:26:47,625 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:26:47,626 asaas_service Buscando PIX detalhado para: pay_5upp5u8p24jc2n8o
+INFO 2025-06-22 03:26:47,856 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:26:47,857 asaas_service Dados completos coletados para pay_5upp5u8p24jc2n8o - Erros: 0
+INFO 2025-06-22 03:26:47,857 asaas_service Atualizando dados completos para: pay_il3rkqm2lsjgjl8o
+INFO 2025-06-22 03:26:48,053 asaas_service Buscando código de barras para: pay_il3rkqm2lsjgjl8o
+INFO 2025-06-22 03:26:48,133 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:26:48,134 asaas_service Buscando PIX detalhado para: pay_il3rkqm2lsjgjl8o
+INFO 2025-06-22 03:26:48,286 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:26:48,286 asaas_service Dados completos coletados para pay_il3rkqm2lsjgjl8o - Erros: 0
+INFO 2025-06-22 03:26:48,287 asaas_service Atualizando dados completos para: pay_mvml2xfua22nchs7
+INFO 2025-06-22 03:26:48,388 asaas_service Buscando código de barras para: pay_mvml2xfua22nchs7
+INFO 2025-06-22 03:26:48,471 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:26:48,472 asaas_service Buscando PIX detalhado para: pay_mvml2xfua22nchs7
+INFO 2025-06-22 03:26:48,632 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:26:48,633 asaas_service Dados completos coletados para pay_mvml2xfua22nchs7 - Erros: 0
+INFO 2025-06-22 03:26:48,634 asaas_service Atualizando dados completos para: pay_51wfaehxi9dfkkek
+INFO 2025-06-22 03:26:48,829 asaas_service Buscando código de barras para: pay_51wfaehxi9dfkkek
+INFO 2025-06-22 03:26:48,913 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:26:48,914 asaas_service Buscando PIX detalhado para: pay_51wfaehxi9dfkkek
+INFO 2025-06-22 03:26:49,074 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:26:49,075 asaas_service Dados completos coletados para pay_51wfaehxi9dfkkek - Erros: 0
+INFO 2025-06-22 03:26:49,077 asaas_service Atualizando dados completos para: pay_rgmyyvuh36t6n6ji
+INFO 2025-06-22 03:26:49,300 asaas_service Buscando código de barras para: pay_rgmyyvuh36t6n6ji
+INFO 2025-06-22 03:26:49,452 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:26:49,453 asaas_service Buscando PIX detalhado para: pay_rgmyyvuh36t6n6ji
+INFO 2025-06-22 03:26:49,699 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:26:49,699 asaas_service Dados completos coletados para pay_rgmyyvuh36t6n6ji - Erros: 0
+INFO 2025-06-22 03:26:49,701 asaas_service Atualizando dados completos para: pay_c2elpkdhmbea4o94
+INFO 2025-06-22 03:26:49,900 asaas_service Buscando código de barras para: pay_c2elpkdhmbea4o94
+INFO 2025-06-22 03:26:50,003 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:26:50,004 asaas_service Buscando PIX detalhado para: pay_c2elpkdhmbea4o94
+INFO 2025-06-22 03:26:50,170 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:26:50,170 asaas_service Dados completos coletados para pay_c2elpkdhmbea4o94 - Erros: 0
+INFO 2025-06-22 03:26:50,171 asaas_service Atualizando dados completos para: pay_41laqlzmk32yhyav
+INFO 2025-06-22 03:26:50,273 asaas_service Buscando código de barras para: pay_41laqlzmk32yhyav
+INFO 2025-06-22 03:26:50,357 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:26:50,357 asaas_service Buscando PIX detalhado para: pay_41laqlzmk32yhyav
+INFO 2025-06-22 03:26:50,520 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:26:50,520 asaas_service Dados completos coletados para pay_41laqlzmk32yhyav - Erros: 0
+INFO 2025-06-22 03:26:50,521 asaas_service Atualizando dados completos para: pay_rax3sm3cup9kmofo
+INFO 2025-06-22 03:26:50,616 asaas_service Buscando código de barras para: pay_rax3sm3cup9kmofo
+INFO 2025-06-22 03:26:50,689 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:26:50,689 asaas_service Buscando PIX detalhado para: pay_rax3sm3cup9kmofo
+INFO 2025-06-22 03:26:50,844 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:26:50,845 asaas_service Dados completos coletados para pay_rax3sm3cup9kmofo - Erros: 0
+INFO 2025-06-22 03:26:50,846 asaas_service Atualizando dados completos para: pay_axes0zx37g5awet2
+INFO 2025-06-22 03:26:50,955 asaas_service Buscando código de barras para: pay_axes0zx37g5awet2
+INFO 2025-06-22 03:26:51,101 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:26:51,101 asaas_service Buscando PIX detalhado para: pay_axes0zx37g5awet2
+INFO 2025-06-22 03:26:51,258 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:26:51,259 asaas_service Dados completos coletados para pay_axes0zx37g5awet2 - Erros: 0
+INFO 2025-06-22 03:26:51,260 asaas_service Atualizando dados completos para: pay_rw8fex377b2cp9qd
+INFO 2025-06-22 03:26:51,371 asaas_service Buscando código de barras para: pay_rw8fex377b2cp9qd
+INFO 2025-06-22 03:26:51,457 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:26:51,459 asaas_service Buscando PIX detalhado para: pay_rw8fex377b2cp9qd
+INFO 2025-06-22 03:26:51,603 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:26:51,604 asaas_service Dados completos coletados para pay_rw8fex377b2cp9qd - Erros: 0
+INFO 2025-06-22 03:26:51,606 asaas_service Atualizando dados completos para: pay_lgiwk19ds7t357of
+INFO 2025-06-22 03:26:51,795 asaas_service Buscando código de barras para: pay_lgiwk19ds7t357of
+INFO 2025-06-22 03:26:51,871 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:26:51,872 asaas_service Buscando PIX detalhado para: pay_lgiwk19ds7t357of
+INFO 2025-06-22 03:26:52,033 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:26:52,034 asaas_service Dados completos coletados para pay_lgiwk19ds7t357of - Erros: 0
+INFO 2025-06-22 03:26:52,035 asaas_service Atualizando dados completos para: pay_9n8as8r60z5fkg4y
+INFO 2025-06-22 03:26:52,139 asaas_service Buscando código de barras para: pay_9n8as8r60z5fkg4y
+INFO 2025-06-22 03:26:52,225 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:26:52,226 asaas_service Buscando PIX detalhado para: pay_9n8as8r60z5fkg4y
+INFO 2025-06-22 03:26:52,391 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:26:52,393 asaas_service Dados completos coletados para pay_9n8as8r60z5fkg4y - Erros: 0
+INFO 2025-06-22 03:26:52,394 asaas_service Atualizando dados completos para: pay_xzdgepgffwjp6mig
+INFO 2025-06-22 03:26:52,512 asaas_service Buscando código de barras para: pay_xzdgepgffwjp6mig
+INFO 2025-06-22 03:26:52,595 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:26:52,596 asaas_service Buscando PIX detalhado para: pay_xzdgepgffwjp6mig
+INFO 2025-06-22 03:26:52,743 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:26:52,743 asaas_service Dados completos coletados para pay_xzdgepgffwjp6mig - Erros: 0
+INFO 2025-06-22 03:27:24,551 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-22 03:27:24,551 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-22 03:27:24,716 asaas_service Atualizando dados completos para: pay_sst5wdq12okv10gu
+INFO 2025-06-22 03:27:24,834 asaas_service Buscando código de barras para: pay_sst5wdq12okv10gu
+INFO 2025-06-22 03:27:24,979 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:27:24,979 asaas_service Buscando PIX detalhado para: pay_sst5wdq12okv10gu
+INFO 2025-06-22 03:27:25,177 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:27:25,177 asaas_service Dados completos coletados para pay_sst5wdq12okv10gu - Erros: 0
+INFO 2025-06-22 03:27:25,178 asaas_service Atualizando dados completos para: pay_21rdin9ksrfwdykk
+INFO 2025-06-22 03:27:25,311 asaas_service Buscando código de barras para: pay_21rdin9ksrfwdykk
+INFO 2025-06-22 03:27:25,446 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:27:25,447 asaas_service Buscando PIX detalhado para: pay_21rdin9ksrfwdykk
+INFO 2025-06-22 03:27:25,640 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:27:25,640 asaas_service Dados completos coletados para pay_21rdin9ksrfwdykk - Erros: 0
+INFO 2025-06-22 03:27:25,641 asaas_service Atualizando dados completos para: pay_svxsw1y1qetow0a9
+INFO 2025-06-22 03:27:25,822 asaas_service Buscando código de barras para: pay_svxsw1y1qetow0a9
+INFO 2025-06-22 03:27:25,915 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:27:25,916 asaas_service Buscando PIX detalhado para: pay_svxsw1y1qetow0a9
+INFO 2025-06-22 03:27:26,041 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:27:26,042 asaas_service Dados completos coletados para pay_svxsw1y1qetow0a9 - Erros: 0
+INFO 2025-06-22 03:27:26,042 asaas_service Atualizando dados completos para: pay_7xvpbcr5hdyu1q6a
+INFO 2025-06-22 03:27:26,210 asaas_service Buscando código de barras para: pay_7xvpbcr5hdyu1q6a
+INFO 2025-06-22 03:27:26,311 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:27:26,312 asaas_service Buscando PIX detalhado para: pay_7xvpbcr5hdyu1q6a
+INFO 2025-06-22 03:27:26,441 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:27:26,441 asaas_service Dados completos coletados para pay_7xvpbcr5hdyu1q6a - Erros: 0
+INFO 2025-06-22 03:27:26,442 asaas_service Atualizando dados completos para: pay_72sdll84891zmvvl
+INFO 2025-06-22 03:27:26,538 asaas_service Buscando código de barras para: pay_72sdll84891zmvvl
+INFO 2025-06-22 03:27:26,637 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:27:26,637 asaas_service Buscando PIX detalhado para: pay_72sdll84891zmvvl
+INFO 2025-06-22 03:27:26,773 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:27:26,774 asaas_service Dados completos coletados para pay_72sdll84891zmvvl - Erros: 0
+INFO 2025-06-22 03:27:26,777 asaas_service Atualizando dados completos para: pay_ei3qcwvr7fjjb1ju
+INFO 2025-06-22 03:27:26,898 asaas_service Buscando código de barras para: pay_ei3qcwvr7fjjb1ju
+INFO 2025-06-22 03:27:26,975 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:27:26,975 asaas_service Buscando PIX detalhado para: pay_ei3qcwvr7fjjb1ju
+INFO 2025-06-22 03:27:27,089 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:27:27,090 asaas_service Dados completos coletados para pay_ei3qcwvr7fjjb1ju - Erros: 0
+INFO 2025-06-22 03:27:27,090 asaas_service Atualizando dados completos para: pay_73lthq2r5phvepts
+INFO 2025-06-22 03:27:27,197 asaas_service Buscando código de barras para: pay_73lthq2r5phvepts
+INFO 2025-06-22 03:27:27,327 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:27:27,327 asaas_service Buscando PIX detalhado para: pay_73lthq2r5phvepts
+INFO 2025-06-22 03:27:27,540 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:27:27,540 asaas_service Dados completos coletados para pay_73lthq2r5phvepts - Erros: 0
+INFO 2025-06-22 03:27:27,541 asaas_service Atualizando dados completos para: pay_5upp5u8p24jc2n8o
+INFO 2025-06-22 03:27:27,639 asaas_service Buscando código de barras para: pay_5upp5u8p24jc2n8o
+INFO 2025-06-22 03:27:27,768 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:27:27,769 asaas_service Buscando PIX detalhado para: pay_5upp5u8p24jc2n8o
+INFO 2025-06-22 03:27:27,887 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:27:27,887 asaas_service Dados completos coletados para pay_5upp5u8p24jc2n8o - Erros: 0
+INFO 2025-06-22 03:27:27,888 asaas_service Atualizando dados completos para: pay_il3rkqm2lsjgjl8o
+INFO 2025-06-22 03:27:27,998 asaas_service Buscando código de barras para: pay_il3rkqm2lsjgjl8o
+INFO 2025-06-22 03:27:28,066 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:27:28,067 asaas_service Buscando PIX detalhado para: pay_il3rkqm2lsjgjl8o
+INFO 2025-06-22 03:27:28,200 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:27:28,200 asaas_service Dados completos coletados para pay_il3rkqm2lsjgjl8o - Erros: 0
+INFO 2025-06-22 03:27:28,202 asaas_service Atualizando dados completos para: pay_mvml2xfua22nchs7
+INFO 2025-06-22 03:27:28,378 asaas_service Buscando código de barras para: pay_mvml2xfua22nchs7
+INFO 2025-06-22 03:27:28,459 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:27:28,459 asaas_service Buscando PIX detalhado para: pay_mvml2xfua22nchs7
+INFO 2025-06-22 03:27:28,647 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:27:28,647 asaas_service Dados completos coletados para pay_mvml2xfua22nchs7 - Erros: 0
+INFO 2025-06-22 03:27:28,648 asaas_service Atualizando dados completos para: pay_51wfaehxi9dfkkek
+INFO 2025-06-22 03:27:28,842 asaas_service Buscando código de barras para: pay_51wfaehxi9dfkkek
+INFO 2025-06-22 03:27:28,993 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:27:28,993 asaas_service Buscando PIX detalhado para: pay_51wfaehxi9dfkkek
+INFO 2025-06-22 03:27:29,233 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:27:29,234 asaas_service Dados completos coletados para pay_51wfaehxi9dfkkek - Erros: 0
+INFO 2025-06-22 03:27:29,235 asaas_service Atualizando dados completos para: pay_rgmyyvuh36t6n6ji
+INFO 2025-06-22 03:27:29,334 asaas_service Buscando código de barras para: pay_rgmyyvuh36t6n6ji
+INFO 2025-06-22 03:27:29,448 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:27:29,448 asaas_service Buscando PIX detalhado para: pay_rgmyyvuh36t6n6ji
+INFO 2025-06-22 03:27:29,579 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:27:29,579 asaas_service Dados completos coletados para pay_rgmyyvuh36t6n6ji - Erros: 0
+INFO 2025-06-22 03:27:29,580 asaas_service Atualizando dados completos para: pay_c2elpkdhmbea4o94
+INFO 2025-06-22 03:27:29,703 asaas_service Buscando código de barras para: pay_c2elpkdhmbea4o94
+INFO 2025-06-22 03:27:29,777 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:27:29,777 asaas_service Buscando PIX detalhado para: pay_c2elpkdhmbea4o94
+INFO 2025-06-22 03:27:29,926 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:27:29,926 asaas_service Dados completos coletados para pay_c2elpkdhmbea4o94 - Erros: 0
+INFO 2025-06-22 03:27:29,927 asaas_service Atualizando dados completos para: pay_41laqlzmk32yhyav
+INFO 2025-06-22 03:27:30,111 asaas_service Buscando código de barras para: pay_41laqlzmk32yhyav
+INFO 2025-06-22 03:27:30,193 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:27:30,193 asaas_service Buscando PIX detalhado para: pay_41laqlzmk32yhyav
+INFO 2025-06-22 03:27:30,336 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:27:30,336 asaas_service Dados completos coletados para pay_41laqlzmk32yhyav - Erros: 0
+INFO 2025-06-22 03:27:30,337 asaas_service Atualizando dados completos para: pay_rax3sm3cup9kmofo
+INFO 2025-06-22 03:27:30,444 asaas_service Buscando código de barras para: pay_rax3sm3cup9kmofo
+INFO 2025-06-22 03:27:30,524 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:27:30,524 asaas_service Buscando PIX detalhado para: pay_rax3sm3cup9kmofo
+INFO 2025-06-22 03:27:30,660 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:27:30,660 asaas_service Dados completos coletados para pay_rax3sm3cup9kmofo - Erros: 0
+INFO 2025-06-22 03:27:30,663 asaas_service Atualizando dados completos para: pay_axes0zx37g5awet2
+INFO 2025-06-22 03:27:30,770 asaas_service Buscando código de barras para: pay_axes0zx37g5awet2
+INFO 2025-06-22 03:27:30,928 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:27:30,928 asaas_service Buscando PIX detalhado para: pay_axes0zx37g5awet2
+INFO 2025-06-22 03:27:31,156 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:27:31,157 asaas_service Dados completos coletados para pay_axes0zx37g5awet2 - Erros: 0
+INFO 2025-06-22 03:27:31,158 asaas_service Atualizando dados completos para: pay_rw8fex377b2cp9qd
+INFO 2025-06-22 03:27:31,350 asaas_service Buscando código de barras para: pay_rw8fex377b2cp9qd
+INFO 2025-06-22 03:27:31,428 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:27:31,428 asaas_service Buscando PIX detalhado para: pay_rw8fex377b2cp9qd
+INFO 2025-06-22 03:27:31,559 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:27:31,560 asaas_service Dados completos coletados para pay_rw8fex377b2cp9qd - Erros: 0
+INFO 2025-06-22 03:27:31,560 asaas_service Atualizando dados completos para: pay_lgiwk19ds7t357of
+INFO 2025-06-22 03:27:31,757 asaas_service Buscando código de barras para: pay_lgiwk19ds7t357of
+INFO 2025-06-22 03:27:31,887 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:27:31,887 asaas_service Buscando PIX detalhado para: pay_lgiwk19ds7t357of
+INFO 2025-06-22 03:27:31,999 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:27:31,999 asaas_service Dados completos coletados para pay_lgiwk19ds7t357of - Erros: 0
+INFO 2025-06-22 03:27:32,000 asaas_service Atualizando dados completos para: pay_9n8as8r60z5fkg4y
+INFO 2025-06-22 03:27:32,099 asaas_service Buscando código de barras para: pay_9n8as8r60z5fkg4y
+INFO 2025-06-22 03:27:32,187 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:27:32,187 asaas_service Buscando PIX detalhado para: pay_9n8as8r60z5fkg4y
+INFO 2025-06-22 03:27:32,300 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:27:32,300 asaas_service Dados completos coletados para pay_9n8as8r60z5fkg4y - Erros: 0
+INFO 2025-06-22 03:27:32,301 asaas_service Atualizando dados completos para: pay_xzdgepgffwjp6mig
+INFO 2025-06-22 03:27:32,428 asaas_service Buscando código de barras para: pay_xzdgepgffwjp6mig
+INFO 2025-06-22 03:27:32,567 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:27:32,567 asaas_service Buscando PIX detalhado para: pay_xzdgepgffwjp6mig
+INFO 2025-06-22 03:27:32,769 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:27:32,769 asaas_service Dados completos coletados para pay_xzdgepgffwjp6mig - Erros: 0
+INFO 2025-06-22 03:28:11,812 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-22 03:28:11,813 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-22 03:28:12,058 asaas_service Atualizando dados completos para: pay_sst5wdq12okv10gu
+INFO 2025-06-22 03:28:12,284 asaas_service Buscando código de barras para: pay_sst5wdq12okv10gu
+INFO 2025-06-22 03:28:12,390 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:28:12,390 asaas_service Buscando PIX detalhado para: pay_sst5wdq12okv10gu
+INFO 2025-06-22 03:28:12,536 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:28:12,537 asaas_service Dados completos coletados para pay_sst5wdq12okv10gu - Erros: 0
+INFO 2025-06-22 03:28:12,540 asaas_service Atualizando dados completos para: pay_21rdin9ksrfwdykk
+INFO 2025-06-22 03:28:12,735 asaas_service Buscando código de barras para: pay_21rdin9ksrfwdykk
+INFO 2025-06-22 03:28:12,815 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:28:12,816 asaas_service Buscando PIX detalhado para: pay_21rdin9ksrfwdykk
+INFO 2025-06-22 03:28:12,958 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:28:12,958 asaas_service Dados completos coletados para pay_21rdin9ksrfwdykk - Erros: 0
+INFO 2025-06-22 03:28:12,959 asaas_service Atualizando dados completos para: pay_svxsw1y1qetow0a9
+INFO 2025-06-22 03:28:13,078 asaas_service Buscando código de barras para: pay_svxsw1y1qetow0a9
+INFO 2025-06-22 03:28:13,153 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:28:13,153 asaas_service Buscando PIX detalhado para: pay_svxsw1y1qetow0a9
+INFO 2025-06-22 03:28:13,299 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:28:13,300 asaas_service Dados completos coletados para pay_svxsw1y1qetow0a9 - Erros: 0
+INFO 2025-06-22 03:28:13,300 asaas_service Atualizando dados completos para: pay_7xvpbcr5hdyu1q6a
+INFO 2025-06-22 03:28:13,411 asaas_service Buscando código de barras para: pay_7xvpbcr5hdyu1q6a
+INFO 2025-06-22 03:28:13,532 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:28:13,533 asaas_service Buscando PIX detalhado para: pay_7xvpbcr5hdyu1q6a
+INFO 2025-06-22 03:28:13,659 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:28:13,660 asaas_service Dados completos coletados para pay_7xvpbcr5hdyu1q6a - Erros: 0
+INFO 2025-06-22 03:28:13,662 asaas_service Atualizando dados completos para: pay_72sdll84891zmvvl
+INFO 2025-06-22 03:28:13,773 asaas_service Buscando código de barras para: pay_72sdll84891zmvvl
+INFO 2025-06-22 03:28:13,867 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:28:13,868 asaas_service Buscando PIX detalhado para: pay_72sdll84891zmvvl
+INFO 2025-06-22 03:28:14,007 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:28:14,011 asaas_service Dados completos coletados para pay_72sdll84891zmvvl - Erros: 0
+INFO 2025-06-22 03:28:14,019 asaas_service Atualizando dados completos para: pay_ei3qcwvr7fjjb1ju
+INFO 2025-06-22 03:28:14,227 asaas_service Buscando código de barras para: pay_ei3qcwvr7fjjb1ju
+INFO 2025-06-22 03:28:14,303 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:28:14,304 asaas_service Buscando PIX detalhado para: pay_ei3qcwvr7fjjb1ju
+INFO 2025-06-22 03:28:14,429 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:28:14,430 asaas_service Dados completos coletados para pay_ei3qcwvr7fjjb1ju - Erros: 0
+INFO 2025-06-22 03:28:14,432 asaas_service Atualizando dados completos para: pay_73lthq2r5phvepts
+INFO 2025-06-22 03:28:14,548 asaas_service Buscando código de barras para: pay_73lthq2r5phvepts
+INFO 2025-06-22 03:28:14,640 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:28:14,641 asaas_service Buscando PIX detalhado para: pay_73lthq2r5phvepts
+INFO 2025-06-22 03:28:14,853 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:28:14,853 asaas_service Dados completos coletados para pay_73lthq2r5phvepts - Erros: 0
+INFO 2025-06-22 03:28:14,856 asaas_service Atualizando dados completos para: pay_5upp5u8p24jc2n8o
+INFO 2025-06-22 03:28:14,973 asaas_service Buscando código de barras para: pay_5upp5u8p24jc2n8o
+INFO 2025-06-22 03:28:15,124 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:28:15,125 asaas_service Buscando PIX detalhado para: pay_5upp5u8p24jc2n8o
+INFO 2025-06-22 03:28:15,294 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:28:15,294 asaas_service Dados completos coletados para pay_5upp5u8p24jc2n8o - Erros: 0
+INFO 2025-06-22 03:28:15,295 asaas_service Atualizando dados completos para: pay_il3rkqm2lsjgjl8o
+INFO 2025-06-22 03:28:15,391 asaas_service Buscando código de barras para: pay_il3rkqm2lsjgjl8o
+INFO 2025-06-22 03:28:15,474 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:28:15,474 asaas_service Buscando PIX detalhado para: pay_il3rkqm2lsjgjl8o
+INFO 2025-06-22 03:28:15,623 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:28:15,624 asaas_service Dados completos coletados para pay_il3rkqm2lsjgjl8o - Erros: 0
+INFO 2025-06-22 03:28:15,625 asaas_service Atualizando dados completos para: pay_mvml2xfua22nchs7
+INFO 2025-06-22 03:28:15,729 asaas_service Buscando código de barras para: pay_mvml2xfua22nchs7
+INFO 2025-06-22 03:28:15,810 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:28:15,810 asaas_service Buscando PIX detalhado para: pay_mvml2xfua22nchs7
+INFO 2025-06-22 03:28:15,945 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:28:15,946 asaas_service Dados completos coletados para pay_mvml2xfua22nchs7 - Erros: 0
+INFO 2025-06-22 03:28:15,949 asaas_service Atualizando dados completos para: pay_51wfaehxi9dfkkek
+INFO 2025-06-22 03:28:16,141 asaas_service Buscando código de barras para: pay_51wfaehxi9dfkkek
+INFO 2025-06-22 03:28:16,294 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:28:16,295 asaas_service Buscando PIX detalhado para: pay_51wfaehxi9dfkkek
+INFO 2025-06-22 03:28:16,502 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:28:16,503 asaas_service Dados completos coletados para pay_51wfaehxi9dfkkek - Erros: 0
+INFO 2025-06-22 03:28:16,505 asaas_service Atualizando dados completos para: pay_rgmyyvuh36t6n6ji
+INFO 2025-06-22 03:28:16,628 asaas_service Buscando código de barras para: pay_rgmyyvuh36t6n6ji
+INFO 2025-06-22 03:28:16,703 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:28:16,705 asaas_service Buscando PIX detalhado para: pay_rgmyyvuh36t6n6ji
+INFO 2025-06-22 03:28:16,872 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:28:16,873 asaas_service Dados completos coletados para pay_rgmyyvuh36t6n6ji - Erros: 0
+INFO 2025-06-22 03:28:16,875 asaas_service Atualizando dados completos para: pay_c2elpkdhmbea4o94
+INFO 2025-06-22 03:28:16,979 asaas_service Buscando código de barras para: pay_c2elpkdhmbea4o94
+INFO 2025-06-22 03:28:17,109 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:28:17,110 asaas_service Buscando PIX detalhado para: pay_c2elpkdhmbea4o94
+INFO 2025-06-22 03:28:17,315 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:28:17,316 asaas_service Dados completos coletados para pay_c2elpkdhmbea4o94 - Erros: 0
+INFO 2025-06-22 03:28:17,318 asaas_service Atualizando dados completos para: pay_41laqlzmk32yhyav
+INFO 2025-06-22 03:28:17,428 asaas_service Buscando código de barras para: pay_41laqlzmk32yhyav
+INFO 2025-06-22 03:28:17,522 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:28:17,523 asaas_service Buscando PIX detalhado para: pay_41laqlzmk32yhyav
+INFO 2025-06-22 03:28:17,660 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:28:17,660 asaas_service Dados completos coletados para pay_41laqlzmk32yhyav - Erros: 0
+INFO 2025-06-22 03:28:17,661 asaas_service Atualizando dados completos para: pay_rax3sm3cup9kmofo
+INFO 2025-06-22 03:28:17,767 asaas_service Buscando código de barras para: pay_rax3sm3cup9kmofo
+INFO 2025-06-22 03:28:17,901 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:28:17,902 asaas_service Buscando PIX detalhado para: pay_rax3sm3cup9kmofo
+INFO 2025-06-22 03:28:18,087 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:28:18,088 asaas_service Dados completos coletados para pay_rax3sm3cup9kmofo - Erros: 0
+INFO 2025-06-22 03:28:18,089 asaas_service Atualizando dados completos para: pay_axes0zx37g5awet2
+INFO 2025-06-22 03:28:18,198 asaas_service Buscando código de barras para: pay_axes0zx37g5awet2
+INFO 2025-06-22 03:28:18,499 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:28:18,500 asaas_service Buscando PIX detalhado para: pay_axes0zx37g5awet2
+INFO 2025-06-22 03:28:18,697 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:28:18,697 asaas_service Dados completos coletados para pay_axes0zx37g5awet2 - Erros: 0
+INFO 2025-06-22 03:28:18,699 asaas_service Atualizando dados completos para: pay_rw8fex377b2cp9qd
+INFO 2025-06-22 03:28:18,893 asaas_service Buscando código de barras para: pay_rw8fex377b2cp9qd
+INFO 2025-06-22 03:28:18,988 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:28:18,989 asaas_service Buscando PIX detalhado para: pay_rw8fex377b2cp9qd
+INFO 2025-06-22 03:28:19,110 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:28:19,111 asaas_service Dados completos coletados para pay_rw8fex377b2cp9qd - Erros: 0
+INFO 2025-06-22 03:28:19,111 asaas_service Atualizando dados completos para: pay_lgiwk19ds7t357of
+INFO 2025-06-22 03:28:19,221 asaas_service Buscando código de barras para: pay_lgiwk19ds7t357of
+INFO 2025-06-22 03:28:19,341 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:28:19,341 asaas_service Buscando PIX detalhado para: pay_lgiwk19ds7t357of
+INFO 2025-06-22 03:28:19,484 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:28:19,485 asaas_service Dados completos coletados para pay_lgiwk19ds7t357of - Erros: 0
+INFO 2025-06-22 03:28:19,486 asaas_service Atualizando dados completos para: pay_9n8as8r60z5fkg4y
+INFO 2025-06-22 03:28:19,588 asaas_service Buscando código de barras para: pay_9n8as8r60z5fkg4y
+INFO 2025-06-22 03:28:19,677 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:28:19,677 asaas_service Buscando PIX detalhado para: pay_9n8as8r60z5fkg4y
+INFO 2025-06-22 03:28:19,883 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:28:19,883 asaas_service Dados completos coletados para pay_9n8as8r60z5fkg4y - Erros: 0
+INFO 2025-06-22 03:28:19,885 asaas_service Atualizando dados completos para: pay_xzdgepgffwjp6mig
+INFO 2025-06-22 03:28:19,983 asaas_service Buscando código de barras para: pay_xzdgepgffwjp6mig
+INFO 2025-06-22 03:28:20,093 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:28:20,093 asaas_service Buscando PIX detalhado para: pay_xzdgepgffwjp6mig
+INFO 2025-06-22 03:28:20,315 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-22 03:28:20,315 asaas_service Dados completos coletados para pay_xzdgepgffwjp6mig - Erros: 0
+INFO 2025-06-22 03:30:15,946 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-22 03:30:15,947 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-22 03:30:15,948 asaas_service Buscando código de barras para: pay_sst5wdq12okv10gu
+INFO 2025-06-22 03:30:16,105 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-22 03:30:16,427 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-22 03:30:16,428 asaas_service Base URL: https://www.asaas.com/api/v3/
+ERROR 2025-06-22 03:30:16,834 asaas_service Erro HTTP 404 para https://www.asaas.com/api/v3/payments/pay_sst5wdq12okv10gu/bankSlip: <!doctype html><html lang="pt"><head><title>HTTP Status 404 – Não Encontrado</title><style type="text/css">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 404 – Não Encontrado</h1></body></html>
+INFO 2025-06-22 03:36:44,876 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-22 03:36:44,877 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-22 03:37:04,800 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-22 03:37:04,801 asaas_service Base URL: https://www.asaas.com/api/v3/
+ERROR 2025-06-22 10:30:32,529 lembrete_views DRY RUN - Falha para Thaina Capellani Agostinho: [DRY RUN] Número inválido
+INFO 2025-06-22 10:30:32,594 lembrete_views DRY RUN - Lembrete para Auzenir Pereira dos Santos - ID: DRY_d1fb972a
+INFO 2025-06-22 14:07:29,162 lembrete_views DRY RUN - Lembrete para Action 360 - ID: DRY_c5903dc3
+INFO 2025-06-22 14:07:29,191 lembrete_views DRY RUN - Lembrete para Marcelo Cesar da Silva Santos - ID: DRY_7283f0cd
+INFO 2025-06-22 14:07:48,779 lembrete_views DRY RUN - Lembrete para Action 360 - ID: DRY_f5785e7a
+INFO 2025-06-22 14:07:48,826 lembrete_views DRY RUN - Lembrete para Marcelo Cesar da Silva Santos - ID: DRY_08c7943f
+INFO 2025-06-22 14:15:30,022 lembrete_views DRY RUN - Lembrete para Thaina Capellani Agostinho - ID: DRY_94e0be35
+INFO 2025-06-22 14:15:30,058 lembrete_views DRY RUN - Lembrete para Auzenir Pereira dos Santos - ID: DRY_36b95f2a
+INFO 2025-06-22 14:46:10,397 lembrete_views Enviando WhatsApp para 5511999999999 via Z-API
+INFO 2025-06-22 14:46:10,726 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB01334DA61537F99FA26
+INFO 2025-06-22 14:47:40,034 lembrete_views Enviando WhatsApp para 5511999999999 via Z-API
+INFO 2025-06-22 14:47:40,138 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB03A4D5F4B41EC73E626
+INFO 2025-06-22 15:15:33,666 lembrete_views Enviando WhatsApp para 5511983492444 via Z-API
+INFO 2025-06-22 15:15:34,071 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB091E1A3DB447749F5D8
+INFO 2025-06-22 15:15:34,072 lembrete_views REAL - Lembrete para Thaina Capellani Agostinho - ID: 3EB091E1A3DB447749F5D8
+INFO 2025-06-22 15:15:34,095 lembrete_views Enviando WhatsApp para 5511959326279 via Z-API
+INFO 2025-06-22 15:15:34,246 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0659FFA62F03ACA77D8
+INFO 2025-06-22 15:15:34,247 lembrete_views REAL - Lembrete para Auzenir Pereira dos Santos - ID: 3EB0659FFA62F03ACA77D8
+INFO 2025-06-22 15:46:42,101 lembrete_views Enviando WhatsApp para 5511983492444 via Z-API
+INFO 2025-06-22 15:46:42,376 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB00673C6F20163A163BF
+INFO 2025-06-22 15:46:42,377 lembrete_views REAL - Lembrete para Thaina Capellani Agostinho - ID: 3EB00673C6F20163A163BF
+INFO 2025-06-22 15:46:42,394 lembrete_views Enviando WhatsApp para 5511959326279 via Z-API
+INFO 2025-06-22 15:46:42,466 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB04D67A2532AAE4E75EF
+INFO 2025-06-22 15:46:42,466 lembrete_views REAL - Lembrete para Auzenir Pereira dos Santos - ID: 3EB04D67A2532AAE4E75EF
+INFO 2025-06-23 08:46:49,498 lembrete_views Enviando WhatsApp para 5511951998139 via Z-API
+INFO 2025-06-23 08:46:50,657 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0988442BC4185D96762
+INFO 2025-06-23 08:46:50,659 lembrete_views REAL - Lembrete para Maria Socorro Medeiros - ID: 3EB0988442BC4185D96762
+INFO 2025-06-23 08:46:50,705 lembrete_views Enviando WhatsApp para 5511996114893 via Z-API
+INFO 2025-06-23 08:46:51,006 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0455954127B6244C1F7
+INFO 2025-06-23 08:46:51,007 lembrete_views REAL - Lembrete para Luigi Pinto - ID: 3EB0455954127B6244C1F7
+INFO 2025-06-23 08:46:51,050 lembrete_views Enviando WhatsApp para 5511996061545 via Z-API
+INFO 2025-06-23 08:46:51,117 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0194DB70405028952AA
+INFO 2025-06-23 08:46:51,118 lembrete_views REAL - Lembrete para Wilson Monteiro do Nascimento - ID: 3EB0194DB70405028952AA
+INFO 2025-06-24 17:33:24,585 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-24 17:33:24,587 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-24 17:33:24,588 asaas_mixin Iniciando integração da cobrança 128 com Asaas
+INFO 2025-06-24 17:33:24,933 asaas_service Cliente existente encontrado: cus_000118148479
+INFO 2025-06-24 17:33:25,087 asaas_mixin Cliente Asaas: cus_000118148479
+INFO 2025-06-24 17:33:25,088 asaas_service Criando cobrança - Valor: 1300.0
+ERROR 2025-06-24 17:33:25,209 asaas_service Erro HTTP 400 para https://www.asaas.com/api/v3/payments: {"errors":[{"code":"invalid_object","description":"Não é permitido emojis na descrição do parcelamento."}]}
+ERROR 2025-06-24 17:33:25,210 asaas_mixin Erro ao criar cobrança no Asaas: Erro na API Asaas: 400
+INFO 2025-06-24 19:23:52,119 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-24 19:23:52,119 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-24 19:23:52,121 asaas_mixin Iniciando integração da cobrança 129 com Asaas
+INFO 2025-06-24 19:23:52,468 asaas_service Cliente existente encontrado: cus_000118360514
+INFO 2025-06-24 19:23:52,735 asaas_mixin Cliente Asaas: cus_000118360514
+INFO 2025-06-24 19:23:52,735 asaas_service Criando cobrança - Valor: 1764.45
+INFO 2025-06-24 19:23:53,259 asaas_mixin Integração concluída - Asaas ID: pay_tkfaocan6v5t18iy
+INFO 2025-06-24 19:23:53,261 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-24 19:23:53,261 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-24 19:31:33,992 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-24 19:31:33,992 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-24 19:31:33,992 asaas_mixin Iniciando integração da cobrança 127 com Asaas
+INFO 2025-06-24 19:31:34,332 asaas_service Cliente existente encontrado: cus_000118360514
+INFO 2025-06-24 19:31:34,490 asaas_mixin Cliente Asaas: cus_000118360514
+INFO 2025-06-24 19:31:34,491 asaas_service Criando cobrança - Valor: 1764.45
+INFO 2025-06-24 19:31:35,001 asaas_mixin Integração concluída - Asaas ID: pay_a4u3smvlgk1pouq1
+INFO 2025-06-24 19:31:35,002 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-24 19:31:35,002 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-24 19:31:35,202 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-24 19:31:35,202 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-24 19:36:55,931 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-24 19:36:55,931 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-24 19:36:55,932 asaas_service Atualizando dados completos para: pay_a4u3smvlgk1pouq1
+INFO 2025-06-24 19:36:56,252 asaas_service Buscando código de barras para: pay_a4u3smvlgk1pouq1
+INFO 2025-06-24 19:36:56,409 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-24 19:36:56,410 asaas_service Buscando PIX detalhado para: pay_a4u3smvlgk1pouq1
+INFO 2025-06-24 19:36:56,727 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-06-24 19:36:56,727 asaas_service Dados completos coletados para pay_a4u3smvlgk1pouq1 - Erros: 0
+INFO 2025-06-24 19:49:04,226 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-24 19:49:04,227 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-24 19:49:04,227 asaas_service Buscando código de barras para: pay_a4u3smvlgk1pouq1
+INFO 2025-06-24 19:49:04,419 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-06-24 19:49:30,884 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-24 19:49:30,884 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-24 23:21:18,573 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-06-24 23:21:18,574 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-06-24 23:21:18,575 asaas_mixin Iniciando integração da cobrança 130 com Asaas
+INFO 2025-06-24 23:21:18,811 asaas_service Cliente existente encontrado: cus_000123800301
+INFO 2025-06-24 23:21:19,047 asaas_mixin Cliente Asaas: cus_000123800301
+INFO 2025-06-24 23:21:19,047 asaas_service Criando cobrança - Valor: 2100.0
+INFO 2025-06-24 23:21:19,505 asaas_mixin Integração concluída - Asaas ID: pay_lfud33gvhcsqb07t
+INFO 2025-06-25 07:48:10,394 lembrete_views Enviando WhatsApp para 5511986199049 via Z-API
+INFO 2025-06-25 07:48:10,704 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0B717A01ACBB18CD027
+INFO 2025-06-25 07:48:10,707 lembrete_views REAL - Lembrete para Renato Batalha da Silva Cordeiro - ID: 3EB0B717A01ACBB18CD027
+INFO 2025-06-25 23:48:16,010 indice_service Iniciando atualização do IPCA
+INFO 2025-06-25 23:48:17,578 indice_service IPCA atualizado: 1 criados, 0 atualizados
+INFO 2025-06-25 23:48:17,580 indice_service Iniciando atualização do IGPM
+INFO 2025-06-25 23:48:18,629 indice_service IGPM atualizado: 0 criados, 0 atualizados
+INFO 2025-06-26 07:35:26,211 lembrete_views Enviando WhatsApp para 5511920120583 via Z-API
+INFO 2025-06-26 07:35:26,498 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB08C937A82B70C46CAC5
+INFO 2025-06-26 07:35:26,501 lembrete_views REAL - Lembrete para Walter Zago Ujvari - ID: 3EB08C937A82B70C46CAC5
+INFO 2025-06-26 07:35:26,531 lembrete_views Enviando WhatsApp para 5511949235702 via Z-API
+INFO 2025-06-26 07:35:26,602 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB072C4A8C26103AAB76F
+INFO 2025-06-26 07:35:26,603 lembrete_views REAL - Lembrete para Elaine Cristina Viana da Silva - ID: 3EB072C4A8C26103AAB76F
+INFO 2025-06-26 07:35:26,628 lembrete_views Enviando WhatsApp para 5511985748927 via Z-API
+INFO 2025-06-26 07:35:26,744 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0DE0EB44D890C3F859A
+INFO 2025-06-26 07:35:26,746 lembrete_views REAL - Lembrete para Cledson Alves de Souza - ID: 3EB0DE0EB44D890C3F859A
+INFO 2025-06-26 07:35:26,771 lembrete_views Enviando WhatsApp para 5511951942466 via Z-API
+INFO 2025-06-26 07:35:26,848 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0A63A22752B7CC02A92
+INFO 2025-06-26 07:35:26,850 lembrete_views REAL - Lembrete para Elenice Claudino de Freitas - ID: 3EB0A63A22752B7CC02A92
+INFO 2025-06-26 07:35:26,874 lembrete_views Enviando WhatsApp para 5511998291813 via Z-API
+INFO 2025-06-26 07:35:26,986 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB04FA31536967AB82F6A
+INFO 2025-06-26 07:35:26,987 lembrete_views REAL - Lembrete para Gabriel Henrique dos Santos - ID: 3EB04FA31536967AB82F6A
+INFO 2025-06-26 07:35:27,022 lembrete_views Enviando WhatsApp para 5511956505525 via Z-API
+INFO 2025-06-26 07:35:27,155 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB02098F4B3753BDAE359
+INFO 2025-06-26 07:35:27,157 lembrete_views REAL - Lembrete para Amir Al Jbawi 23708414861 - ID: 3EB02098F4B3753BDAE359
+INFO 2025-06-26 07:35:27,192 lembrete_views Enviando WhatsApp para 5511986896440 via Z-API
+INFO 2025-06-26 07:35:27,314 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB01E0512AC1CF8616C80
+INFO 2025-06-26 07:35:27,315 lembrete_views REAL - Lembrete para Arlete Rodrigues Ferreira - ID: 3EB01E0512AC1CF8616C80
+INFO 2025-06-26 07:35:27,339 lembrete_views Enviando WhatsApp para 5511983492444 via Z-API
+INFO 2025-06-26 07:35:27,439 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB079D1DDB60882FF1243
+INFO 2025-06-26 07:35:27,440 lembrete_views REAL - Lembrete para Thaina Capellani Agostinho - ID: 3EB079D1DDB60882FF1243
+INFO 2025-06-26 07:35:27,464 lembrete_views Enviando WhatsApp para 5511959326279 via Z-API
+INFO 2025-06-26 07:35:27,561 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB08F5DD1D8F98E69F43C
+INFO 2025-06-26 07:35:27,562 lembrete_views REAL - Lembrete para Auzenir Pereira dos Santos - ID: 3EB08F5DD1D8F98E69F43C
+ERROR 2025-06-26 12:41:50,837 signals Erro ao criar repasse automático para cobrança 107: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+INFO 2025-06-26 12:42:15,728 repasse_service Iniciando processamento automático de repasses
+INFO 2025-06-26 12:42:15,736 repasse_service Encontrados 0 agendamentos vencidos
+INFO 2025-06-26 12:42:15,745 repasse_service Encontradas 1 cobranças pagas sem repasse
+INFO 2025-06-26 12:42:15,771 repasse_service Processamento concluído: {'criados': 1, 'processados': 0, 'agendados': 0, 'erros': 0, 'detalhes': ['Repasse 18 criado para Ilda Fonseca de Almeida - Cobrança paga em 01/07/2025, repasse previsto para 03/07/2025']}
+INFO 2025-06-26 20:45:50,530 repasse_service Iniciando processamento automático de repasses
+INFO 2025-06-26 20:45:50,533 repasse_service Encontrados 0 agendamentos vencidos
+INFO 2025-06-26 20:45:50,539 repasse_service Encontradas 1 cobranças pagas sem repasse
+INFO 2025-06-26 20:45:50,561 repasse_service Processamento concluído: {'criados': 1, 'processados': 0, 'agendados': 0, 'erros': 0, 'detalhes': ['Repasse 19 criado para Ilda Fonseca de Almeida - Cobrança paga em 01/07/2025, repasse previsto para 08/07/2025']}
+INFO 2025-06-30 08:32:10,458 lembrete_views Enviando WhatsApp para 5511983492444 via Z-API
+ERROR 2025-06-30 08:32:10,725 lembrete_views Erro HTTP Z-API: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+ERROR 2025-06-30 08:32:10,726 lembrete_views REAL - Falha para Thaina Capellani Agostinho: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+INFO 2025-06-30 08:32:10,782 lembrete_views Enviando WhatsApp para 5511959326279 via Z-API
+ERROR 2025-06-30 08:32:10,850 lembrete_views Erro HTTP Z-API: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+ERROR 2025-06-30 08:32:10,853 lembrete_views REAL - Falha para Auzenir Pereira dos Santos: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+ERROR 2025-07-01 10:24:34,157 signals Erro ao criar repasse automático para cobrança 108: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+INFO 2025-07-01 10:24:59,933 lembrete_views Enviando WhatsApp para 5511955518886 via Z-API
+ERROR 2025-07-01 10:25:00,113 lembrete_views Erro HTTP Z-API: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+ERROR 2025-07-01 10:25:00,115 lembrete_views REAL - Falha para Daniel Almeida Gomes: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+INFO 2025-07-01 10:25:00,142 lembrete_views Enviando WhatsApp para 5511981942455 via Z-API
+ERROR 2025-07-01 10:25:00,212 lembrete_views Erro HTTP Z-API: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+ERROR 2025-07-01 10:25:00,215 lembrete_views REAL - Falha para Mauro Sergio Pereira Lacerda: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+INFO 2025-07-01 10:25:00,294 lembrete_views Enviando WhatsApp para 5511983492444 via Z-API
+ERROR 2025-07-01 10:25:00,397 lembrete_views Erro HTTP Z-API: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+ERROR 2025-07-01 10:25:00,398 lembrete_views REAL - Falha para Thaina Capellani Agostinho: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+INFO 2025-07-01 11:32:23,238 lembrete_views Enviando WhatsApp para 5511955518886 via Z-API
+INFO 2025-07-01 11:32:24,965 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0B81585E9C86F083DDC
+INFO 2025-07-01 11:32:24,966 lembrete_views REAL - Lembrete para Daniel Almeida Gomes - ID: 3EB0B81585E9C86F083DDC
+INFO 2025-07-01 11:32:24,981 lembrete_views Enviando WhatsApp para 5511981942455 via Z-API
+INFO 2025-07-01 11:32:25,104 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0D1C74000A974FA6B8E
+INFO 2025-07-01 11:32:25,104 lembrete_views REAL - Lembrete para Mauro Sergio Pereira Lacerda - ID: 3EB0D1C74000A974FA6B8E
+INFO 2025-07-01 11:32:25,122 lembrete_views Enviando WhatsApp para 5511983492444 via Z-API
+INFO 2025-07-01 11:32:27,503 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB06BAA45B966B21C81B3
+INFO 2025-07-01 11:32:27,504 lembrete_views REAL - Lembrete para Thaina Capellani Agostinho - ID: 3EB06BAA45B966B21C81B3
+ERROR 2025-07-01 17:35:08,505 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-01 17:37:26,685 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-01 23:26:23,491 signals Erro ao criar repasse automático para cobrança 108: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-07-01 23:29:23,280 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-02 08:38:39,767 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+INFO 2025-07-02 08:39:11,065 lembrete_views Enviando WhatsApp para 5511951998139 via Z-API
+INFO 2025-07-02 08:39:11,501 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0E244C3E050BB7DAFF2
+INFO 2025-07-02 08:39:11,503 lembrete_views REAL - Lembrete para Maria Socorro Medeiros - ID: 3EB0E244C3E050BB7DAFF2
+INFO 2025-07-02 08:39:11,536 lembrete_views Enviando WhatsApp para 5511996114893 via Z-API
+INFO 2025-07-02 08:39:11,662 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB07D52B1F13CF4AA57CE
+INFO 2025-07-02 08:39:11,664 lembrete_views REAL - Lembrete para Luigi Pinto - ID: 3EB07D52B1F13CF4AA57CE
+INFO 2025-07-02 08:39:11,691 lembrete_views Enviando WhatsApp para 5511996061545 via Z-API
+INFO 2025-07-02 08:39:11,802 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0F000C7D9F74B566BFA
+INFO 2025-07-02 08:39:11,803 lembrete_views REAL - Lembrete para Wilson Monteiro do Nascimento - ID: 3EB0F000C7D9F74B566BFA
+ERROR 2025-07-02 12:20:53,484 signals Erro ao criar repasse automático para cobrança 120: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-07-02 12:21:09,717 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-02 12:21:45,573 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-02 12:22:49,393 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-02 16:50:02,461 signals Erro ao criar repasse automático para cobrança 120: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-07-02 16:50:14,053 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-02 16:50:24,506 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-02 16:53:53,244 signals Erro ao criar repasse automático para cobrança 120: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-07-02 18:43:03,868 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-02 18:43:12,834 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+INFO 2025-07-02 18:45:57,530 signals    Contrato: 8
+INFO 2025-07-02 18:45:57,531 signals    Proprietário: Sonia Verginia de Lima Forestiero
+INFO 2025-07-02 18:45:57,532 signals    Política: 6 (ativa: True)
+WARNING 2025-07-02 18:45:57,533 signals RepasseService novo não encontrado - usando método legado
+ERROR 2025-07-02 18:45:57,533 signals RepasseService não possui método calcular_valor_repasse
+ERROR 2025-07-02 18:46:13,521 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-02 18:49:03,068 signals Erro ao criar repasse automático para cobrança 120: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-07-02 19:41:26,355 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-02 19:52:03,895 signals Erro ao criar repasse automático para cobrança 120: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-07-02 19:55:39,119 signals Erro ao criar repasse automático para cobrança 120: cannot import name 'PoliticaRepasse' from 'financeiro.models.repasse' (C:\Users\guilh\OneDrive\Pessoal\Documentos\GitHub\Teste\Imobiliaria\financeiro\models\repasse.py)
+ERROR 2025-07-02 19:56:26,980 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-02 19:56:52,760 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-02 21:00:09,128 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-02 21:01:17,313 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-02 21:02:08,404 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-02 21:02:17,607 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-02 23:34:23,325 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-02 23:34:28,529 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-02 23:53:10,699 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-03 00:00:35,710 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-03 00:02:03,045 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-03 10:07:22,475 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-03 10:20:47,537 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-03 11:36:20,803 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+INFO 2025-07-03 13:13:39,985 repasse_service === INICIANDO PROCESSAMENTO AUTOMÁTICO DE REPASSES ===
+INFO 2025-07-03 13:13:40,105 repasse_service Encontrados 0 agendamentos vencidos
+INFO 2025-07-03 13:13:40,198 repasse_service Encontradas 3 cobranças pagas sem repasse
+ERROR 2025-07-03 13:13:42,928 repasse_service Erro ao processar cobrança 117: name 'cobrança' is not defined
+ERROR 2025-07-03 13:13:42,941 repasse_service Erro ao criar repasses: name 'cobrança' is not defined
+INFO 2025-07-03 13:13:43,025 repasse_service Processamento concluído: {'criados': 1, 'processados': 0, 'agendados': 0, 'erros': 2, 'detalhes': ['Nenhum agendamento vencido encontrado', "Erro geral na criação: name 'cobrança' is not defined", 'Atenção: 15 contratos ativos sem política de repasse']}
+INFO 2025-07-03 13:50:13,929 repasse_service === INICIANDO PROCESSAMENTO AUTOMÁTICO DE REPASSES ===
+INFO 2025-07-03 13:50:13,943 repasse_service Encontrados 0 agendamentos vencidos
+INFO 2025-07-03 13:50:13,950 repasse_service Encontradas 2 cobranças pagas sem repasse
+ERROR 2025-07-03 13:50:15,099 repasse_service Erro ao processar cobrança 108: name 'cobrança' is not defined
+ERROR 2025-07-03 13:50:15,133 repasse_service Erro ao criar repasses: name 'cobrança' is not defined
+INFO 2025-07-03 13:50:15,183 repasse_service Processamento concluído: {'criados': 1, 'processados': 0, 'agendados': 0, 'erros': 2, 'detalhes': ['Nenhum agendamento vencido encontrado', "Erro geral na criação: name 'cobrança' is not defined", 'Atenção: 15 contratos ativos sem política de repasse']}
+INFO 2025-07-03 13:53:47,240 repasse_service === INICIANDO PROCESSAMENTO AUTOMÁTICO DE REPASSES ===
+INFO 2025-07-03 13:53:47,247 repasse_service Encontrados 0 agendamentos vencidos
+INFO 2025-07-03 13:53:47,250 repasse_service Encontradas 1 cobranças pagas sem repasse
+ERROR 2025-07-03 13:53:47,322 repasse_service Erro ao processar cobrança 107: name 'cobrança' is not defined
+ERROR 2025-07-03 13:53:47,323 repasse_service Erro ao criar repasses: name 'cobrança' is not defined
+INFO 2025-07-03 13:53:47,333 repasse_service Processamento concluído: {'criados': 1, 'processados': 0, 'agendados': 0, 'erros': 2, 'detalhes': ['Nenhum agendamento vencido encontrado', "Erro geral na criação: name 'cobrança' is not defined", 'Atenção: 15 contratos ativos sem política de repasse']}
+INFO 2025-07-03 13:59:52,914 repasse_service === INICIANDO PROCESSAMENTO AUTOMÁTICO DE REPASSES ===
+INFO 2025-07-03 13:59:52,918 repasse_service Encontrados 0 agendamentos vencidos
+INFO 2025-07-03 13:59:52,922 repasse_service Encontradas 0 cobranças pagas sem repasse
+INFO 2025-07-03 13:59:52,925 repasse_service Processamento concluído: {'criados': 0, 'processados': 0, 'agendados': 0, 'erros': 0, 'detalhes': ['Nenhum agendamento vencido encontrado', 'Nenhuma cobrança elegível para repasse encontrada', 'Atenção: 15 contratos ativos sem política de repasse']}
+INFO 2025-07-03 14:00:23,367 repasse_service === INICIANDO PROCESSAMENTO AUTOMÁTICO DE REPASSES ===
+INFO 2025-07-03 14:00:23,375 repasse_service Encontrados 0 agendamentos vencidos
+INFO 2025-07-03 14:00:23,381 repasse_service Encontradas 0 cobranças pagas sem repasse
+INFO 2025-07-03 14:00:23,387 repasse_service Processamento concluído: {'criados': 0, 'processados': 0, 'agendados': 0, 'erros': 0, 'detalhes': ['Nenhum agendamento vencido encontrado', 'Nenhuma cobrança elegível para repasse encontrada', 'Atenção: 15 contratos ativos sem política de repasse']}
+INFO 2025-07-03 14:01:13,017 repasse_service === INICIANDO PROCESSAMENTO AUTOMÁTICO DE REPASSES ===
+INFO 2025-07-03 14:01:13,026 repasse_service Encontrados 0 agendamentos vencidos
+INFO 2025-07-03 14:01:13,032 repasse_service Encontradas 1 cobranças pagas sem repasse
+ERROR 2025-07-03 14:01:13,162 repasse_service Erro ao processar cobrança 120: name 'cobrança' is not defined
+ERROR 2025-07-03 14:01:13,164 repasse_service Erro ao criar repasses: name 'cobrança' is not defined
+INFO 2025-07-03 14:01:13,171 repasse_service Processamento concluído: {'criados': 1, 'processados': 0, 'agendados': 0, 'erros': 2, 'detalhes': ['Nenhum agendamento vencido encontrado', "Erro geral na criação: name 'cobrança' is not defined", 'Atenção: 15 contratos ativos sem política de repasse']}
+ERROR 2025-07-04 00:38:35,392 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-04 00:38:46,600 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-04 00:39:01,261 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+ERROR 2025-07-04 00:39:23,303 repasse_views Erro no processamento automático: 'RepasseService' object has no attribute 'processar_repasses_automaticos'
+INFO 2025-07-04 01:04:50,858 repasse_views Repasse 27 criado para cobrança 120
+INFO 2025-07-04 01:04:51,176 repasse_views Repasse 28 criado para cobrança 117
+INFO 2025-07-04 01:04:51,647 repasse_views Repasse 29 criado para cobrança 108
+INFO 2025-07-04 01:04:51,763 repasse_views Repasse 30 criado para cobrança 107
+INFO 2025-07-04 10:21:41,547 lembrete_views Enviando WhatsApp para 5511986199049 via Z-API
+INFO 2025-07-04 10:21:41,868 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0021E5294F0D0266EB1
+INFO 2025-07-04 10:21:41,869 lembrete_views REAL - Lembrete para Renato Batalha da Silva Cordeiro - ID: 3EB0021E5294F0D0266EB1
+INFO 2025-07-04 10:22:56,248 repasse_views Repasse 32 criado para cobrança 118
+INFO 2025-07-07 09:08:15,298 lembrete_views Enviando WhatsApp para 5511954675847 via Z-API
+INFO 2025-07-07 09:08:16,090 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0109922F6F2D9563D5E
+INFO 2025-07-07 09:08:16,092 lembrete_views REAL - Lembrete para Danilo Santos de Castro - ID: 3EB0109922F6F2D9563D5E
+INFO 2025-07-07 09:08:16,111 lembrete_views Enviando WhatsApp para 5511920120583 via Z-API
+INFO 2025-07-07 09:08:16,415 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB08BD447F76C95B1D836
+INFO 2025-07-07 09:08:16,416 lembrete_views REAL - Lembrete para Walter Zago Ujvari - ID: 3EB08BD447F76C95B1D836
+INFO 2025-07-07 09:08:16,436 lembrete_views Enviando WhatsApp para 5511949235702 via Z-API
+INFO 2025-07-07 09:08:16,986 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0C195A37DD358BE3197
+INFO 2025-07-07 09:08:16,987 lembrete_views REAL - Lembrete para Elaine Cristina Viana da Silva - ID: 3EB0C195A37DD358BE3197
+INFO 2025-07-07 09:08:17,006 lembrete_views Enviando WhatsApp para 5511985748927 via Z-API
+INFO 2025-07-07 09:08:18,526 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB09CB6410C8C882F60B1
+INFO 2025-07-07 09:08:18,527 lembrete_views REAL - Lembrete para Cledson Alves de Souza - ID: 3EB09CB6410C8C882F60B1
+INFO 2025-07-07 09:08:18,541 lembrete_views Enviando WhatsApp para 5511951942466 via Z-API
+INFO 2025-07-07 09:08:21,122 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0B35FD29E2AA9F97394
+INFO 2025-07-07 09:08:21,124 lembrete_views REAL - Lembrete para Elenice Claudino de Freitas - ID: 3EB0B35FD29E2AA9F97394
+INFO 2025-07-07 09:08:21,153 lembrete_views Enviando WhatsApp para 5511986896440 via Z-API
+INFO 2025-07-07 09:08:21,431 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB094CD9D33522CDE2EB3
+INFO 2025-07-07 09:08:21,433 lembrete_views REAL - Lembrete para Arlete Rodrigues Ferreira - ID: 3EB094CD9D33522CDE2EB3
+INFO 2025-07-07 09:08:21,452 lembrete_views Enviando WhatsApp para 5511996061545 via Z-API
+INFO 2025-07-07 09:08:21,720 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB029F2DC51D72458769F
+INFO 2025-07-07 09:08:21,721 lembrete_views REAL - Lembrete para Wilson Monteiro do Nascimento - ID: 3EB029F2DC51D72458769F
+INFO 2025-07-07 09:12:24,498 repasse_views Repasse 33 criado com cálculo integrado
+INFO 2025-07-07 18:14:06,570 repasse_views Repasse 34 criado com cálculo integrado
+INFO 2025-07-07 18:14:06,623 repasse_views Repasse 35 criado com cálculo integrado
+INFO 2025-07-07 18:14:06,703 repasse_views Repasse 36 criado com cálculo integrado
+INFO 2025-07-07 18:14:06,782 repasse_views Repasse 37 criado com cálculo integrado
+INFO 2025-07-07 18:14:06,862 repasse_views Repasse 38 criado com cálculo integrado
+INFO 2025-07-07 18:14:06,921 repasse_views Repasse 39 criado com cálculo integrado
+INFO 2025-07-07 18:14:07,059 repasse_views Repasse 40 criado com cálculo integrado
+ERROR 2025-07-07 18:14:48,097 repasse_views Erro ao processar repasse 39: The following fields do not exist in this model, are m2m fields, or are non-concrete fields: status_repasse, data_repasse
+INFO 2025-07-08 14:54:49,741 envio_csv_views CSV processado: 3 leads, 11 colunas
+ERROR 2025-07-08 15:05:04,672 envio_csv_views Erro no envio para lead {'Nome': 'Catia Camargo', 'Email': 'catiar_camargo@outlook.com', 'Telefone': '+5511983460099', 'Estágio': 'Em análise', 'Formulário': 'Interesse Sobrado Comercial - Médicos'}: NOT NULL constraint failed: financeiro_lembreteenviado.cobranca_id
+ERROR 2025-07-08 15:05:04,678 envio_csv_views Erro no envio para lead {'Nome': 'Depilação Laser & Procedimentos Estéticos - Brasilandia - ZN', 'Email': 'danimacedoooo@hotmail.com', 'Telefone': '+5511989192326', 'Estágio': 'Em análise', 'Formulário': 'Interesse Sobrado Comercial - Médicos'}: NOT NULL constraint failed: financeiro_lembreteenviado.cobranca_id
+ERROR 2025-07-08 15:05:04,683 envio_csv_views Erro no envio para lead {'Nome': 'Juliana Felgueiras • RNM', 'Email': 'juliana.rh.andrade@gmail.com', 'Telefone': '+5511993572641', 'Estágio': 'Em análise', 'Formulário': 'Interesse Sobrado Comercial - Médicos'}: NOT NULL constraint failed: financeiro_lembreteenviado.cobranca_id
+INFO 2025-07-10 10:26:55,079 lembrete_views Enviando WhatsApp para 5511985683318 via Z-API
+INFO 2025-07-10 10:26:55,899 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB065574ADFC0D40BD326
+INFO 2025-07-10 10:26:55,903 lembrete_views REAL - Lembrete para Decio Cardozo Mourao - ID: 3EB065574ADFC0D40BD326
+INFO 2025-07-10 10:26:55,933 lembrete_views Enviando WhatsApp para 5511981942455 via Z-API
+INFO 2025-07-10 10:26:56,021 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0A8FEF37DEAC4E371DB
+INFO 2025-07-10 10:26:56,023 lembrete_views REAL - Lembrete para Mauro Sergio Pereira Lacerda - ID: 3EB0A8FEF37DEAC4E371DB
+INFO 2025-07-10 10:26:56,054 lembrete_views Enviando WhatsApp para 5511949235702 via Z-API
+INFO 2025-07-10 10:26:56,163 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0FF53CA583D6048DCEA
+INFO 2025-07-10 10:26:56,164 lembrete_views REAL - Lembrete para Elaine Cristina Viana da Silva - ID: 3EB0FF53CA583D6048DCEA
+INFO 2025-07-10 10:26:56,193 lembrete_views Enviando WhatsApp para 5511985748927 via Z-API
+INFO 2025-07-10 10:26:56,298 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0F4BE302430D92DA766
+INFO 2025-07-10 10:26:56,299 lembrete_views REAL - Lembrete para Cledson Alves de Souza - ID: 3EB0F4BE302430D92DA766
+INFO 2025-07-10 10:26:56,324 lembrete_views Enviando WhatsApp para 5511986896440 via Z-API
+INFO 2025-07-10 10:26:56,391 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB04E661D3DCF5E32E6DE
+INFO 2025-07-10 10:26:56,392 lembrete_views REAL - Lembrete para Arlete Rodrigues Ferreira - ID: 3EB04E661D3DCF5E32E6DE
+INFO 2025-07-11 10:16:50,229 lembrete_views Enviando WhatsApp para 5511947846447 via Z-API
+INFO 2025-07-11 10:16:50,572 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB03E60EA20E44F31A6F0
+INFO 2025-07-11 10:16:50,573 lembrete_views REAL - Lembrete para Graziela Aparecida Torres dos Santos - ID: 3EB03E60EA20E44F31A6F0
+INFO 2025-07-14 09:30:17,606 lembrete_views Enviando WhatsApp para 5511976576464 via Z-API
+INFO 2025-07-14 09:30:17,920 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB07D3067A5B73564A113
+INFO 2025-07-14 09:30:17,923 lembrete_views REAL - Lembrete para Marcelo Cesar da Silva Santos - ID: 3EB07D3067A5B73564A113
+INFO 2025-07-14 09:30:17,963 lembrete_views Enviando WhatsApp para 5511986148105 via Z-API
+INFO 2025-07-14 09:30:18,045 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB09358E287DA46BFFDB5
+INFO 2025-07-14 09:30:18,046 lembrete_views REAL - Lembrete para Action 360 - ID: 3EB09358E287DA46BFFDB5
+ERROR 2025-07-14 09:32:58,275 repasse_views Erro ao processar repasse 37: The following fields do not exist in this model, are m2m fields, or are non-concrete fields: status_repasse, data_repasse
+ERROR 2025-07-14 09:33:40,535 repasse_views Erro ao processar repasse 40: The following fields do not exist in this model, are m2m fields, or are non-concrete fields: status_repasse, data_repasse
+ERROR 2025-07-14 09:39:46,657 repasse_views Erro ao processar repasse 38: The following fields do not exist in this model, are m2m fields, or are non-concrete fields: status_repasse, data_repasse
+INFO 2025-07-15 23:19:54,248 repasse_views Repasse 44 criado com cálculo integrado
+INFO 2025-07-15 23:19:54,294 repasse_views Repasse 45 criado com cálculo integrado
+INFO 2025-07-15 23:19:54,344 repasse_views Repasse 46 criado com cálculo integrado
+INFO 2025-07-15 23:19:54,388 repasse_views Repasse 47 criado com cálculo integrado
+INFO 2025-07-15 23:19:54,424 repasse_views Repasse 48 criado com cálculo integrado
+INFO 2025-07-16 08:07:05,491 lembrete_views Enviando WhatsApp para 5511960614367 via Z-API
+INFO 2025-07-16 08:07:05,937 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0B8C504699CBDB0E678
+INFO 2025-07-16 08:07:05,940 lembrete_views REAL - Lembrete para Artur Carlos de Figueiredo Pacheco Filho - ID: 3EB0B8C504699CBDB0E678
+INFO 2025-07-16 08:07:05,983 lembrete_views Enviando WhatsApp para 5511954675847 via Z-API
+INFO 2025-07-16 08:07:06,080 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0D2459AFE4D80E397B1
+INFO 2025-07-16 08:07:06,083 lembrete_views REAL - Lembrete para Danilo Santos de Castro - ID: 3EB0D2459AFE4D80E397B1
+ERROR 2025-07-17 20:16:08,243 repasse_views Erro ao processar repasse 35: The following fields do not exist in this model, are m2m fields, primary keys, or are non-concrete fields: data_repasse, status_repasse
+ERROR 2025-07-17 20:16:45,404 repasse_views Erro ao processar repasse 48: The following fields do not exist in this model, are m2m fields, primary keys, or are non-concrete fields: data_repasse, status_repasse
+INFO 2025-07-18 15:15:41,910 indice_service Iniciando atualização do IPCA
+INFO 2025-07-18 15:15:44,004 indice_service IPCA atualizado: 1 criados, 0 atualizados
+INFO 2025-07-18 15:15:44,006 indice_service Iniciando atualização do IGPM
+INFO 2025-07-18 15:15:45,464 indice_service IGPM atualizado: 1 criados, 0 atualizados
+INFO 2025-07-21 11:04:03,730 lembrete_views Enviando WhatsApp para 5511954675847 via Z-API
+INFO 2025-07-21 11:04:04,449 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB00ECB215F7424229A91
+INFO 2025-07-21 11:04:04,453 lembrete_views REAL - Lembrete para Danilo Santos de Castro - ID: 3EB00ECB215F7424229A91
+ERROR 2025-07-21 11:04:43,666 repasse_views Erro ao processar repasse 46: The following fields do not exist in this model, are m2m fields, primary keys, or are non-concrete fields: status_repasse, data_repasse
+ERROR 2025-07-21 11:05:16,666 repasse_views Erro ao processar repasse 41: The following fields do not exist in this model, are m2m fields, primary keys, or are non-concrete fields: status_repasse, data_repasse
+ERROR 2025-07-21 11:05:22,398 repasse_views Erro ao processar repasse 43: The following fields do not exist in this model, are m2m fields, primary keys, or are non-concrete fields: status_repasse, data_repasse
+ERROR 2025-07-21 11:24:11,536 repasse_views Erro ao processar repasse 36: The following fields do not exist in this model, are m2m fields, primary keys, or are non-concrete fields: status_repasse, data_repasse
+ERROR 2025-07-21 11:25:36,528 repasse_views Erro ao processar repasse 42: The following fields do not exist in this model, are m2m fields, primary keys, or are non-concrete fields: status_repasse, data_repasse
+ERROR 2025-07-21 11:25:56,385 repasse_views Erro ao processar repasse 45: The following fields do not exist in this model, are m2m fields, primary keys, or are non-concrete fields: status_repasse, data_repasse
+ERROR 2025-07-21 11:26:11,777 repasse_views Erro ao processar repasse 47: The following fields do not exist in this model, are m2m fields, primary keys, or are non-concrete fields: status_repasse, data_repasse
+INFO 2025-07-21 11:26:42,705 repasse_views Repasse 49 criado com cálculo integrado
+INFO 2025-07-22 09:40:57,989 lembrete_views Enviando WhatsApp para 5511947846447 via Z-API
+INFO 2025-07-22 09:40:58,376 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB04BB9806CE7904B22FE
+INFO 2025-07-22 09:40:58,377 lembrete_views REAL - Lembrete para Graziela Aparecida Torres dos Santos - ID: 3EB04BB9806CE7904B22FE
+INFO 2025-07-23 11:20:29,416 lembrete_views Enviando WhatsApp para 5511976576464 via Z-API
+INFO 2025-07-23 11:20:29,886 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0228F736FF120DC3F30
+INFO 2025-07-23 11:20:29,888 lembrete_views REAL - Lembrete para Marcelo Cesar da Silva Santos - ID: 3EB0228F736FF120DC3F30
+INFO 2025-07-23 11:20:29,931 lembrete_views Enviando WhatsApp para 5511986148105 via Z-API
+INFO 2025-07-23 11:20:30,006 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0E858C57A4DB9F3E759
+INFO 2025-07-23 11:20:30,009 lembrete_views REAL - Lembrete para Action 360 - ID: 3EB0E858C57A4DB9F3E759
+INFO 2025-07-25 08:04:35,473 lembrete_views Enviando WhatsApp para 5511960614367 via Z-API
+INFO 2025-07-25 08:04:35,954 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB06E5002DD1A7AA4C122
+INFO 2025-07-25 08:04:35,956 lembrete_views REAL - Lembrete para Artur Carlos de Figueiredo Pacheco Filho - ID: 3EB06E5002DD1A7AA4C122
+INFO 2025-07-25 08:04:36,011 lembrete_views Enviando WhatsApp para 5511947846447 via Z-API
+INFO 2025-07-25 08:04:36,116 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0733454474A6ED1FC10
+INFO 2025-07-25 08:04:36,119 lembrete_views REAL - Lembrete para Graziela Aparecida Torres dos Santos - ID: 3EB0733454474A6ED1FC10
+INFO 2025-07-25 13:28:17,773 indice_service Iniciando atualização do IPCA
+INFO 2025-07-25 13:28:19,532 indice_service IPCA atualizado: 0 criados, 0 atualizados
+INFO 2025-07-25 13:28:19,533 indice_service Iniciando atualização do IGPM
+INFO 2025-07-25 13:28:20,118 indice_service IGPM atualizado: 0 criados, 0 atualizados
+INFO 2025-07-25 13:32:37,518 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-25 13:32:37,520 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-25 13:32:37,521 asaas_mixin Iniciando integração da cobrança 144 com Asaas
+INFO 2025-07-25 13:32:37,765 asaas_service Cliente existente encontrado: cus_000118360514
+INFO 2025-07-25 13:32:38,093 asaas_mixin Cliente Asaas: cus_000118360514
+INFO 2025-07-25 13:32:38,095 asaas_service Criando cobrança - Valor: 1764.45
+INFO 2025-07-25 13:32:39,138 asaas_mixin Integração concluída - Asaas ID: pay_dmrno8eckzut76sk
+INFO 2025-07-25 13:32:39,212 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-25 13:32:39,212 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-25 13:32:39,213 asaas_mixin Iniciando integração da cobrança 143 com Asaas
+INFO 2025-07-25 13:32:39,341 asaas_service Cliente existente encontrado: cus_000118156507
+INFO 2025-07-25 13:32:39,715 asaas_mixin Cliente Asaas: cus_000118156507
+INFO 2025-07-25 13:32:39,716 asaas_service Criando cobrança - Valor: 5300.0
+INFO 2025-07-25 13:32:40,594 asaas_mixin Integração concluída - Asaas ID: pay_bzmu1g4bq3u0dgf7
+INFO 2025-07-25 13:32:40,647 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-25 13:32:40,648 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-25 13:32:40,648 asaas_mixin Iniciando integração da cobrança 142 com Asaas
+INFO 2025-07-25 13:32:40,827 asaas_service Cliente existente encontrado: cus_000123800301
+INFO 2025-07-25 13:32:41,101 asaas_mixin Cliente Asaas: cus_000123800301
+INFO 2025-07-25 13:32:41,101 asaas_service Criando cobrança - Valor: 2100.0
+INFO 2025-07-25 13:32:41,622 asaas_mixin Integração concluída - Asaas ID: pay_qqzkk2fvkuk88htz
+INFO 2025-07-25 13:32:41,674 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-25 13:32:41,675 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-25 13:32:41,676 asaas_mixin Iniciando integração da cobrança 141 com Asaas
+INFO 2025-07-25 13:32:41,784 asaas_service Cliente existente encontrado: cus_000118148562
+INFO 2025-07-25 13:32:42,069 asaas_mixin Cliente Asaas: cus_000118148562
+INFO 2025-07-25 13:32:42,070 asaas_service Criando cobrança - Valor: 5324.53
+INFO 2025-07-25 13:32:42,981 asaas_mixin Integração concluída - Asaas ID: pay_2vvvql8heodw5bh6
+INFO 2025-07-25 13:32:43,034 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-25 13:32:43,035 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-25 13:32:43,036 asaas_mixin Iniciando integração da cobrança 140 com Asaas
+INFO 2025-07-25 13:32:43,187 asaas_service Cliente existente encontrado: cus_000118150766
+INFO 2025-07-25 13:32:43,345 asaas_mixin Cliente Asaas: cus_000118150766
+INFO 2025-07-25 13:32:43,346 asaas_service Criando cobrança - Valor: 4444.91
+INFO 2025-07-25 13:32:43,825 asaas_mixin Integração concluída - Asaas ID: pay_yskdyko4p3nsuy5c
+INFO 2025-07-25 13:32:43,878 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-25 13:32:43,879 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-25 13:32:43,880 asaas_mixin Iniciando integração da cobrança 139 com Asaas
+INFO 2025-07-25 13:32:44,086 asaas_service Cliente existente encontrado: cus_000118148519
+INFO 2025-07-25 13:32:44,281 asaas_mixin Cliente Asaas: cus_000118148519
+INFO 2025-07-25 13:32:44,282 asaas_service Criando cobrança - Valor: 4905.94
+INFO 2025-07-25 13:32:44,713 asaas_mixin Integração concluída - Asaas ID: pay_fc01runukamoa0s4
+INFO 2025-07-25 13:32:44,771 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-25 13:32:44,772 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-25 13:32:44,772 asaas_mixin Iniciando integração da cobrança 138 com Asaas
+INFO 2025-07-25 13:32:45,043 asaas_service Cliente existente encontrado: cus_000118148440
+INFO 2025-07-25 13:32:45,210 asaas_mixin Cliente Asaas: cus_000118148440
+INFO 2025-07-25 13:32:45,211 asaas_service Criando cobrança - Valor: 3003.04
+INFO 2025-07-25 13:32:45,768 asaas_mixin Integração concluída - Asaas ID: pay_0za1om0btbjn8t7k
+INFO 2025-07-25 13:32:45,846 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-25 13:32:45,847 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-25 13:32:45,848 asaas_mixin Iniciando integração da cobrança 137 com Asaas
+INFO 2025-07-25 13:32:46,051 asaas_service Cliente existente encontrado: cus_000118150825
+INFO 2025-07-25 13:32:46,270 asaas_mixin Cliente Asaas: cus_000118150825
+INFO 2025-07-25 13:32:46,271 asaas_service Criando cobrança - Valor: 1150.0
+INFO 2025-07-25 13:32:46,796 asaas_mixin Integração concluída - Asaas ID: pay_07g6zi8t9tqhitxb
+INFO 2025-07-25 13:32:46,848 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-25 13:32:46,849 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-25 13:32:46,849 asaas_mixin Iniciando integração da cobrança 136 com Asaas
+INFO 2025-07-25 13:32:46,965 asaas_service Cliente existente encontrado: cus_000118148497
+INFO 2025-07-25 13:32:47,289 asaas_mixin Cliente Asaas: cus_000118148497
+INFO 2025-07-25 13:32:47,290 asaas_service Criando cobrança - Valor: 5115.32
+INFO 2025-07-25 13:32:48,165 asaas_mixin Integração concluída - Asaas ID: pay_di5q6q5n1lpm9zdd
+INFO 2025-07-25 13:32:48,216 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-25 13:32:48,217 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-25 13:32:48,218 asaas_mixin Iniciando integração da cobrança 135 com Asaas
+INFO 2025-07-25 13:32:48,561 asaas_service Cliente existente encontrado: cus_000118148463
+INFO 2025-07-25 13:32:48,814 asaas_mixin Cliente Asaas: cus_000118148463
+INFO 2025-07-25 13:32:48,815 asaas_service Criando cobrança - Valor: 2175.82
+INFO 2025-07-25 13:32:49,227 asaas_mixin Integração concluída - Asaas ID: pay_a7abvvzb6d4q90i3
+INFO 2025-07-25 13:32:49,268 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-25 13:32:49,268 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-25 13:32:49,269 asaas_mixin Iniciando integração da cobrança 134 com Asaas
+INFO 2025-07-25 13:32:49,562 asaas_service Cliente existente encontrado: cus_000118150575
+INFO 2025-07-25 13:32:49,858 asaas_mixin Cliente Asaas: cus_000118150575
+INFO 2025-07-25 13:32:49,859 asaas_service Criando cobrança - Valor: 1624.41
+INFO 2025-07-25 13:32:50,349 asaas_mixin Integração concluída - Asaas ID: pay_mq4vba9gfdv3gkoa
+INFO 2025-07-25 13:32:50,388 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-25 13:32:50,388 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-25 13:32:50,389 asaas_mixin Iniciando integração da cobrança 133 com Asaas
+INFO 2025-07-25 13:32:50,503 asaas_service Cliente existente encontrado: cus_000118150605
+INFO 2025-07-25 13:32:50,661 asaas_mixin Cliente Asaas: cus_000118150605
+INFO 2025-07-25 13:32:50,661 asaas_service Criando cobrança - Valor: 1141.94
+INFO 2025-07-25 13:32:51,577 asaas_mixin Integração concluída - Asaas ID: pay_hjrltiy9lrutcyz5
+INFO 2025-07-25 13:32:51,644 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-25 13:32:51,645 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-25 13:32:51,646 asaas_mixin Iniciando integração da cobrança 132 com Asaas
+INFO 2025-07-25 13:32:51,797 asaas_service Cliente existente encontrado: cus_000118148533
+INFO 2025-07-25 13:32:51,986 asaas_mixin Cliente Asaas: cus_000118148533
+INFO 2025-07-25 13:32:51,989 asaas_service Criando cobrança - Valor: 2176.38
+INFO 2025-07-25 13:32:52,833 asaas_mixin Integração concluída - Asaas ID: pay_whp9qolljfnlio82
+INFO 2025-07-25 13:32:52,904 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-25 13:32:52,905 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-25 13:32:52,906 asaas_mixin Iniciando integração da cobrança 131 com Asaas
+INFO 2025-07-25 13:32:53,031 asaas_service Cliente existente encontrado: cus_000118148479
+INFO 2025-07-25 13:32:53,349 asaas_mixin Cliente Asaas: cus_000118148479
+INFO 2025-07-25 13:32:53,354 asaas_service Criando cobrança - Valor: 1300.0
+INFO 2025-07-25 13:32:53,837 asaas_mixin Integração concluída - Asaas ID: pay_yestyxol31i6fffy
+INFO 2025-07-25 13:33:52,225 lembrete_views Enviando WhatsApp para 5511983492444 via Z-API
+INFO 2025-07-25 13:33:52,496 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0B57C282718DC9B943B
+INFO 2025-07-25 13:33:52,499 lembrete_views REAL - Lembrete para Thaina Capellani Agostinho - ID: 3EB0B57C282718DC9B943B
+INFO 2025-07-25 13:33:52,547 lembrete_views Enviando WhatsApp para 5511959326279 via Z-API
+INFO 2025-07-25 13:33:52,676 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB074C523987B2031E86E
+INFO 2025-07-25 13:33:52,677 lembrete_views REAL - Lembrete para Auzenir Pereira dos Santos - ID: 3EB074C523987B2031E86E
+INFO 2025-07-25 13:33:52,717 lembrete_views Enviando WhatsApp para 5511951998139 via Z-API
+INFO 2025-07-25 13:33:52,801 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB03C1F5B48F457C0FF50
+INFO 2025-07-25 13:33:52,803 lembrete_views REAL - Lembrete para Maria Socorro Medeiros - ID: 3EB03C1F5B48F457C0FF50
+INFO 2025-07-25 13:33:52,847 lembrete_views Enviando WhatsApp para 5511996061545 via Z-API
+INFO 2025-07-25 13:33:52,973 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB055D293A61AC90B1CA7
+INFO 2025-07-25 13:33:52,975 lembrete_views REAL - Lembrete para Wilson Monteiro do Nascimento - ID: 3EB055D293A61AC90B1CA7
+INFO 2025-07-28 11:43:36,964 lembrete_views Enviando WhatsApp para 5511986199049 via Z-API
+INFO 2025-07-28 11:43:37,472 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0DEB59B2E7D4ED0B80E
+INFO 2025-07-28 11:43:37,474 lembrete_views REAL - Lembrete para Renato Batalha da Silva Cordeiro - ID: 3EB0DEB59B2E7D4ED0B80E
+INFO 2025-07-28 11:43:37,513 lembrete_views Enviando WhatsApp para 5511920120583 via Z-API
+INFO 2025-07-28 11:43:37,593 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0928F54EC5F31129EAE
+INFO 2025-07-28 11:43:37,594 lembrete_views REAL - Lembrete para Walter Zago Ujvari - ID: 3EB0928F54EC5F31129EAE
+INFO 2025-07-28 11:43:37,629 lembrete_views Enviando WhatsApp para 5511949235702 via Z-API
+INFO 2025-07-28 11:43:37,731 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0D4394832D9EE115946
+INFO 2025-07-28 11:43:37,732 lembrete_views REAL - Lembrete para Elaine Cristina Viana da Silva - ID: 3EB0D4394832D9EE115946
+INFO 2025-07-28 11:43:37,771 lembrete_views Enviando WhatsApp para 5511985748927 via Z-API
+INFO 2025-07-28 11:43:38,919 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0C02EBD1B6B5B8998E5
+INFO 2025-07-28 11:43:38,920 lembrete_views REAL - Lembrete para Cledson Alves de Souza - ID: 3EB0C02EBD1B6B5B8998E5
+INFO 2025-07-28 11:43:38,966 lembrete_views Enviando WhatsApp para 5511951942466 via Z-API
+INFO 2025-07-28 11:43:39,071 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0A33B67752B8A3C6547
+INFO 2025-07-28 11:43:39,073 lembrete_views REAL - Lembrete para Elenice Claudino de Freitas - ID: 3EB0A33B67752B8A3C6547
+INFO 2025-07-28 11:43:39,118 lembrete_views Enviando WhatsApp para 5511956505525 via Z-API
+INFO 2025-07-28 11:43:39,237 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB00C1AE83549042F2863
+INFO 2025-07-28 11:43:39,239 lembrete_views REAL - Lembrete para Amir Al Jbawi 23708414861 - ID: 3EB00C1AE83549042F2863
+INFO 2025-07-28 11:43:39,268 lembrete_views Enviando WhatsApp para 5511976576464 via Z-API
+INFO 2025-07-28 11:43:39,354 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB097FF05C48C43278D4E
+INFO 2025-07-28 11:43:39,355 lembrete_views REAL - Lembrete para Marcelo Cesar da Silva Santos - ID: 3EB097FF05C48C43278D4E
+INFO 2025-07-28 11:43:39,386 lembrete_views Enviando WhatsApp para 5511986148105 via Z-API
+INFO 2025-07-28 11:43:39,495 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0C948629716B87704BF
+INFO 2025-07-28 11:43:39,496 lembrete_views REAL - Lembrete para Action 360 - ID: 3EB0C948629716B87704BF
+INFO 2025-07-28 12:57:42,344 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-28 12:57:42,346 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-28 12:57:42,354 asaas_mixin Iniciando integração da cobrança 151 com Asaas
+INFO 2025-07-28 12:57:42,852 asaas_service Cliente existente encontrado: cus_000118359530
+INFO 2025-07-28 12:57:43,366 asaas_mixin Cliente Asaas: cus_000118359530
+INFO 2025-07-28 12:57:43,372 asaas_service Criando cobrança - Valor: 2350.51
+INFO 2025-07-28 12:57:44,354 asaas_mixin Integração concluída - Asaas ID: pay_k9krmy8kvexbz4dz
+INFO 2025-07-28 12:57:44,436 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-28 12:57:44,440 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-28 12:57:44,440 asaas_mixin Iniciando integração da cobrança 150 com Asaas
+INFO 2025-07-28 12:57:44,628 asaas_service Cliente existente encontrado: cus_000118243800
+INFO 2025-07-28 12:57:44,829 asaas_mixin Cliente Asaas: cus_000118243800
+INFO 2025-07-28 12:57:44,831 asaas_service Criando cobrança - Valor: 3760.62
+INFO 2025-07-28 12:57:52,633 asaas_mixin Integração concluída - Asaas ID: pay_2y2ta3n7fguh6m6s
+INFO 2025-07-28 12:57:52,753 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-28 12:57:52,755 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-28 12:57:52,759 asaas_mixin Iniciando integração da cobrança 149 com Asaas
+INFO 2025-07-28 12:57:53,029 asaas_service Cliente existente encontrado: cus_000118358133
+INFO 2025-07-28 12:57:53,210 asaas_mixin Cliente Asaas: cus_000118358133
+INFO 2025-07-28 12:57:53,216 asaas_service Criando cobrança - Valor: 3410.09
+INFO 2025-07-28 12:57:53,698 asaas_mixin Integração concluída - Asaas ID: pay_m6gilt7g3c7ryg9w
+INFO 2025-07-28 12:57:53,809 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-28 12:57:53,813 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-28 12:57:53,823 asaas_mixin Iniciando integração da cobrança 147 com Asaas
+INFO 2025-07-28 12:57:54,002 asaas_service Cliente existente encontrado: cus_000118150888
+INFO 2025-07-28 12:57:54,216 asaas_mixin Cliente Asaas: cus_000118150888
+INFO 2025-07-28 12:57:54,236 asaas_service Criando cobrança - Valor: 1465.0
+INFO 2025-07-28 12:57:54,817 asaas_mixin Integração concluída - Asaas ID: pay_7luw0m2sozzbb5lu
+INFO 2025-07-28 12:57:54,963 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-28 12:57:54,974 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-28 12:57:54,979 asaas_mixin Iniciando integração da cobrança 146 com Asaas
+INFO 2025-07-28 12:57:56,121 asaas_service Cliente existente encontrado: cus_000118150852
+INFO 2025-07-28 12:57:56,400 asaas_mixin Cliente Asaas: cus_000118150852
+INFO 2025-07-28 12:57:56,402 asaas_service Criando cobrança - Valor: 963.24
+INFO 2025-07-28 12:57:56,931 asaas_mixin Integração concluída - Asaas ID: pay_xuylr9uxq45k0cr8
+INFO 2025-07-28 12:57:57,003 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-28 12:57:57,007 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-28 12:57:57,018 asaas_mixin Iniciando integração da cobrança 145 com Asaas
+INFO 2025-07-28 12:57:57,338 asaas_service Cliente existente encontrado: cus_000118150627
+INFO 2025-07-28 12:57:57,603 asaas_mixin Cliente Asaas: cus_000118150627
+INFO 2025-07-28 12:57:57,611 asaas_service Criando cobrança - Valor: 1800.0
+INFO 2025-07-28 12:57:58,166 asaas_mixin Integração concluída - Asaas ID: pay_rtvgfte62wjclwx3
+INFO 2025-07-28 12:58:34,412 lembrete_views Enviando WhatsApp para 5511996114893 via Z-API
+INFO 2025-07-28 12:58:38,606 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0AD3175D51BFD000278
+INFO 2025-07-28 12:58:38,607 lembrete_views REAL - Lembrete para Luigi Pinto - ID: 3EB0AD3175D51BFD000278
+INFO 2025-07-28 12:58:38,662 lembrete_views Enviando WhatsApp para 5511998291813 via Z-API
+INFO 2025-07-28 12:58:38,802 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB090ADEA57D9426B3BA7
+INFO 2025-07-28 12:58:38,810 lembrete_views REAL - Lembrete para Gabriel Henrique dos Santos - ID: 3EB090ADEA57D9426B3BA7
+INFO 2025-07-28 12:58:38,863 lembrete_views Enviando WhatsApp para 5511986896440 via Z-API
+INFO 2025-07-28 12:58:39,570 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0A2BD57ED6EA2D2F3EC
+INFO 2025-07-28 12:58:39,613 lembrete_views REAL - Lembrete para Arlete Rodrigues Ferreira - ID: 3EB0A2BD57ED6EA2D2F3EC
+INFO 2025-07-29 01:00:34,686 indice_service Iniciando atualização do IPCA
+INFO 2025-07-29 01:00:36,273 indice_service IPCA atualizado: 0 criados, 0 atualizados
+INFO 2025-07-29 01:00:36,274 indice_service Iniciando atualização do IGPM
+INFO 2025-07-29 01:00:37,320 indice_service IGPM atualizado: 0 criados, 0 atualizados
+INFO 2025-07-29 01:01:17,639 repasse_views Repasse 50 criado com cálculo integrado
+INFO 2025-07-29 01:01:17,813 repasse_views Repasse 51 criado com cálculo integrado
+INFO 2025-07-29 01:01:18,123 repasse_views Repasse 52 criado com cálculo integrado
+INFO 2025-07-29 01:01:18,232 repasse_views Repasse 53 criado com cálculo integrado
+INFO 2025-07-29 01:01:18,362 repasse_views Repasse 54 criado com cálculo integrado
+INFO 2025-07-29 09:04:47,119 lembrete_views Enviando WhatsApp para 5511983492444 via Z-API
+INFO 2025-07-29 09:04:47,603 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0EE453963F4FE490722
+INFO 2025-07-29 09:04:47,605 lembrete_views REAL - Lembrete para Thaina Capellani Agostinho - ID: 3EB0EE453963F4FE490722
+INFO 2025-07-29 09:04:47,665 lembrete_views Enviando WhatsApp para 5511959326279 via Z-API
+INFO 2025-07-29 09:04:47,790 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB082D800358C9A9D1F06
+INFO 2025-07-29 09:04:47,792 lembrete_views REAL - Lembrete para Auzenir Pereira dos Santos - ID: 3EB082D800358C9A9D1F06
+INFO 2025-07-30 09:21:38,556 indice_service Iniciando atualização do IPCA
+INFO 2025-07-30 09:21:40,467 indice_service IPCA atualizado: 0 criados, 0 atualizados
+INFO 2025-07-30 09:21:40,469 indice_service Iniciando atualização do IGPM
+INFO 2025-07-30 09:21:41,609 indice_service IGPM atualizado: 0 criados, 0 atualizados
+INFO 2025-07-30 09:33:49,155 indice_service Iniciando atualização do IPCA
+INFO 2025-07-30 09:33:50,029 indice_service IPCA atualizado: 0 criados, 0 atualizados
+INFO 2025-07-30 09:33:50,029 indice_service Iniciando atualização do IGPM
+INFO 2025-07-30 09:33:50,912 indice_service IGPM atualizado: 0 criados, 0 atualizados
+INFO 2025-07-30 09:34:30,889 lembrete_views Enviando WhatsApp para 5511960614367 via Z-API
+INFO 2025-07-30 09:34:31,220 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB040C873B2E650F24CFC
+INFO 2025-07-30 09:34:31,222 lembrete_views REAL - Lembrete para Artur Carlos de Figueiredo Pacheco Filho - ID: 3EB040C873B2E650F24CFC
+INFO 2025-07-31 08:30:42,068 lembrete_views Enviando WhatsApp para 5511951998139 via Z-API
+INFO 2025-07-31 08:30:42,354 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB01BE17D05A4005E6D54
+INFO 2025-07-31 08:30:42,355 lembrete_views REAL - Lembrete para Maria Socorro Medeiros - ID: 3EB01BE17D05A4005E6D54
+INFO 2025-07-31 08:30:42,398 lembrete_views Enviando WhatsApp para 5511996114893 via Z-API
+INFO 2025-07-31 08:30:42,505 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0438C1D7311D9F801D3
+INFO 2025-07-31 08:30:42,507 lembrete_views REAL - Lembrete para Luigi Pinto - ID: 3EB0438C1D7311D9F801D3
+INFO 2025-07-31 08:30:42,554 lembrete_views Enviando WhatsApp para 5511983492444 via Z-API
+INFO 2025-07-31 08:30:42,647 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0CDCC810F36D22FA82A
+INFO 2025-07-31 08:30:42,648 lembrete_views REAL - Lembrete para Thaina Capellani Agostinho - ID: 3EB0CDCC810F36D22FA82A
+INFO 2025-07-31 08:30:52,526 indice_service Iniciando atualização do IPCA
+INFO 2025-07-31 08:30:54,354 indice_service IPCA atualizado: 0 criados, 0 atualizados
+INFO 2025-07-31 08:30:54,355 indice_service Iniciando atualização do IGPM
+INFO 2025-07-31 08:30:55,387 indice_service IGPM atualizado: 1 criados, 0 atualizados
+INFO 2025-07-31 09:47:07,591 indice_service Iniciando correção de acumulados históricos para todos os tipos
+INFO 2025-07-31 09:47:15,801 indice_service IPCA: 535 registros corrigidos
+INFO 2025-07-31 09:47:22,319 indice_service IGPM: 410 registros corrigidos
+INFO 2025-07-31 09:47:22,321 indice_service INPC: 0 registros corrigidos
+INFO 2025-07-31 09:47:22,322 indice_service Correção concluída: 945 registros corrigidos no total
+ERROR 2025-07-31 15:58:17,699 repasse_views Erro ao processar repasse 34: The following fields do not exist in this model, are m2m fields, primary keys, or are non-concrete fields: data_repasse, status_repasse
+ERROR 2025-07-31 15:58:30,104 repasse_views Erro ao processar repasse 44: The following fields do not exist in this model, are m2m fields, primary keys, or are non-concrete fields: data_repasse, status_repasse
+ERROR 2025-07-31 16:00:34,458 repasse_views Erro ao processar repasse 54: The following fields do not exist in this model, are m2m fields, primary keys, or are non-concrete fields: data_repasse, status_repasse
+INFO 2025-07-31 16:37:28,943 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 16:37:28,944 asaas_service Base URL: https://www.asaas.com/api/v3/
+ERROR 2025-07-31 16:37:29,272 asaas_service Erro HTTP 404 para https://www.asaas.com/api/v3/payments/36: 
+ERROR 2025-07-31 16:37:29,332 asaas_service Erro HTTP 404 para https://www.asaas.com/api/v3/payments/66: 
+INFO 2025-07-31 16:38:07,104 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 16:38:07,104 asaas_service Base URL: https://www.asaas.com/api/v3/
+ERROR 2025-07-31 16:38:07,310 asaas_service Erro HTTP 404 para https://www.asaas.com/api/v3/payments/36: 
+ERROR 2025-07-31 16:38:07,378 asaas_service Erro HTTP 404 para https://www.asaas.com/api/v3/payments/66: 
+INFO 2025-07-31 16:39:52,012 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 16:39:52,012 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 16:39:59,916 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 16:39:59,917 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 16:43:30,539 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 16:43:30,539 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 16:43:30,540 asaas_service Atualizando dados completos para: pay_rtvgfte62wjclwx3
+INFO 2025-07-31 16:43:30,680 asaas_service Buscando código de barras para: pay_rtvgfte62wjclwx3
+INFO 2025-07-31 16:43:30,763 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:43:30,763 asaas_service Buscando PIX detalhado para: pay_rtvgfte62wjclwx3
+INFO 2025-07-31 16:43:30,971 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-07-31 16:43:30,971 asaas_service Dados completos coletados para pay_rtvgfte62wjclwx3 - Erros: 0
+INFO 2025-07-31 16:43:30,978 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 16:43:30,979 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 16:43:30,979 asaas_service Atualizando dados completos para: pay_yskdyko4p3nsuy5c
+INFO 2025-07-31 16:43:31,163 asaas_service Buscando código de barras para: pay_yskdyko4p3nsuy5c
+INFO 2025-07-31 16:43:31,235 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:43:31,236 asaas_service Buscando PIX detalhado para: pay_yskdyko4p3nsuy5c
+ERROR 2025-07-31 16:43:31,326 asaas_service Erro HTTP 400 para https://www.asaas.com/api/v3/payments/pay_yskdyko4p3nsuy5c/pixQrCode: {"errors":[{"code":"invalid_action","description":"Esta cobrança não pode mais ser paga."}]}
+ERROR 2025-07-31 16:43:31,327 asaas_service Erro ao buscar PIX para pay_yskdyko4p3nsuy5c: Erro na API Asaas: 400
+INFO 2025-07-31 16:43:31,329 asaas_service Dados completos coletados para pay_yskdyko4p3nsuy5c - Erros: 1
+INFO 2025-07-31 16:43:35,267 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 16:43:35,267 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 16:43:35,268 asaas_service Atualizando dados completos para: pay_c2elpkdhmbea4o94
+INFO 2025-07-31 16:43:35,456 asaas_service Buscando código de barras para: pay_c2elpkdhmbea4o94
+INFO 2025-07-31 16:43:35,607 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:43:35,608 asaas_service Buscando PIX detalhado para: pay_c2elpkdhmbea4o94
+INFO 2025-07-31 16:43:35,786 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-07-31 16:43:35,786 asaas_service Dados completos coletados para pay_c2elpkdhmbea4o94 - Erros: 0
+INFO 2025-07-31 16:45:24,040 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 16:45:24,040 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 16:45:24,040 asaas_service Atualizando dados completos para: pay_dmrno8eckzut76sk
+INFO 2025-07-31 16:45:24,282 asaas_service Buscando código de barras para: pay_dmrno8eckzut76sk
+INFO 2025-07-31 16:45:24,376 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:45:24,376 asaas_service Buscando PIX detalhado para: pay_dmrno8eckzut76sk
+INFO 2025-07-31 16:45:24,571 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-07-31 16:45:24,571 asaas_service Dados completos coletados para pay_dmrno8eckzut76sk - Erros: 0
+INFO 2025-07-31 16:54:14,341 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 16:54:14,341 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 16:54:14,494 asaas_service Buscando código de barras para: pay_dmrno8eckzut76sk
+INFO 2025-07-31 16:54:14,588 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:54:14,588 asaas_service Buscando PIX detalhado para: pay_dmrno8eckzut76sk
+INFO 2025-07-31 16:54:14,736 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-07-31 16:54:17,001 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 16:54:17,001 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 16:54:17,493 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 16:54:17,494 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 16:54:17,494 asaas_service Atualizando dados completos para: pay_rtvgfte62wjclwx3
+INFO 2025-07-31 16:54:17,587 asaas_service Buscando código de barras para: pay_rtvgfte62wjclwx3
+INFO 2025-07-31 16:54:17,665 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:54:17,665 asaas_service Buscando PIX detalhado para: pay_rtvgfte62wjclwx3
+INFO 2025-07-31 16:54:17,859 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-07-31 16:54:17,859 asaas_service Dados completos coletados para pay_rtvgfte62wjclwx3 - Erros: 0
+INFO 2025-07-31 16:54:17,882 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 16:54:17,883 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 16:54:17,884 asaas_service Atualizando dados completos para: pay_xuylr9uxq45k0cr8
+INFO 2025-07-31 16:54:18,062 asaas_service Buscando código de barras para: pay_xuylr9uxq45k0cr8
+INFO 2025-07-31 16:54:18,221 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:54:18,221 asaas_service Buscando PIX detalhado para: pay_xuylr9uxq45k0cr8
+INFO 2025-07-31 16:54:18,392 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-07-31 16:54:18,392 asaas_service Dados completos coletados para pay_xuylr9uxq45k0cr8 - Erros: 0
+INFO 2025-07-31 16:54:18,410 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 16:54:18,411 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 16:54:18,411 asaas_service Atualizando dados completos para: pay_7luw0m2sozzbb5lu
+INFO 2025-07-31 16:54:18,593 asaas_service Buscando código de barras para: pay_7luw0m2sozzbb5lu
+INFO 2025-07-31 16:54:18,655 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:54:18,655 asaas_service Buscando PIX detalhado para: pay_7luw0m2sozzbb5lu
+INFO 2025-07-31 16:54:18,804 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-07-31 16:54:18,804 asaas_service Dados completos coletados para pay_7luw0m2sozzbb5lu - Erros: 0
+INFO 2025-07-31 16:54:18,824 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 16:54:18,824 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 16:54:18,825 asaas_service Atualizando dados completos para: pay_m6gilt7g3c7ryg9w
+INFO 2025-07-31 16:54:18,913 asaas_service Buscando código de barras para: pay_m6gilt7g3c7ryg9w
+INFO 2025-07-31 16:54:19,048 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:54:19,048 asaas_service Buscando PIX detalhado para: pay_m6gilt7g3c7ryg9w
+INFO 2025-07-31 16:54:19,233 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-07-31 16:54:19,234 asaas_service Dados completos coletados para pay_m6gilt7g3c7ryg9w - Erros: 0
+INFO 2025-07-31 16:54:19,255 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 16:54:19,255 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 16:54:19,256 asaas_service Atualizando dados completos para: pay_2y2ta3n7fguh6m6s
+INFO 2025-07-31 16:54:19,432 asaas_service Buscando código de barras para: pay_2y2ta3n7fguh6m6s
+INFO 2025-07-31 16:54:19,499 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:54:19,499 asaas_service Buscando PIX detalhado para: pay_2y2ta3n7fguh6m6s
+INFO 2025-07-31 16:54:19,742 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-07-31 16:54:19,743 asaas_service Dados completos coletados para pay_2y2ta3n7fguh6m6s - Erros: 0
+INFO 2025-07-31 16:54:19,759 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 16:54:19,760 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 16:54:19,760 asaas_service Atualizando dados completos para: pay_k9krmy8kvexbz4dz
+INFO 2025-07-31 16:54:19,860 asaas_service Buscando código de barras para: pay_k9krmy8kvexbz4dz
+INFO 2025-07-31 16:54:19,957 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:54:19,958 asaas_service Buscando PIX detalhado para: pay_k9krmy8kvexbz4dz
+INFO 2025-07-31 16:54:20,243 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-07-31 16:54:20,243 asaas_service Dados completos coletados para pay_k9krmy8kvexbz4dz - Erros: 0
+INFO 2025-07-31 16:54:20,325 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 16:54:20,325 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 16:54:20,325 asaas_service Atualizando dados completos para: pay_yestyxol31i6fffy
+INFO 2025-07-31 16:54:20,417 asaas_service Buscando código de barras para: pay_yestyxol31i6fffy
+INFO 2025-07-31 16:54:20,489 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:54:20,490 asaas_service Buscando PIX detalhado para: pay_yestyxol31i6fffy
+INFO 2025-07-31 16:54:20,664 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-07-31 16:54:20,664 asaas_service Dados completos coletados para pay_yestyxol31i6fffy - Erros: 0
+INFO 2025-07-31 16:54:20,686 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 16:54:20,687 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 16:54:20,687 asaas_service Atualizando dados completos para: pay_whp9qolljfnlio82
+INFO 2025-07-31 16:54:20,794 asaas_service Buscando código de barras para: pay_whp9qolljfnlio82
+INFO 2025-07-31 16:54:20,880 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:54:20,880 asaas_service Buscando PIX detalhado para: pay_whp9qolljfnlio82
+INFO 2025-07-31 16:54:21,066 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-07-31 16:54:21,067 asaas_service Dados completos coletados para pay_whp9qolljfnlio82 - Erros: 0
+INFO 2025-07-31 16:54:21,087 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 16:54:21,087 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 16:54:21,088 asaas_service Atualizando dados completos para: pay_hjrltiy9lrutcyz5
+INFO 2025-07-31 16:54:21,260 asaas_service Buscando código de barras para: pay_hjrltiy9lrutcyz5
+INFO 2025-07-31 16:54:21,391 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:54:21,391 asaas_service Buscando PIX detalhado para: pay_hjrltiy9lrutcyz5
+INFO 2025-07-31 16:54:21,575 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-07-31 16:54:21,575 asaas_service Dados completos coletados para pay_hjrltiy9lrutcyz5 - Erros: 0
+INFO 2025-07-31 16:54:21,594 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 16:54:21,594 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 16:54:21,595 asaas_service Atualizando dados completos para: pay_mq4vba9gfdv3gkoa
+INFO 2025-07-31 16:54:21,770 asaas_service Buscando código de barras para: pay_mq4vba9gfdv3gkoa
+INFO 2025-07-31 16:54:21,841 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:54:21,842 asaas_service Buscando PIX detalhado para: pay_mq4vba9gfdv3gkoa
+INFO 2025-07-31 16:54:22,091 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-07-31 16:54:22,091 asaas_service Dados completos coletados para pay_mq4vba9gfdv3gkoa - Erros: 0
+INFO 2025-07-31 16:57:25,576 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 16:57:25,576 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 16:57:25,585 asaas_service Atualizando dados completos para: pay_a4u3smvlgk1pouq1
+INFO 2025-07-31 16:57:25,831 asaas_service Buscando código de barras para: pay_a4u3smvlgk1pouq1
+INFO 2025-07-31 16:57:25,995 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:57:25,995 asaas_service Buscando PIX detalhado para: pay_a4u3smvlgk1pouq1
+ERROR 2025-07-31 16:57:26,101 asaas_service Erro HTTP 400 para https://www.asaas.com/api/v3/payments/pay_a4u3smvlgk1pouq1/pixQrCode: {"errors":[{"code":"invalid_action","description":"Esta cobrança não pode mais ser paga."}]}
+ERROR 2025-07-31 16:57:26,101 asaas_service Erro ao buscar PIX para pay_a4u3smvlgk1pouq1: Erro na API Asaas: 400
+INFO 2025-07-31 16:57:26,102 asaas_service Dados completos coletados para pay_a4u3smvlgk1pouq1 - Erros: 1
+INFO 2025-07-31 16:57:26,121 asaas_service Atualizando dados completos para: pay_lfud33gvhcsqb07t
+INFO 2025-07-31 16:57:26,344 asaas_service Buscando código de barras para: pay_lfud33gvhcsqb07t
+ERROR 2025-07-31 16:57:26,437 asaas_service Erro HTTP 400 para https://www.asaas.com/api/v3/payments/pay_lfud33gvhcsqb07t/identificationField: {"errors":[{"code":"invalid_action","description":"Somente é possível obter linha digitável quando a forma de pagamento for boleto bancário."}]}
+ERROR 2025-07-31 16:57:26,438 asaas_service Erro ao buscar código de barras para pay_lfud33gvhcsqb07t: Erro na API Asaas: 400
+INFO 2025-07-31 16:57:26,438 asaas_service Buscando PIX detalhado para: pay_lfud33gvhcsqb07t
+ERROR 2025-07-31 16:57:26,594 asaas_service Erro HTTP 400 para https://www.asaas.com/api/v3/payments/pay_lfud33gvhcsqb07t/pixQrCode: {"errors":[{"code":"invalid_action","description":"Esta cobrança não pode mais ser paga."}]}
+ERROR 2025-07-31 16:57:26,595 asaas_service Erro ao buscar PIX para pay_lfud33gvhcsqb07t: Erro na API Asaas: 400
+INFO 2025-07-31 16:57:26,596 asaas_service Dados completos coletados para pay_lfud33gvhcsqb07t - Erros: 2
+INFO 2025-07-31 16:57:26,601 asaas_service Atualizando dados completos para: pay_bzmu1g4bq3u0dgf7
+INFO 2025-07-31 16:57:26,832 asaas_service Buscando código de barras para: pay_bzmu1g4bq3u0dgf7
+INFO 2025-07-31 16:57:27,010 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:57:27,010 asaas_service Buscando PIX detalhado para: pay_bzmu1g4bq3u0dgf7
+INFO 2025-07-31 16:57:27,260 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-07-31 16:57:27,260 asaas_service Dados completos coletados para pay_bzmu1g4bq3u0dgf7 - Erros: 0
+INFO 2025-07-31 16:57:27,290 asaas_service Atualizando dados completos para: pay_qqzkk2fvkuk88htz
+INFO 2025-07-31 16:57:27,431 asaas_service Buscando código de barras para: pay_qqzkk2fvkuk88htz
+INFO 2025-07-31 16:57:27,556 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:57:27,556 asaas_service Buscando PIX detalhado para: pay_qqzkk2fvkuk88htz
+INFO 2025-07-31 16:57:27,779 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-07-31 16:57:27,780 asaas_service Dados completos coletados para pay_qqzkk2fvkuk88htz - Erros: 0
+INFO 2025-07-31 16:57:27,829 asaas_service Atualizando dados completos para: pay_2vvvql8heodw5bh6
+INFO 2025-07-31 16:57:27,984 asaas_service Buscando código de barras para: pay_2vvvql8heodw5bh6
+INFO 2025-07-31 16:57:28,094 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:57:28,102 asaas_service Buscando PIX detalhado para: pay_2vvvql8heodw5bh6
+INFO 2025-07-31 16:57:28,339 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-07-31 16:57:28,340 asaas_service Dados completos coletados para pay_2vvvql8heodw5bh6 - Erros: 0
+INFO 2025-07-31 16:57:28,381 asaas_service Atualizando dados completos para: pay_yskdyko4p3nsuy5c
+INFO 2025-07-31 16:57:28,606 asaas_service Buscando código de barras para: pay_yskdyko4p3nsuy5c
+INFO 2025-07-31 16:57:28,721 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:57:28,722 asaas_service Buscando PIX detalhado para: pay_yskdyko4p3nsuy5c
+ERROR 2025-07-31 16:57:28,871 asaas_service Erro HTTP 400 para https://www.asaas.com/api/v3/payments/pay_yskdyko4p3nsuy5c/pixQrCode: {"errors":[{"code":"invalid_action","description":"Esta cobrança não pode mais ser paga."}]}
+ERROR 2025-07-31 16:57:28,872 asaas_service Erro ao buscar PIX para pay_yskdyko4p3nsuy5c: Erro na API Asaas: 400
+INFO 2025-07-31 16:57:28,873 asaas_service Dados completos coletados para pay_yskdyko4p3nsuy5c - Erros: 1
+INFO 2025-07-31 16:57:28,886 asaas_service Atualizando dados completos para: pay_fc01runukamoa0s4
+INFO 2025-07-31 16:57:29,015 asaas_service Buscando código de barras para: pay_fc01runukamoa0s4
+INFO 2025-07-31 16:57:29,172 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:57:29,173 asaas_service Buscando PIX detalhado para: pay_fc01runukamoa0s4
+INFO 2025-07-31 16:57:29,385 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-07-31 16:57:29,385 asaas_service Dados completos coletados para pay_fc01runukamoa0s4 - Erros: 0
+INFO 2025-07-31 16:57:29,401 asaas_service Atualizando dados completos para: pay_0za1om0btbjn8t7k
+INFO 2025-07-31 16:57:29,555 asaas_service Buscando código de barras para: pay_0za1om0btbjn8t7k
+INFO 2025-07-31 16:57:29,664 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:57:29,664 asaas_service Buscando PIX detalhado para: pay_0za1om0btbjn8t7k
+INFO 2025-07-31 16:57:29,865 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-07-31 16:57:29,865 asaas_service Dados completos coletados para pay_0za1om0btbjn8t7k - Erros: 0
+INFO 2025-07-31 16:57:29,885 asaas_service Atualizando dados completos para: pay_07g6zi8t9tqhitxb
+INFO 2025-07-31 16:57:30,009 asaas_service Buscando código de barras para: pay_07g6zi8t9tqhitxb
+INFO 2025-07-31 16:57:30,165 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:57:30,165 asaas_service Buscando PIX detalhado para: pay_07g6zi8t9tqhitxb
+INFO 2025-07-31 16:57:30,466 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-07-31 16:57:30,467 asaas_service Dados completos coletados para pay_07g6zi8t9tqhitxb - Erros: 0
+INFO 2025-07-31 16:57:30,487 asaas_service Atualizando dados completos para: pay_di5q6q5n1lpm9zdd
+INFO 2025-07-31 16:57:30,625 asaas_service Buscando código de barras para: pay_di5q6q5n1lpm9zdd
+INFO 2025-07-31 16:57:30,727 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:57:30,727 asaas_service Buscando PIX detalhado para: pay_di5q6q5n1lpm9zdd
+INFO 2025-07-31 16:57:30,958 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-07-31 16:57:30,958 asaas_service Dados completos coletados para pay_di5q6q5n1lpm9zdd - Erros: 0
+INFO 2025-07-31 16:57:30,978 asaas_service Atualizando dados completos para: pay_a7abvvzb6d4q90i3
+INFO 2025-07-31 16:57:31,103 asaas_service Buscando código de barras para: pay_a7abvvzb6d4q90i3
+INFO 2025-07-31 16:57:31,205 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 16:57:31,206 asaas_service Buscando PIX detalhado para: pay_a7abvvzb6d4q90i3
+INFO 2025-07-31 16:57:31,426 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-07-31 16:57:31,426 asaas_service Dados completos coletados para pay_a7abvvzb6d4q90i3 - Erros: 0
+INFO 2025-07-31 17:00:58,436 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 17:00:58,437 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 17:00:58,598 asaas_service Buscando código de barras para: pay_lfud33gvhcsqb07t
+ERROR 2025-07-31 17:00:58,689 asaas_service Erro HTTP 400 para https://www.asaas.com/api/v3/payments/pay_lfud33gvhcsqb07t/identificationField: {"errors":[{"code":"invalid_action","description":"Somente é possível obter linha digitável quando a forma de pagamento for boleto bancário."}]}
+ERROR 2025-07-31 17:00:58,689 asaas_service Erro ao buscar código de barras para pay_lfud33gvhcsqb07t: Erro na API Asaas: 400
+INFO 2025-07-31 17:00:58,690 asaas_service Buscando PIX detalhado para: pay_lfud33gvhcsqb07t
+ERROR 2025-07-31 17:00:58,880 asaas_service Erro HTTP 400 para https://www.asaas.com/api/v3/payments/pay_lfud33gvhcsqb07t/pixQrCode: {"errors":[{"code":"invalid_action","description":"Esta cobrança não pode mais ser paga."}]}
+ERROR 2025-07-31 17:00:58,881 asaas_service Erro ao buscar PIX para pay_lfud33gvhcsqb07t: Erro na API Asaas: 400
+INFO 2025-07-31 17:00:59,019 asaas_service Buscando código de barras para: pay_yskdyko4p3nsuy5c
+INFO 2025-07-31 17:00:59,120 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 17:00:59,122 asaas_service Buscando PIX detalhado para: pay_yskdyko4p3nsuy5c
+ERROR 2025-07-31 17:00:59,225 asaas_service Erro HTTP 400 para https://www.asaas.com/api/v3/payments/pay_yskdyko4p3nsuy5c/pixQrCode: {"errors":[{"code":"invalid_action","description":"Esta cobrança não pode mais ser paga."}]}
+ERROR 2025-07-31 17:00:59,226 asaas_service Erro ao buscar PIX para pay_yskdyko4p3nsuy5c: Erro na API Asaas: 400
+INFO 2025-07-31 17:01:15,375 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 17:01:15,376 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 17:01:15,504 asaas_service Buscando código de barras para: pay_lfud33gvhcsqb07t
+ERROR 2025-07-31 17:01:15,602 asaas_service Erro HTTP 400 para https://www.asaas.com/api/v3/payments/pay_lfud33gvhcsqb07t/identificationField: {"errors":[{"code":"invalid_action","description":"Somente é possível obter linha digitável quando a forma de pagamento for boleto bancário."}]}
+ERROR 2025-07-31 17:01:15,602 asaas_service Erro ao buscar código de barras para pay_lfud33gvhcsqb07t: Erro na API Asaas: 400
+INFO 2025-07-31 17:01:15,603 asaas_service Buscando PIX detalhado para: pay_lfud33gvhcsqb07t
+ERROR 2025-07-31 17:01:15,715 asaas_service Erro HTTP 400 para https://www.asaas.com/api/v3/payments/pay_lfud33gvhcsqb07t/pixQrCode: {"errors":[{"code":"invalid_action","description":"Esta cobrança não pode mais ser paga."}]}
+ERROR 2025-07-31 17:01:15,716 asaas_service Erro ao buscar PIX para pay_lfud33gvhcsqb07t: Erro na API Asaas: 400
+INFO 2025-07-31 17:01:28,344 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 17:01:28,344 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 17:01:28,508 asaas_service Buscando código de barras para: pay_lfud33gvhcsqb07t
+ERROR 2025-07-31 17:01:28,658 asaas_service Erro HTTP 400 para https://www.asaas.com/api/v3/payments/pay_lfud33gvhcsqb07t/identificationField: {"errors":[{"code":"invalid_action","description":"Somente é possível obter linha digitável quando a forma de pagamento for boleto bancário."}]}
+ERROR 2025-07-31 17:01:28,659 asaas_service Erro ao buscar código de barras para pay_lfud33gvhcsqb07t: Erro na API Asaas: 400
+INFO 2025-07-31 17:01:28,659 asaas_service Buscando PIX detalhado para: pay_lfud33gvhcsqb07t
+ERROR 2025-07-31 17:01:28,754 asaas_service Erro HTTP 400 para https://www.asaas.com/api/v3/payments/pay_lfud33gvhcsqb07t/pixQrCode: {"errors":[{"code":"invalid_action","description":"Esta cobrança não pode mais ser paga."}]}
+ERROR 2025-07-31 17:01:28,754 asaas_service Erro ao buscar PIX para pay_lfud33gvhcsqb07t: Erro na API Asaas: 400
+INFO 2025-07-31 17:01:39,192 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 17:01:39,193 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-07-31 17:01:39,315 asaas_service Buscando código de barras para: pay_yskdyko4p3nsuy5c
+INFO 2025-07-31 17:01:39,426 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-07-31 17:01:39,427 asaas_service Buscando PIX detalhado para: pay_yskdyko4p3nsuy5c
+ERROR 2025-07-31 17:01:39,591 asaas_service Erro HTTP 400 para https://www.asaas.com/api/v3/payments/pay_yskdyko4p3nsuy5c/pixQrCode: {"errors":[{"code":"invalid_action","description":"Esta cobrança não pode mais ser paga."}]}
+ERROR 2025-07-31 17:01:39,592 asaas_service Erro ao buscar PIX para pay_yskdyko4p3nsuy5c: Erro na API Asaas: 400
+INFO 2025-07-31 17:08:12,923 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-07-31 17:08:12,923 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-01 11:05:58,888 lembrete_views Enviando WhatsApp para 5511955518886 via Z-API
+ERROR 2025-08-01 11:05:59,252 lembrete_views Erro HTTP Z-API: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+ERROR 2025-08-01 11:05:59,255 lembrete_views REAL - Falha para Daniel Almeida Gomes: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+INFO 2025-08-01 11:05:59,313 lembrete_views Enviando WhatsApp para 5511983492444 via Z-API
+ERROR 2025-08-01 11:05:59,396 lembrete_views Erro HTTP Z-API: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+ERROR 2025-08-01 11:05:59,403 lembrete_views REAL - Falha para Thaina Capellani Agostinho: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+INFO 2025-08-01 15:27:50,692 lembrete_views Enviando WhatsApp para 5511955518886 via Z-API
+INFO 2025-08-01 15:27:51,034 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0949990CC763C59DA62
+INFO 2025-08-01 15:27:51,036 lembrete_views REAL - Lembrete para Daniel Almeida Gomes - ID: 3EB0949990CC763C59DA62
+INFO 2025-08-01 15:27:51,071 lembrete_views Enviando WhatsApp para 5511983492444 via Z-API
+INFO 2025-08-01 15:27:51,156 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB09EB55E329968B22422
+INFO 2025-08-01 15:27:51,158 lembrete_views REAL - Lembrete para Thaina Capellani Agostinho - ID: 3EB09EB55E329968B22422
+INFO 2025-08-04 08:47:21,749 lembrete_views Enviando WhatsApp para 5511996061545 via Z-API
+INFO 2025-08-04 08:47:22,299 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0CDDC38591D83660116
+INFO 2025-08-04 08:47:22,303 lembrete_views REAL - Lembrete para Wilson Monteiro do Nascimento - ID: 3EB0CDDC38591D83660116
+INFO 2025-08-05 10:17:14,150 lembrete_views Enviando WhatsApp para 5511951998139 via Z-API
+INFO 2025-08-05 10:17:14,619 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0EB0584F231AC55C7EB
+INFO 2025-08-05 10:17:14,622 lembrete_views REAL - Lembrete para Maria Socorro Medeiros - ID: 3EB0EB0584F231AC55C7EB
+INFO 2025-08-05 10:42:49,127 repasse_views Repasse 58 criado com cálculo integrado
+ERROR 2025-08-05 10:44:57,634 repasse_views Erro ao processar repasse 52: The following fields do not exist in this model, are m2m fields, primary keys, or are non-concrete fields: status_repasse, data_repasse
+INFO 2025-08-06 08:36:34,499 lembrete_views Enviando WhatsApp para 5511954675847 via Z-API
+INFO 2025-08-06 08:36:35,000 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB02A49AFDF4E22FF7615
+INFO 2025-08-06 08:36:35,003 lembrete_views REAL - Lembrete para Danilo Santos de Castro - ID: 3EB02A49AFDF4E22FF7615
+INFO 2025-08-06 08:36:35,067 lembrete_views Enviando WhatsApp para 5511986199049 via Z-API
+INFO 2025-08-06 08:36:35,158 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB09F6FFCFF6A02710CB2
+INFO 2025-08-06 08:36:35,160 lembrete_views REAL - Lembrete para Renato Batalha da Silva Cordeiro - ID: 3EB09F6FFCFF6A02710CB2
+INFO 2025-08-06 08:36:35,208 lembrete_views Enviando WhatsApp para 5511949235702 via Z-API
+INFO 2025-08-06 08:36:35,306 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0CB3E9EE05D1066D48F
+INFO 2025-08-06 08:36:35,308 lembrete_views REAL - Lembrete para Elaine Cristina Viana da Silva - ID: 3EB0CB3E9EE05D1066D48F
+INFO 2025-08-06 08:36:35,359 lembrete_views Enviando WhatsApp para 5511985748927 via Z-API
+INFO 2025-08-06 08:36:35,478 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0C7EA982D2A0639A7C9
+INFO 2025-08-06 08:36:35,481 lembrete_views REAL - Lembrete para Cledson Alves de Souza - ID: 3EB0C7EA982D2A0639A7C9
+INFO 2025-08-06 08:36:35,536 lembrete_views Enviando WhatsApp para 5511951942466 via Z-API
+INFO 2025-08-06 08:36:35,658 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0CED5E095DF788901CB
+INFO 2025-08-06 08:36:35,666 lembrete_views REAL - Lembrete para Elenice Claudino de Freitas - ID: 3EB0CED5E095DF788901CB
+INFO 2025-08-06 08:36:35,790 lembrete_views Enviando WhatsApp para 5511998291813 via Z-API
+INFO 2025-08-06 08:36:35,898 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0440810B71658457B56
+INFO 2025-08-06 08:36:35,903 lembrete_views REAL - Lembrete para Gabriel Henrique dos Santos - ID: 3EB0440810B71658457B56
+INFO 2025-08-06 08:36:35,964 lembrete_views Enviando WhatsApp para 5511986896440 via Z-API
+INFO 2025-08-06 08:36:36,061 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB015DB7FB68B3E29E607
+INFO 2025-08-06 08:36:36,065 lembrete_views REAL - Lembrete para Arlete Rodrigues Ferreira - ID: 3EB015DB7FB68B3E29E607
+INFO 2025-08-07 08:46:27,013 lembrete_views Enviando WhatsApp para 5511996061545 via Z-API
+INFO 2025-08-07 08:46:27,438 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB04DEE39BCC9A371AF6F
+INFO 2025-08-07 08:46:27,441 lembrete_views REAL - Lembrete para Wilson Monteiro do Nascimento - ID: 3EB04DEE39BCC9A371AF6F
+INFO 2025-08-11 08:58:05,847 lembrete_views Enviando WhatsApp para 5511985683318 via Z-API
+ERROR 2025-08-11 08:58:06,409 lembrete_views Erro HTTP Z-API: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+ERROR 2025-08-11 08:58:06,415 lembrete_views REAL - Falha para Decio Cardozo Mourao: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+INFO 2025-08-11 08:58:06,527 lembrete_views Enviando WhatsApp para 5511947846447 via Z-API
+ERROR 2025-08-11 08:58:06,813 lembrete_views Erro HTTP Z-API: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+ERROR 2025-08-11 08:58:06,815 lembrete_views REAL - Falha para Graziela Aparecida Torres dos Santos: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+INFO 2025-08-11 08:58:06,894 lembrete_views Enviando WhatsApp para 5511920120583 via Z-API
+ERROR 2025-08-11 08:58:06,987 lembrete_views Erro HTTP Z-API: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+ERROR 2025-08-11 08:58:06,989 lembrete_views REAL - Falha para Walter Zago Ujvari: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+INFO 2025-08-11 08:58:07,032 lembrete_views Enviando WhatsApp para 5511920120583 via Z-API
+ERROR 2025-08-11 08:58:07,107 lembrete_views Erro HTTP Z-API: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+ERROR 2025-08-11 08:58:07,111 lembrete_views REAL - Falha para Walter Zago Ujvari: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+INFO 2025-08-11 08:58:07,160 lembrete_views Enviando WhatsApp para 5511985748927 via Z-API
+ERROR 2025-08-11 08:58:07,280 lembrete_views Erro HTTP Z-API: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+ERROR 2025-08-11 08:58:07,290 lembrete_views REAL - Falha para Cledson Alves de Souza: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+INFO 2025-08-11 08:58:07,344 lembrete_views Enviando WhatsApp para 5511986896440 via Z-API
+ERROR 2025-08-11 08:58:07,432 lembrete_views Erro HTTP Z-API: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+ERROR 2025-08-11 08:58:07,437 lembrete_views REAL - Falha para Arlete Rodrigues Ferreira: HTTP 400: {"error":"To continue sending a message, you must subscribe to this instance again"}
+INFO 2025-08-11 10:11:16,298 lembrete_views Enviando WhatsApp para 5511985683318 via Z-API
+INFO 2025-08-11 10:11:16,660 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB06B736485456CEE4E48
+INFO 2025-08-11 10:11:16,663 lembrete_views REAL - Lembrete para Decio Cardozo Mourao - ID: 3EB06B736485456CEE4E48
+INFO 2025-08-11 10:11:16,699 lembrete_views Enviando WhatsApp para 5511947846447 via Z-API
+INFO 2025-08-11 10:11:16,809 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0AC4C04E76B7053C257
+INFO 2025-08-11 10:11:16,811 lembrete_views REAL - Lembrete para Graziela Aparecida Torres dos Santos - ID: 3EB0AC4C04E76B7053C257
+INFO 2025-08-11 10:11:16,847 lembrete_views Enviando WhatsApp para 5511920120583 via Z-API
+INFO 2025-08-11 10:11:16,986 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0EC69F08C8CFD56712B
+INFO 2025-08-11 10:11:16,989 lembrete_views REAL - Lembrete para Walter Zago Ujvari - ID: 3EB0EC69F08C8CFD56712B
+INFO 2025-08-11 10:11:17,021 lembrete_views Enviando WhatsApp para 5511920120583 via Z-API
+INFO 2025-08-11 10:11:17,113 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0DF301C6187D3008BF9
+INFO 2025-08-11 10:11:17,115 lembrete_views REAL - Lembrete para Walter Zago Ujvari - ID: 3EB0DF301C6187D3008BF9
+INFO 2025-08-11 10:11:17,163 lembrete_views Enviando WhatsApp para 5511985748927 via Z-API
+INFO 2025-08-11 10:11:17,313 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0826D1423D2003275D3
+INFO 2025-08-11 10:11:17,315 lembrete_views REAL - Lembrete para Cledson Alves de Souza - ID: 3EB0826D1423D2003275D3
+INFO 2025-08-11 10:11:17,355 lembrete_views Enviando WhatsApp para 5511986896440 via Z-API
+INFO 2025-08-11 10:11:17,507 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0B42926043CA9EEE0CD
+INFO 2025-08-11 10:11:17,509 lembrete_views REAL - Lembrete para Arlete Rodrigues Ferreira - ID: 3EB0B42926043CA9EEE0CD
+ERROR 2025-08-11 10:50:37,726 repasse_views Erro ao processar repasse 58: The following fields do not exist in this model, are m2m fields, primary keys, or are non-concrete fields: status_repasse, data_repasse
+ERROR 2025-08-11 10:50:53,410 repasse_views Erro ao processar repasse 55: The following fields do not exist in this model, are m2m fields, primary keys, or are non-concrete fields: status_repasse, data_repasse
+INFO 2025-08-11 10:53:03,301 repasse_views Repasse 62 criado com cálculo integrado
+INFO 2025-08-11 10:53:03,381 repasse_views Repasse 63 criado com cálculo integrado
+INFO 2025-08-11 10:53:03,460 repasse_views Repasse 64 criado com cálculo integrado
+INFO 2025-08-11 10:53:03,529 repasse_views Repasse 65 criado com cálculo integrado
+INFO 2025-08-12 11:10:34,194 lembrete_views Enviando WhatsApp para 5511976576464 via Z-API
+INFO 2025-08-12 11:10:34,511 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: AA8DCDA151FFF5B8649E
+INFO 2025-08-12 11:10:34,514 lembrete_views REAL - Lembrete para Marcelo Cesar da Silva Santos - ID: AA8DCDA151FFF5B8649E
+INFO 2025-08-12 11:10:47,726 repasse_views Repasse 68 criado com cálculo integrado
+ERROR 2025-08-12 11:15:13,458 repasse_views Erro ao processar repasse 49: The following fields do not exist in this model, are m2m fields, primary keys, or are non-concrete fields: status_repasse, data_repasse
+ERROR 2025-08-12 11:17:20,341 repasse_views Erro ao processar repasse 57: The following fields do not exist in this model, are m2m fields, primary keys, or are non-concrete fields: status_repasse, data_repasse
+ERROR 2025-08-12 11:24:10,840 repasse_views Erro ao processar repasse 51: The following fields do not exist in this model, are m2m fields, primary keys, or are non-concrete fields: status_repasse, data_repasse
+ERROR 2025-08-12 12:10:44,169 repasse_views Erro ao processar repasse 56: The following fields do not exist in this model, are m2m fields, primary keys, or are non-concrete fields: status_repasse, data_repasse
+ERROR 2025-08-12 12:10:59,117 repasse_views Erro ao processar repasse 65: The following fields do not exist in this model, are m2m fields, primary keys, or are non-concrete fields: status_repasse, data_repasse
+INFO 2025-08-13 08:20:21,220 lembrete_views Enviando WhatsApp para 5511986148105 via Z-API
+INFO 2025-08-13 08:20:21,661 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB063B4FAFB91598323DF
+INFO 2025-08-13 08:20:21,675 lembrete_views REAL - Lembrete para Action 360 - ID: 3EB063B4FAFB91598323DF

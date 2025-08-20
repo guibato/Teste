@@ -444,7 +444,7 @@
                     </svg>
                 </button>
             </div>
-            <form method="post" action="{% url 'financeiro:marcar_paga' cobranca.pk %}" id="formMarcarPaga">
+            <form method="post" action="{% url 'financeiro:cobranca_marcar_paga' cobranca.pk %}" id="formMarcarPaga">
                 {% csrf_token %}
                 <div class="mb-4">
                     <label for="data_pagamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

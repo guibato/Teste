@@ -54,6 +54,35 @@ class DespesaListView(ListView):
                 Q(observacoes__icontains=busca)
             )
         
+        # NOVO: Filtro de período
+        filtro_periodo = self.request.GET.get('periodo_filtro', 'todas')
+        if filtro_periodo == 'periodo':
+            # Filtrar apenas despesas do período atual
+            from datetime import date
+            hoje = date.today()
+            mes_atual = hoje.month
+            ano_atual = hoje.year
+            data_referencia = date(ano_atual, mes_atual, 1)
+            
+            # Filtrar apenas despesas ativas no período atual
+            despesas_periodo_ids = []
+            for despesa in queryset:
+                if hasattr(despesa, 'parcela_ativa_em_data'):
+                    if despesa.parcela_ativa_em_data(data_referencia):
+                        despesas_periodo_ids.append(despesa.id)
+                else:
+                    # Fallback: incluir se data_inicio está no período atual
+                    if (hasattr(despesa, 'data_inicio') and 
+                        despesa.data_inicio.year == ano_atual and 
+                        despesa.data_inicio.month == mes_atual):
+                        despesas_periodo_ids.append(despesa.id)
+            
+            if despesas_periodo_ids:
+                queryset = queryset.filter(id__in=despesas_periodo_ids)
+            else:
+                # Se nenhuma despesa do período, retornar queryset vazia
+                queryset = queryset.none()
+        
         return queryset.order_by('-data_cadastro')
     
     def get_context_data(self, **kwargs):
@@ -70,6 +99,9 @@ class DespesaListView(ListView):
         context['total_despesas'] = Despesa.objects.count()
         context['despesas_ativas'] = Despesa.objects.filter(is_ativa=True).count()
         context['despesas_inativas'] = Despesa.objects.filter(is_ativa=False).count()
+
+        
+        context['filtro_periodo'] = self.request.GET.get('periodo_filtro', 'todas')
         
         # Soma de valores para despesas ativas
         valor_total = Despesa.objects.filter(is_ativa=True).aggregate(

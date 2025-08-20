@@ -110,7 +110,7 @@ class CobrancaService:
         mes_nome = meses.get(mes, f'Mês {mes}')
         
         descricao_partes = [
-            f"Aluguel referente a {mes_nome} de {ano}",
+            
             f"Valor do aluguel: R$ {valor_aluguel:,.2f}".replace('.', ',').replace(',', '.', 1)
         ]
         
@@ -244,56 +244,170 @@ class CobrancaService:
     
     @staticmethod
     def gerar_mensagem_whatsapp(cobranca):
-        """Gera mensagem formatada para WhatsApp"""
-        if not cobranca.integrada_asaas:
+        """Gera mensagem formatada para WhatsApp - VERSÃO CORRIGIDA"""
+        
+        # Verificar se a cobrança tem os dados necessários
+        if not cobranca:
             return None
         
-        hora_atual = datetime.datetime.now().hour
-        if 5 <= hora_atual < 12:
-            saudacao = "Bom dia"
-        elif 12 <= hora_atual < 18:
-            saudacao = "Boa tarde"
-        else:
-            saudacao = "Boa noite"
+        try:
+            # Saudação baseada no horário
+            hora_atual = datetime.datetime.now().hour
+            if 5 <= hora_atual < 12:
+                saudacao = "Bom dia"
+            elif 12 <= hora_atual < 18:
+                saudacao = "Boa tarde"
+            else:
+                saudacao = "Boa noite"
 
-        nome = cobranca.inquilino.nome if cobranca.inquilino else "Cliente"
-        vencimento = cobranca.data_vencimento.strftime('%d/%m/%Y')
-        valor_total = f"R$ {cobranca.valor_total:,.2f}".replace('.', ',').replace(',', '.', 1)
-        
-        descricao = cobranca.get_descricao_formatada() or cobranca.gerar_descricao_automatica()
+            # Buscar nome do inquilino
+            nome = "Cliente"
+            if hasattr(cobranca, 'inquilino') and cobranca.inquilino:
+                nome = getattr(cobranca.inquilino, 'nome', 'Cliente')
+            
+            # Se não tem inquilino, tentar buscar via contrato
+            if nome == "Cliente" and hasattr(cobranca, 'contrato') and cobranca.contrato:
+                try:
+                    # Tentar buscar inquilinos via many-to-many
+                    inquilinos = cobranca.contrato.inquilino.all()
+                    if inquilinos.exists():
+                        nome = inquilinos.first().nome
+                except:
+                    pass
+            
+            primeiro_nome = nome.split()[0] if nome and nome != "Cliente" else "Cliente"
+            
+            # Formatação de data e valor
+            vencimento = cobranca.data_vencimento.strftime('%d/%m/%Y')
+            
+            # Formatar valor total
+            valor_total = cobranca.valor_total or 0
+            if hasattr(valor_total, 'amount'):
+                valor_total = valor_total.amount
+            valor_total_formatado = f"R$ {float(valor_total):,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
+            
+            # Verbo baseado na data
+            hoje = datetime.date.today()
+            if cobranca.data_vencimento > hoje:
+                verbo = "vencerá"
+            elif cobranca.data_vencimento == hoje:
+                verbo = "vence"
+            else:
+                verbo = "venceu"
+            
+            # Construir mensagem básica
+            mensagem_partes = [
+                f"{saudacao} {primeiro_nome}, tudo bem?",
+                "",
+                f"O aluguel {verbo} em {vencimento}, no valor de {valor_total_formatado}."
+            ]
+            
+            # Tentar adicionar descrição detalhada
+            descricao = None
+            
+            # 1. Tentar campo 'descricao' se existir
+            if hasattr(cobranca, 'descricao') and cobranca.descricao:
+                descricao = cobranca.descricao
+            
+            # 2. Tentar gerar descrição automática se o método existir
+            elif hasattr(cobranca, 'gerar_descricao_automatica'):
+                try:
+                    descricao = cobranca.gerar_descricao_automatica()
+                except:
+                    pass
+            
+            # 3. Fallback: gerar descrição básica
+            if not descricao:
+                descricao_partes = []
+                
+                # Adicionar valor do aluguel se disponível
+                if hasattr(cobranca, 'valor_aluguel') and cobranca.valor_aluguel:
+                    valor_aluguel = cobranca.valor_aluguel
+                    if hasattr(valor_aluguel, 'amount'):
+                        valor_aluguel = valor_aluguel.amount
+                    valor_aluguel_formatado = f"R$ {float(valor_aluguel):,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
+                    descricao_partes.append(f"Aluguel: {valor_aluguel_formatado}")
+                
+                # Adicionar outras despesas se disponíveis
+                campos_despesas = [
+                    ('valor_condominio', 'Condomínio'),
+                    ('valor_iptu', 'IPTU'),
+                    ('valor_agua', 'Água'),
+                    ('valor_luz', 'Luz'),
+                    ('valor_gas', 'Gás'),
+                    ('valor_internet', 'Internet'),
+                    ('valor_seguro', 'Seguro'),
+                    ('valor_taxa', 'Taxa'),
+                    ('valor_multa', 'Multa'),
+                    ('valor_juros', 'Juros'),
+                    ('valor_desconto', 'Desconto'),
+                    ('valor_ajuste', 'Ajuste')
+                ]
+                
+                for campo, label in campos_despesas:
+                    if hasattr(cobranca, campo):
+                        valor = getattr(cobranca, campo)
+                        if valor and valor > 0:
+                            if hasattr(valor, 'amount'):
+                                valor = valor.amount
+                            valor_formatado = f"R$ {float(valor):,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
+                            descricao_partes.append(f"{label}: {valor_formatado}")
+                
+                if descricao_partes:
+                    descricao = '\n'.join(descricao_partes)
+            
+            # Adicionar descrição se houver
+            if descricao:
+                mensagem_partes.extend(["", descricao])
+            
+            # Adicionar informações de pagamento se disponíveis e cobrança integrada
+            if hasattr(cobranca, 'integrada_asaas') and cobranca.integrada_asaas:
+                
+                # Link do boleto
+                boleto_url = None
+                campos_boleto = ['boleto_url', 'asaas_boleto_url', 'url_boleto', 'link_boleto']
+                for campo in campos_boleto:
+                    if hasattr(cobranca, campo):
+                        url = getattr(cobranca, campo)
+                        if url and ('http' in str(url) or 'www.' in str(url)):
+                            boleto_url = str(url)
+                            break
+                
+                if boleto_url:
+                    mensagem_partes.extend([
+                        "",
+                        "🔗 Link do boleto:",
+                        boleto_url
+                    ])
+                
+                # Código de barras
+                if hasattr(cobranca, 'codigo_barras') and cobranca.codigo_barras:
+                    mensagem_partes.extend([
+                        "",
+                        "📊 Código de barras:",
+                        cobranca.codigo_barras
+                    ])
+                
+                # PIX
+                pix_campos = ['pix_copia_cola', 'pix_codigo', 'asaas_pix']
+                for campo in pix_campos:
+                    if hasattr(cobranca, campo):
+                        pix = getattr(cobranca, campo)
+                        if pix:
+                            mensagem_partes.extend([
+                                "",
+                                "💳 PIX (copiar e colar):",
+                                str(pix)
+                            ])
+                            break
 
-        mensagem_partes = [
-            f"{saudacao} {nome}, tudo bem?",
-            "",
-            f"O aluguel vencerá em {vencimento}, no valor de {valor_total}.",
-            "",
-            descricao
-        ]
+            return '\n'.join(mensagem_partes)
+            
+        except Exception as e:
+            # Em caso de erro, retornar None para usar fallback
+            print(f"Erro ao gerar mensagem WhatsApp: {e}")
+            return None
         
-        # Adicionar informações de pagamento se disponíveis
-        if cobranca.boleto_url:
-            mensagem_partes.extend([
-                "",
-                "🔗 Link do boleto:",
-                cobranca.boleto_url
-            ])
-        
-        if cobranca.codigo_barras:
-            mensagem_partes.extend([
-                "",
-                "📊 Código de barras:",
-                cobranca.codigo_barras
-            ])
-        
-        if cobranca.pix_copia_cola:
-            mensagem_partes.extend([
-                "",
-                "💳 PIX (copiar e colar):",
-                cobranca.pix_copia_cola
-            ])
-
-        return '\n'.join(mensagem_partes)
-    
     @staticmethod
     def listar_cobrancas_ordenadas(filtros=None):
         """Lista cobranças com filtros opcionais"""

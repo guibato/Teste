@@ -1,245 +1,514 @@
-<!-- financeiro/templates/financeiro/tipodespesa/tipodespesa_detail.html -->
-<!-- Template para visualizar detalhes de um tipo de despesa -->
+<!-- financeiro/templates/financeiro/tipodespesa/tipodespesa_detail.html - ADAPTADO AO MODELO -->
 {% extends 'base/base.html' %}
-{% load static %}
 
-{% block title %}{{ tipo.nome }} - Detalhes{% endblock %}
-
-{% block breadcrumb %}
-<nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'financeiro:dashboard' %}">Financeiro</a></li>
-        <li class="breadcrumb-item"><a href="{% url 'financeiro:tipodespesa:list' %}">Tipos de Despesa</a></li>
-        <li class="breadcrumb-item active">{{ tipo.nome }}</li>
-    </ol>
-</nav>
-{% endblock %}
+{% block page_title %}{{ tipo.nome }} - Detalhes{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+<div class="space-y-6">
     <!-- Cabeçalho -->
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h2>
-                <i class="fas fa-tag"></i> {{ tipo.nome }}
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-white flex items-center">
+                <!-- Ícone baseado na categoria -->
+                <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3
+                    {% if tipo.categoria == 'operacional' %}bg-blue-600
+                    {% elif tipo.categoria == 'manutencao' %}bg-green-600
+                    {% elif tipo.categoria == 'melhorias' %}bg-purple-600
+                    {% elif tipo.categoria == 'impostos' %}bg-red-600
+                    {% elif tipo.categoria == 'servicos' %}bg-cyan-600
+                    {% else %}bg-gray-600{% endif %}">
+                    {% if tipo.categoria == 'operacional' %}<i class="fas fa-building text-white"></i>
+                    {% elif tipo.categoria == 'manutencao' %}<i class="fas fa-wrench text-white"></i>
+                    {% elif tipo.categoria == 'melhorias' %}<i class="fas fa-arrow-up text-white"></i>
+                    {% elif tipo.categoria == 'impostos' %}<i class="fas fa-file-invoice text-white"></i>
+                    {% elif tipo.categoria == 'servicos' %}<i class="fas fa-plug text-white"></i>
+                    {% else %}<i class="fas fa-box text-white"></i>{% endif %}
+                </div>
+                {{ tipo.nome }}
                 {% if tipo.ativo %}
-                    <span class="badge bg-success ms-2">Ativo</span>
+                    <span class="ml-3 bg-green-600 text-green-100 px-2 py-1 rounded-full text-sm font-medium">Ativo</span>
                 {% else %}
-                    <span class="badge bg-secondary ms-2">Inativo</span>
+                    <span class="ml-3 bg-gray-600 text-gray-100 px-2 py-1 rounded-full text-sm font-medium">Inativo</span>
                 {% endif %}
-            </h2>
-            {% if tipo.descricao %}
-                <p class="text-muted">{{ tipo.descricao }}</p>
-            {% endif %}
+                
+                <!-- NOVO: Indicador de taxa admin -->
+                {% if tipo.incidencia_taxa_admin_padrao %}
+                    <span class="ml-2 bg-yellow-600 text-yellow-100 px-2 py-1 rounded-full text-xs font-medium">
+                        <i class="fas fa-percentage mr-1"></i>Taxa Admin Padrão
+                    </span>
+                {% endif %}
+            </h1>
+            <div class="mt-1 flex items-center space-x-3">
+                <span class="px-2 py-1 rounded-full text-xs font-medium
+                    {% if tipo.categoria == 'operacional' %}bg-blue-600 text-blue-100
+                    {% elif tipo.categoria == 'manutencao' %}bg-green-600 text-green-100
+                    {% elif tipo.categoria == 'melhorias' %}bg-purple-600 text-purple-100
+                    {% elif tipo.categoria == 'impostos' %}bg-red-600 text-red-100
+                    {% elif tipo.categoria == 'servicos' %}bg-cyan-600 text-cyan-100
+                    {% else %}bg-gray-600 text-gray-100{% endif %}">
+                    {{ tipo.get_categoria_display }}
+                </span>
+                {% if tipo.descricao %}
+                    <p class="text-gray-400">{{ tipo.descricao }}</p>
+                {% endif %}
+            </div>
         </div>
-        <div class="col-md-4 text-end">
+        <div class="mt-4 md:mt-0">
             <!-- Dropdown de ações -->
-            <div class="dropdown">
-                <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                    <i class="fas fa-cog"></i> Ações
+            <div class="relative">
+                <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
+                        onclick="toggleDropdown('actions-dropdown')">
+                    <i class="fas fa-cog mr-2"></i>
+                    Ações
+                    <i class="fas fa-chevron-down ml-2"></i>
                 </button>
-                <ul class="dropdown-menu">
-                    <li>
-                        <a class="dropdown-item" href="{% url 'financeiro:tipodespesa:update' tipo.pk %}">
-                            <i class="fas fa-edit"></i> Editar
+                <div id="actions-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-gray-700 rounded-lg shadow-lg z-10">
+                    <div class="py-1">
+                        <a href="{% url 'financeiro:tipodespesa_update' tipo.pk %}" 
+                           class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">
+                            <i class="fas fa-edit mr-2"></i> Editar
                         </a>
-                    </li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <a class="dropdown-item toggle-status" 
-                           href="{% url 'financeiro:tipodespesa:toggle_status' tipo.pk %}"
-                           data-tipo-nome="{{ tipo.nome }}"
-                           data-status-atual="{{ tipo.ativo }}">
+                        <a href="{% url 'financeiro:despesa_create' %}?tipo={{ tipo.pk }}" 
+                           class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">
+                            <i class="fas fa-plus mr-2"></i> Nova Despesa deste Tipo
+                        </a>
+                        <div class="border-t border-gray-600 my-1"></div>
+                        <button onclick="toggleStatus({{ tipo.pk }}, '{{ tipo.nome }}', {{ tipo.ativo|yesno:'true,false' }})"
+                                class="w-full text-left block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">
                             {% if tipo.ativo %}
-                                <i class="fas fa-times text-danger"></i> Inativar Tipo
+                                <i class="fas fa-times text-red-400 mr-2"></i> Inativar Tipo
                             {% else %}
-                                <i class="fas fa-check text-success"></i> Ativar Tipo
+                                <i class="fas fa-check text-green-400 mr-2"></i> Ativar Tipo
                             {% endif %}
-                        </a>
-                    </li>
-                </ul>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <!-- Informações básicas -->
-        <div class="col-md-8">
-            <!-- Card de informações -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Informações do Tipo</h5>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Informações principais -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Card de informações básicas -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-bold text-white mb-4 flex items-center">
+                    <i class="fas fa-info-circle text-blue-400 mr-2"></i>
+                    Informações do Tipo
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Nome</label>
+                            <p class="text-white font-medium">{{ tipo.nome }}</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Categoria</label>
+                            <span class="px-2 py-1 rounded-full text-sm font-medium
+                                {% if tipo.categoria == 'operacional' %}bg-blue-600 text-blue-100
+                                {% elif tipo.categoria == 'manutencao' %}bg-green-600 text-green-100
+                                {% elif tipo.categoria == 'melhorias' %}bg-purple-600 text-purple-100
+                                {% elif tipo.categoria == 'impostos' %}bg-red-600 text-red-100
+                                {% elif tipo.categoria == 'servicos' %}bg-cyan-600 text-cyan-100
+                                {% else %}bg-gray-600 text-gray-100{% endif %}">
+                                {{ tipo.get_categoria_display }}
+                            </span>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Status</label>
+                            {% if tipo.ativo %}
+                                <span class="bg-green-600 text-green-100 px-2 py-1 rounded-full text-sm font-medium">Ativo</span>
+                            {% else %}
+                                <span class="bg-gray-600 text-gray-100 px-2 py-1 rounded-full text-sm font-medium">Inativo</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <!-- NOVA: Taxa Administrativa -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Taxa Admin Padrão</label>
+                            {% if tipo.incidencia_taxa_admin_padrao %}
+                                <span class="bg-yellow-600 text-yellow-100 px-2 py-1 rounded-full text-sm font-medium">
+                                    <i class="fas fa-percentage mr-1"></i>Com Taxa
+                                </span>
+                                <p class="text-gray-400 text-sm mt-1">Despesas deste tipo terão incidência por padrão</p>
+                            {% else %}
+                                <span class="bg-gray-600 text-gray-100 px-2 py-1 rounded-full text-sm font-medium">
+                                    <i class="fas fa-ban mr-1"></i>Sem Taxa
+                                </span>
+                                <p class="text-gray-400 text-sm mt-1">Despesas deste tipo não terão incidência por padrão</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Total de Despesas</label>
+                            <span class="text-2xl font-bold text-blue-400">{{ total_despesas }}</span>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Despesas Ativas</label>
+                            <span class="text-2xl font-bold text-green-400">{{ despesas_ativas }}</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <dl class="row">
-                                <dt class="col-sm-4">Nome:</dt>
-                                <dd class="col-sm-8">{{ tipo.nome }}</dd>
-                                
-                                <dt class="col-sm-4">Status:</dt>
-                                <dd class="col-sm-8">
-                                    {% if tipo.ativo %}
-                                        <span class="badge bg-success">Ativo</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary">Inativo</span>
-                                    {% endif %}
-                                </dd>
-                                
-                                <dt class="col-sm-4">Total de Despesas:</dt>
-                                <dd class="col-sm-8">
-                                    <span class="badge bg-info">{{ total_despesas }}</span>
-                                </dd>
-                                
-                                <dt class="col-sm-4">Despesas Ativas:</dt>
-                                <dd class="col-sm-8">
-                                    <span class="badge bg-success">{{ despesas_ativas }}</span>
-                                </dd>
-                            </dl>
-                        </div>
-                        <div class="col-md-6">
-                            <dl class="row">
-                                <dt class="col-sm-5">Descrição:</dt>
-                                <dd class="col-sm-7">
-                                    {{ tipo.descricao|default:"<em>Sem descrição</em>" }}
-                                </dd>
-                            </dl>
-                        </div>
+
+                {% if tipo.descricao %}
+                <div class="mt-6 pt-6 border-t border-gray-700">
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Descrição</label>
+                    <p class="text-gray-300">{{ tipo.descricao }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- NOVA: Análise de Taxa Administrativa -->
+            {% if total_despesas > 0 %}
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-bold text-white mb-4 flex items-center">
+                    <i class="fas fa-percentage text-yellow-400 mr-2"></i>
+                    Análise de Taxa Administrativa
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-yellow-900 bg-opacity-30 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-yellow-400">{{ despesas_com_taxa }}</div>
+                        <div class="text-yellow-200 text-sm">Com Taxa</div>
+                        <div class="text-yellow-300 text-xs">{{ despesas_com_taxa_percent }}% do total</div>
+                    </div>
+                    
+                    <div class="bg-orange-900 bg-opacity-30 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-orange-400">{{ despesas_taxa_parcial }}</div>
+                        <div class="text-orange-200 text-sm">Taxa Parcial</div>
+                        <div class="text-orange-300 text-xs">{{ despesas_taxa_parcial_percent }}% do total</div>
+                    </div>
+                    
+                    <div class="bg-gray-700 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-gray-300">{{ despesas_sem_taxa }}</div>
+                        <div class="text-gray-400 text-sm">Sem Taxa</div>
+                        <div class="text-gray-500 text-xs">{{ despesas_sem_taxa_percent }}% do total</div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <div class="flex justify-between text-sm text-gray-400 mb-1">
+                        <span>Distribuição de Taxa Administrativa</span>
+                        <span>{{ total_despesas }} despesas</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-3 flex overflow-hidden">
+                        {% if despesas_com_taxa > 0 %}
+                        <div class="bg-yellow-600 h-3" style="width: {{ despesas_com_taxa_percent }}%"></div>
+                        {% endif %}
+                        {% if despesas_taxa_parcial > 0 %}
+                        <div class="bg-orange-600 h-3" style="width: {{ despesas_taxa_parcial_percent }}%"></div>
+                        {% endif %}
+                        {% if despesas_sem_taxa > 0 %}
+                        <div class="bg-gray-600 h-3" style="width: {{ despesas_sem_taxa_percent }}%"></div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
+            {% endif %}
 
             <!-- Lista de despesas recentes -->
             {% if ultimas_despesas %}
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="fas fa-list"></i> Despesas Recentes</h5>
-                    <a href="{% url 'financeiro:despesa:list' %}?tipo={{ tipo.pk }}" class="btn btn-sm btn-outline-primary">
-                        Ver Todas
+            <div class="bg-gray-800 rounded-lg p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-white flex items-center">
+                        <i class="fas fa-list text-blue-400 mr-2"></i>
+                        Despesas Recentes
+                    </h2>
+                    <a href="{% url 'financeiro:despesa_list' %}?tipo={{ tipo.pk }}" 
+                       class="text-blue-400 hover:text-blue-300 text-sm">
+                        Ver Todas ({{ total_despesas }})
                     </a>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Contrato</th>
-                                    <th>Descrição</th>
-                                    <th>Valor</th>
-                                    <th>Status</th>
-                                    <th>Data</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for despesa in ultimas_despesas %}
-                                <tr>
-                                    <td>
-                                        <a href="{% url 'sisimob:contrato_detail' despesa.contrato.pk %}">
-                                            {{ despesa.contrato }}
-                                        </a>
-                                    </td>
-                                    <td>{{ despesa.descricao|default:despesa.get_descricao_padrao|truncatechars:30 }}</td>
-                                    <td>R$ {{ despesa.valor_total|floatformat:2 }}</td>
-                                    <td>
-                                        {% if despesa.is_ativa %}
-                                            <span class="badge bg-success">Ativa</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">Inativa</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ despesa.data_cadastro|date:"d/m/Y" }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                
+                <div class="space-y-3">
+                    {% for despesa in ultimas_despesas %}
+                    <div class="bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition-colors">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2">
+                                    <!-- Indicador de taxa -->
+                                    {% if despesa.incidencia_taxa_admin == 'sim' %}
+                                        <i class="fas fa-percentage text-yellow-400" title="Com taxa administrativa"></i>
+                                    {% elif despesa.incidencia_taxa_admin == 'parcial' %}
+                                        <i class="fas fa-adjust text-orange-400" title="Taxa parcial ({{ despesa.percentual_com_incidencia }}%)"></i>
+                                    {% else %}
+                                        <i class="fas fa-ban text-gray-500" title="Sem taxa administrativa"></i>
+                                    {% endif %}
+                                    
+                                    <a href="{% url 'financeiro:despesa_detail' despesa.pk %}" 
+                                       class="text-white hover:text-blue-300 font-medium">
+                                        {{ despesa.get_descricao_completa|truncatechars:40 }}
+                                    </a>
+                                </div>
+                                
+                                <div class="text-sm text-gray-400 mt-1">
+                                    <span>{{ despesa.contrato }}</span>
+                                    {% if despesa.cobranca_referencia %}
+                                        <span class="ml-2">• Ref: {{ despesa.cobranca_referencia }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="text-right">
+                                <div class="text-white font-medium">R$ {{ despesa.valor_total|floatformat:2 }}</div>
+                                <div class="flex items-center space-x-2 mt-1">
+                                    <span class="px-2 py-1 rounded-full text-xs font-medium
+                                        {% if despesa.paga_por == 'proprietario' %}bg-blue-600 text-blue-100
+                                        {% elif despesa.paga_por == 'inquilino' %}bg-green-600 text-green-100
+                                        {% else %}bg-purple-600 text-purple-100{% endif %}">
+                                        {{ despesa.get_paga_por_display }}
+                                    </span>
+                                    {% if despesa.is_ativa %}
+                                        <span class="bg-green-600 text-green-100 px-2 py-1 rounded-full text-xs font-medium">Ativa</span>
+                                    {% else %}
+                                        <span class="bg-gray-600 text-gray-100 px-2 py-1 rounded-full text-xs font-medium">Inativa</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    
-                    {% if total_despesas > ultimas_despesas|length %}
-                    <div class="text-center mt-3">
-                        <small class="text-muted">
-                            Mostrando {{ ultimas_despesas|length }} de {{ total_despesas }} despesas
-                        </small>
-                    </div>
-                    {% endif %}
+                    {% endfor %}
                 </div>
             </div>
             {% endif %}
         </div>
 
-        <!-- Sidebar com estatísticas -->
-        <div class="col-md-4">
+        <!-- Sidebar com estatísticas e ações -->
+        <div class="space-y-6">
             <!-- Card de estatísticas -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h6 class="mb-0"><i class="fas fa-chart-bar"></i> Estatísticas</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-6">
-                            <div class="border-end">
-                                <h4 class="text-primary">{{ total_despesas }}</h4>
-                                <small class="text-muted">Total<br>de Despesas</small>
-                            </div>
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center">
+                    <i class="fas fa-chart-bar text-blue-400 mr-2"></i>
+                    Estatísticas
+                </h3>
+                
+                <div class="space-y-4">
+                    <div class="text-center p-4 bg-blue-900 bg-opacity-30 rounded-lg">
+                        <div class="text-3xl font-bold text-blue-400">{{ total_despesas }}</div>
+                        <div class="text-blue-200 text-sm">Total de Despesas</div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="text-center p-3 bg-green-900 bg-opacity-30 rounded-lg">
+                            <div class="text-2xl font-bold text-green-400">{{ despesas_ativas }}</div>
+                            <div class="text-green-200 text-xs">Ativas</div>
                         </div>
-                        <div class="col-6">
-                            <h4 class="text-success">{{ despesas_ativas }}</h4>
-                            <small class="text-muted">Despesas<br>Ativas</small>
+                        
+                        <div class="text-center p-3 bg-gray-700 rounded-lg">
+                            <div class="text-2xl font-bold text-gray-300">{{ despesas_inativas }}</div>
+                            <div class="text-gray-400 text-xs">Inativas</div>
                         </div>
                     </div>
                     
                     {% if total_despesas > 0 %}
-                    <hr>
-                    <div class="progress mb-2">
-                        <div class="progress-bar bg-success" 
-                             style="width: {% widthratio despesas_ativas total_despesas 100 %}%">
+                    <div class="mt-4">
+                        <div class="flex justify-between text-sm text-gray-400 mb-1">
+                            <span>Taxa de Ativação</span>
+                            <span>{% widthratio despesas_ativas total_despesas 100 %}%</span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-2">
+                            <div class="bg-green-600 h-2 rounded-full" 
+                                 style="width: {% widthratio despesas_ativas total_despesas 100 %}%"></div>
                         </div>
                     </div>
-                    <small class="text-muted">
-                        {% widthratio despesas_ativas total_despesas 100 %}% das despesas estão ativas
-                    </small>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Card de ações rápidas -->
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="mb-0"><i class="fas fa-bolt"></i> Ações Rápidas</h6>
+            <!-- NOVO: Card de configuração de taxa -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center">
+                    <i class="fas fa-percentage text-yellow-400 mr-2"></i>
+                    Configuração de Taxa
+                </h3>
+                
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">Padrão do Tipo:</span>
+                        {% if tipo.incidencia_taxa_admin_padrao %}
+                            <span class="text-yellow-400 font-medium">
+                                <i class="fas fa-percentage mr-1"></i>Com Taxa
+                            </span>
+                        {% else %}
+                            <span class="text-gray-400 font-medium">
+                                <i class="fas fa-ban mr-1"></i>Sem Taxa
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if total_despesas > 0 %}
+                    <div class="pt-3 border-t border-gray-700">
+                        <div class="text-sm text-gray-400 mb-2">Uso Real:</div>
+                        <div class="space-y-1">
+                            {% if despesas_com_taxa > 0 %}
+                            <div class="flex justify-between text-sm">
+                                <span class="text-yellow-300">Com taxa:</span>
+                                <span class="text-yellow-300">{{ despesas_com_taxa }} ({{ despesas_com_taxa_percent }}%)</span>
+                            </div>
+                            {% endif %}
+                            {% if despesas_taxa_parcial > 0 %}
+                            <div class="flex justify-between text-sm">
+                                <span class="text-orange-300">Parcial:</span>
+                                <span class="text-orange-300">{{ despesas_taxa_parcial }} ({{ despesas_taxa_parcial_percent }}%)</span>
+                            </div>
+                            {% endif %}
+                            {% if despesas_sem_taxa > 0 %}
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Sem taxa:</span>
+                                <span class="text-gray-400">{{ despesas_sem_taxa }} ({{ despesas_sem_taxa_percent }}%)</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'financeiro:despesa:create' %}?tipo={{ tipo.pk }}" 
-                           class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-plus"></i> Nova Despesa deste Tipo
-                        </a>
-                        
-                        <a href="{% url 'financeiro:despesa:list' %}?tipo={{ tipo.pk }}" 
-                           class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-list"></i> Ver Todas as Despesas
-                        </a>
-                        
-                        <a href="{% url 'financeiro:tipodespesa:update' tipo.pk %}" 
-                           class="btn btn-outline-warning btn-sm">
-                            <i class="fas fa-edit"></i> Editar Tipo
-                        </a>
+                
+                <!-- Sugestão de ajuste -->
+                {% if total_despesas > 5 and tipo.incidencia_taxa_admin_padrao and despesas_sem_taxa_percent > 60 %}
+                <div class="mt-4 p-3 bg-blue-900 bg-opacity-30 rounded">
+                    <p class="text-blue-300 text-sm">
+                        <i class="fas fa-lightbulb mr-1"></i>
+                        <strong>Sugestão:</strong> A maioria das despesas não usa taxa. Considere alterar o padrão.
+                    </p>
+                </div>
+                {% elif total_despesas > 5 and not tipo.incidencia_taxa_admin_padrao and despesas_com_taxa_percent > 60 %}
+                <div class="mt-4 p-3 bg-blue-900 bg-opacity-30 rounded">
+                    <p class="text-blue-300 text-sm">
+                        <i class="fas fa-lightbulb mr-1"></i>
+                        <strong>Sugestão:</strong> A maioria das despesas usa taxa. Considere alterar o padrão.
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Card de ações rápidas -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center">
+                    <i class="fas fa-bolt text-yellow-400 mr-2"></i>
+                    Ações Rápidas
+                </h3>
+                
+                <div class="space-y-3">
+                    <a href="{% url 'financeiro:despesa_create' %}?tipo={{ tipo.pk }}" 
+                       class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center justify-center transition-colors">
+                        <i class="fas fa-plus mr-2"></i>
+                        Nova Despesa deste Tipo
+                    </a>
+                    
+                    <a href="{% url 'financeiro:tipodespesa_update' tipo.pk %}" 
+                       class="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded-lg flex items-center justify-center transition-colors">
+                        <i class="fas fa-edit mr-2"></i>
+                        Editar Tipo
+                    </a>
+                    
+                    {% if total_despesas > 0 %}
+                    <a href="{% url 'financeiro:despesa_list' %}?tipo={{ tipo.pk }}" 
+                       class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg flex items-center justify-center transition-colors">
+                        <i class="fas fa-list mr-2"></i>
+                        Ver Todas as Despesas
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'financeiro:tipodespesa_list' %}" 
+                       class="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg flex items-center justify-center transition-colors">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Voltar aos Tipos
+                    </a>
+                </div>
+            </div>
+
+            <!-- Card de informações da categoria -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center">
+                    {% if tipo.categoria == 'operacional' %}<i class="fas fa-building text-blue-400 mr-2"></i>
+                    {% elif tipo.categoria == 'manutencao' %}<i class="fas fa-wrench text-green-400 mr-2"></i>
+                    {% elif tipo.categoria == 'melhorias' %}<i class="fas fa-arrow-up text-purple-400 mr-2"></i>
+                    {% elif tipo.categoria == 'impostos' %}<i class="fas fa-file-invoice text-red-400 mr-2"></i>
+                    {% elif tipo.categoria == 'servicos' %}<i class="fas fa-plug text-cyan-400 mr-2"></i>
+                    {% else %}<i class="fas fa-box text-gray-400 mr-2"></i>{% endif %}
+                    Sobre {{ tipo.get_categoria_display }}
+                </h3>
+                
+                <div class="text-sm text-gray-300 space-y-2">
+                    {% if tipo.categoria == 'operacional' %}
+                        <p>Despesas relacionadas ao funcionamento básico do imóvel, como condomínio e taxas administrativas.</p>
+                        <p><strong>Exemplo:</strong> Condomínio, Taxa Admin Predial</p>
+                        <p><strong>Taxa Admin:</strong> Geralmente com incidência</p>
+                    {% elif tipo.categoria == 'manutencao' %}
+                        <p>Reparos e manutenções necessárias para manter o imóvel em bom estado.</p>
+                        <p><strong>Exemplo:</strong> Reparo hidráulico, Pintura</p>
+                        <p><strong>Taxa Admin:</strong> Geralmente com incidência</p>
+                    {% elif tipo.categoria == 'melhorias' %}
+                        <p>Investimentos para melhorar ou valorizar o imóvel.</p>
+                        <p><strong>Exemplo:</strong> Reforma, Instalação AC</p>
+                        <p><strong>Taxa Admin:</strong> Pode variar (às vezes parcial)</p>
+                    {% elif tipo.categoria == 'impostos' %}
+                        <p>Tributos e taxas governamentais obrigatórias.</p>
+                        <p><strong>Exemplo:</strong> IPTU, Taxa de Incêndio</p>
+                        <p><strong>Taxa Admin:</strong> Geralmente sem incidência</p>
+                    {% elif tipo.categoria == 'servicos' %}
+                        <p>Utilidades e serviços essenciais do imóvel.</p>
+                        <p><strong>Exemplo:</strong> Água, Energia, Internet</p>
+                        <p><strong>Taxa Admin:</strong> Geralmente sem incidência</p>
+                    {% else %}
+                        <p>Outras despesas que não se encaixam nas categorias principais.</p>
+                        <p><strong>Exemplo:</strong> Seguros, Despesas legais</p>
+                        <p><strong>Taxa Admin:</strong> Varia conforme o caso</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Card de auditoria -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center">
+                    <i class="fas fa-history text-gray-400 mr-2"></i>
+                    Informações de Auditoria
+                </h3>
+                
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">ID do Tipo:</span>
+                        <span class="text-white font-mono">#{{ tipo.pk }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Categoria:</span>
+                        <span class="text-white">{{ tipo.categoria }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Criado em:</span>
+                        <span class="text-white">{{ tipo.data_criacao|date:"d/m/Y"|default:"N/A" }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Última edição:</span>
+                        <span class="text-white">{{ tipo.data_atualizacao|date:"d/m/Y"|default:"N/A" }}</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Card de informações adicionais -->
+            <!-- Card de aviso se inativo -->
             {% if not tipo.ativo %}
-            <div class="card mt-4 border-warning">
-                <div class="card-header bg-warning text-dark">
-                    <h6 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Tipo Inativo</h6>
-                </div>
-                <div class="card-body">
-                    <p class="mb-2">Este tipo está inativo e não pode ser usado para criar novas despesas.</p>
-                    <button class="btn btn-warning btn-sm toggle-status" 
-                            data-tipo-nome="{{ tipo.nome }}"
-                            data-status-atual="false">
-                        <i class="fas fa-check"></i> Reativar Tipo
-                    </button>
-                </div>
+            <div class="bg-red-900 bg-opacity-30 rounded-lg p-6 border border-red-700">
+                <h3 class="text-lg font-bold text-red-300 mb-3 flex items-center">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    Tipo Inativo
+                </h3>
+                <p class="text-red-200 text-sm mb-3">
+                    Este tipo está inativo e não pode ser usado para criar novas despesas.
+                </p>
+                <button onclick="toggleStatus({{ tipo.pk }}, '{{ tipo.nome }}', false)"
+                        class="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg flex items-center justify-center transition-colors">
+                    <i class="fas fa-check mr-2"></i>
+                    Reativar Tipo
+                </button>
             </div>
             {% endif %}
         </div>
@@ -247,71 +516,98 @@
 </div>
 
 <!-- Modal de confirmação -->
-<div class="modal fade" id="confirmModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirmar Ação</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p id="confirm-message"></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="confirm-button">Confirmar</button>
+<div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <h3 class="text-lg font-medium text-white mb-4">Confirmar Ação</h3>
+            <p id="confirmMessage" class="text-gray-300 mb-6"></p>
+            <div class="flex space-x-3">
+                <button onclick="closeModal()" 
+                        class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors">
+                    Cancelar
+                </button>
+                <button id="confirmButton" 
+                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors">
+                    Confirmar
+                </button>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Handler para toggle de status
-    const toggleButtons = document.querySelectorAll('.toggle-status');
-    const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
-    const confirmMessage = document.getElementById('confirm-message');
-    const confirmButton = document.getElementById('confirm-button');
+// Fechar dropdowns quando clicar fora
+document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('actions-dropdown');
+    if (!dropdown.closest('.relative').contains(event.target)) {
+        dropdown.classList.add('hidden');
+    }
+});
+
+// Toggle dropdown
+function toggleDropdown(id) {
+    const dropdown = document.getElementById(id);
+    dropdown.classList.toggle('hidden');
+}
+
+// Toggle status do tipo
+function toggleStatus(tipoId, tipoNome, statusAtual) {
+    const acao = statusAtual ? 'inativar' : 'ativar';
+    const modal = document.getElementById('confirmModal');
+    const message = document.getElementById('confirmMessage');
+    const confirmBtn = document.getElementById('confirmButton');
     
-    toggleButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const tipoNome = this.dataset.tipoNome;
-            const statusAtual = this.dataset.statusAtual === 'true';
-            const acao = statusAtual ? 'inativar' : 'ativar';
-            const url = '{% url "financeiro:tipodespesa:toggle_status" tipo.pk %}';
-            
-            confirmMessage.textContent = `Tem certeza que deseja ${acao} o tipo "${tipoNome}"?`;
-            
-            confirmButton.onclick = function() {
-                fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert(data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Erro:', error);
-                    alert('Erro ao processar solicitação');
-                });
-                
-                confirmModal.hide();
-            };
-            
-            confirmModal.show();
+    let warningText = '';
+    if (statusAtual) {
+        warningText = ' Tipos inativos não aparecem em novas despesas.';
+    }
+    
+    message.textContent = `Tem certeza que deseja ${acao} o tipo "${tipoNome}"?${warningText}`;
+    
+    confirmBtn.onclick = function() {
+        fetch(`/financeiro/tipos-despesa/${tipoId}/toggle-status/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || 'Erro ao processar solicitação');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao processar solicitação');
         });
+        
+        closeModal();
+    };
+    
+    modal.classList.remove('hidden');
+}
+
+// Fechar modal
+function closeModal() {
+    document.getElementById('confirmModal').classList.add('hidden');
+}
+
+// Animações na carga da página
+document.addEventListener('DOMContentLoaded', function() {
+    // Animar cards estatísticos
+    const statsCards = document.querySelectorAll('.bg-blue-900, .bg-green-900, .bg-gray-700');
+    statsCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.9)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.3s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'scale(1)';
+        }, index * 100);
     });
 });
 </script>

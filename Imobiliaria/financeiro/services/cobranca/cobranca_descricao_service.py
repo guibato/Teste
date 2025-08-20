@@ -21,7 +21,7 @@ class CobrancaDescricaoService:
         )
         
         descricao_partes = [
-            f"Aluguel referente a {mes_nome} de {cobranca.ano_referencia}",
+            
             f"Valor do aluguel: {CobrancaDescricaoService._formatar_valor(cobranca.valor_aluguel)}"
         ]
         

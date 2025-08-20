@@ -9,4 +9,5 @@ urlpatterns = [
     path('envio-manual/', lembrete_views.envio_manual, name='envio_manual'),
     path('dashboard/', lembrete_views.dashboard_lembretes, name='dashboard_lembretes'),
     path('api/cobrancas-pendentes/', lembrete_views.cobrancas_pendentes_api, name='cobrancas_pendentes_api'),
+    path('envio-programado/', lembrete_views.envio_programado, name='envio_programado'),
 ]

@@ -162,6 +162,7 @@ class IndiceAPIService:
         
         criados = atualizados = 0
         
+        # Importa os dados sem calcular acumulados (para performance)
         for item in dados:
             try:
                 indice, created = IndiceInflacao.objects.get_or_create(
@@ -169,7 +170,8 @@ class IndiceAPIService:
                     data_referencia=item['data_referencia'],
                     defaults={
                         'valor': item['valor'],
-                        'fonte': item['fonte']
+                        'fonte': item['fonte'],
+                        'acumulado_12_meses': None  # Será calculado depois
                     }
                 )
                 
@@ -181,7 +183,8 @@ class IndiceAPIService:
                     if indice.valor != item['valor']:
                         indice.valor = item['valor']
                         indice.fonte = item['fonte']
-                        indice.save()
+                        indice.acumulado_12_meses = None  # Forçar recálculo
+                        indice.save(update_fields=['valor', 'fonte', 'acumulado_12_meses'])
                         atualizados += 1
                         logger.debug(f"Atualizado: {indice}")
                         
@@ -189,8 +192,18 @@ class IndiceAPIService:
                 logger.error(f"Erro ao salvar índice {item}: {e}")
                 continue
         
+        # ✅ NOVA FUNCIONALIDADE: Recalcula todos os acumulados após importar
+        if criados > 0 or atualizados > 0:
+            logger.info(f"Recalculando acumulados para {tipo}...")
+            recalculados = IndiceInflacao.recalcular_acumulados(tipo)
+            logger.info(f"Acumulados recalculados: {recalculados}")
+        
         logger.info(f"{tipo} atualizado: {criados} criados, {atualizados} atualizados")
-        return {'criados': criados, 'atualizados': atualizados}
+        return {
+            'criados': criados, 
+            'atualizados': atualizados,
+            'recalculados': recalculados if criados > 0 or atualizados > 0 else 0
+        }
     
     def atualizar_todos_indices(self):
         """Atualiza todos os tipos de índices disponíveis"""
@@ -202,7 +215,8 @@ class IndiceAPIService:
                 resultados[tipo] = {
                     'sucesso': True,
                     'criados': resultado['criados'],
-                    'atualizados': resultado['atualizados']
+                    'atualizados': resultado['atualizados'],
+                    'recalculados': resultado.get('recalculados', 0)
                 }
             except Exception as e:
                 logger.error(f"Erro ao atualizar {tipo}: {e}")
@@ -212,3 +226,24 @@ class IndiceAPIService:
                 }
         
         return resultados
+    
+    def corrigir_acumulados_historicos(self, tipo=None):
+        """
+        Método para corrigir acumulados históricos já salvos incorretamente.
+        Execute uma vez após implementar a correção.
+        """
+        logger.info(f"Iniciando correção de acumulados históricos para {tipo or 'todos os tipos'}")
+        
+        if tipo:
+            tipos = [tipo]
+        else:
+            tipos = ['IPCA', 'IGPM', 'INPC']
+        
+        total_corrigidos = 0
+        for tipo_atual in tipos:
+            corrigidos = IndiceInflacao.recalcular_acumulados(tipo_atual)
+            total_corrigidos += corrigidos
+            logger.info(f"{tipo_atual}: {corrigidos} registros corrigidos")
+        
+        logger.info(f"Correção concluída: {total_corrigidos} registros corrigidos no total")
+        return total_corrigidos

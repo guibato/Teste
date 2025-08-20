@@ -1,0 +1,1310 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Asaas - Integração em Lote - Palestra Imóveis{% endblock %}
+{% block page_title %}🚀 Dashboard Asaas - Integração em Lote{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Animações personalizadas */
+    @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); }
+        50% { box-shadow: 0 0 30px rgba(34, 197, 94, 0.6); }
+    }
+    
+    .pulse-glow {
+        animation: pulse-glow 2s ease-in-out infinite;
+    }
+    
+    @keyframes float-icon {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-5px); }
+    }
+    
+    .float-icon {
+        animation: float-icon 3s ease-in-out infinite;
+    }
+    
+    /* Efeito de loading customizado */
+    .loading-dots::after {
+        content: '';
+        animation: loading-dots 1.5s infinite;
+    }
+    
+    @keyframes loading-dots {
+        0%, 20% { content: '.'; }
+        40% { content: '..'; }
+        60%, 100% { content: '...'; }
+    }
+    
+    /* Hover effects para cards */
+    .hover-lift {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .hover-lift:hover {
+        transform: translateY(-8px) scale(1.02);
+    }
+    
+    /* Gradientes personalizados */
+    .gradient-emerald {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+    
+    .gradient-blue {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    }
+    
+    .gradient-purple {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    }
+    
+    .gradient-orange {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+    
+    /* Scrollbar para tabela */
+    .table-scroll::-webkit-scrollbar {
+        height: 8px;
+    }
+    
+    .table-scroll::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+    }
+    
+    .table-scroll::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+    }
+    
+    .table-scroll::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.5);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Dashboard Header -->
+<div class="mb-8">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+        <div>
+            <h1 class="text-3xl font-bold text-white mb-2">Dashboard Asaas</h1>
+            <p class="text-gray-400">Gerencie suas integrações e cobranças de forma eficiente</p>
+        </div>
+        <div class="mt-4 lg:mt-0 flex flex-wrap gap-3">
+            <button onclick="carregarDados()" class="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                <i class="fas fa-refresh mr-2"></i>
+                Atualizar Dados
+            </button>
+            <button onclick="sincronizarStatus()" class="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                <i class="fas fa-sync-alt mr-2"></i>
+                Sincronizar Status
+            </button>
+            <button onclick="abrirModalConfiguracoes()" class="flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors">
+                <i class="fas fa-cogs mr-2"></i>
+                Configurações
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Cards de Estatísticas -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total de Cobranças -->
+    <div class="glass hover-lift rounded-xl p-6 border-l-4 border-blue-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-400 text-sm mb-1">Total de Cobranças</p>
+                <p class="text-3xl font-bold text-white" id="totalCobrancas">-</p>
+            </div>
+            <div class="p-3 bg-blue-500/20 rounded-lg float-icon">
+                <i class="fas fa-file-invoice-dollar text-2xl text-blue-400"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pendentes -->
+    <div class="glass hover-lift rounded-xl p-6 border-l-4 border-orange-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-400 text-sm mb-1">Pendentes de Integração</p>
+                <p class="text-3xl font-bold text-white" id="cobrancasPendentes">-</p>
+            </div>
+            <div class="p-3 bg-orange-500/20 rounded-lg float-icon">
+                <i class="fas fa-clock text-2xl text-orange-400"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Integradas -->
+    <div class="glass hover-lift rounded-xl p-6 border-l-4 border-green-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-400 text-sm mb-1">Já Integradas</p>
+                <p class="text-3xl font-bold text-white" id="cobrancasIntegradas">-</p>
+            </div>
+            <div class="p-3 bg-green-500/20 rounded-lg float-icon">
+                <i class="fas fa-check-circle text-2xl text-green-400"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Valor Total -->
+    <div class="glass hover-lift rounded-xl p-6 border-l-4 border-purple-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-400 text-sm mb-1">Valor Total</p>
+                <p class="text-3xl font-bold text-white" id="valorTotal">-</p>
+            </div>
+            <div class="p-3 bg-purple-500/20 rounded-lg float-icon">
+                <i class="fas fa-dollar-sign text-2xl text-purple-400"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros e Controles -->
+<div class="glass rounded-xl p-6 mb-6">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <!-- Busca e Filtros -->
+        <div class="flex flex-col sm:flex-row gap-4 flex-1">
+            <div class="relative flex-1">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Buscar por cliente, valor ou descrição..."
+                    class="w-full px-4 py-2 pl-10 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-white placeholder-gray-400"
+                    oninput="aplicarFiltros()"
+                >
+                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
+            <select 
+                id="statusFilter" 
+                class="px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white"
+                onchange="aplicarFiltros()"
+            >
+                <option value="">Todos os Status</option>
+                <option value="rascunho">Rascunho</option>
+                <option value="pendente">Pendente</option>
+                <option value="pago">Pago</option>
+                <option value="vencido">Vencido</option>
+            </select>
+        </div>
+
+        <!-- Ações -->
+        <div class="flex gap-3">
+            <button 
+                onclick="integrarSelecionadas()" 
+                class="flex items-center px-6 py-2 gradient-emerald text-white rounded-lg hover:shadow-lg transition-all pulse-glow"
+            >
+                <i class="fas fa-check-double mr-2"></i>
+                Integrar Selecionadas
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Status do carregamento -->
+<div id="loadingStatus" class="glass rounded-xl p-4 mb-6 hidden">
+    <div class="flex items-center justify-center">
+        <i class="fas fa-spinner fa-spin mr-3 text-blue-400"></i>
+        <span class="text-white">Carregando dados...</span>
+    </div>
+</div>
+
+<!-- Tabela de Cobranças -->
+<div class="glass rounded-xl overflow-hidden">
+    <div class="table-scroll overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-white/5">
+                <tr>
+                    <th class="px-6 py-4 text-left">
+                        <input 
+                            type="checkbox" 
+                            id="selectAll" 
+                            onchange="toggleSelectAll()" 
+                            class="w-4 h-4 rounded bg-white/10 border-white/20 text-blue-600 focus:ring-blue-500 focus:ring-2"
+                        >
+                    </th>
+                    <th class="px-6 py-4 text-left text-gray-300 font-semibold">ID</th>
+                    <th class="px-6 py-4 text-left text-gray-300 font-semibold">Cliente</th>
+                    <th class="px-6 py-4 text-left text-gray-300 font-semibold">Valor</th>
+                    <th class="px-6 py-4 text-left text-gray-300 font-semibold">Vencimento</th>
+                    <th class="px-6 py-4 text-left text-gray-300 font-semibold">Status</th>
+                    <th class="px-6 py-4 text-left text-gray-300 font-semibold">Asaas ID</th>
+                    <th class="px-6 py-4 text-left text-gray-300 font-semibold">Ações</th>
+                </tr>
+            </thead>
+            <tbody id="cobrancasTable" class="divide-y divide-white/10">
+                <tr>
+                    <td colspan="8" class="px-6 py-8 text-center text-gray-400">
+                        <i class="fas fa-database text-2xl mb-2"></i>
+                        <p>Clique em "Atualizar Dados" para carregar as cobranças</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal de Configurações -->
+<div id="configModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="glass rounded-xl max-w-md w-full p-6 border border-white/20">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-bold text-white">⚙️ Configurações de Integração</h3>
+            <button onclick="fecharModal('configModal')" class="text-gray-400 hover:text-white transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-gray-300 text-sm font-medium mb-2">Tipo de Cobrança Padrão:</label>
+                <select id="billingType" class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white">
+                    <option value="BOLETO">Boleto</option>
+                    <option value="CREDIT_CARD">Cartão de Crédito</option>
+                    <option value="PIX">PIX</option>
+                    <option value="UNDEFINED">Indefinido</option>
+                </select>
+            </div>
+
+            <div class="space-y-3">
+                <label class="flex items-center">
+                    <input type="checkbox" id="enviarEmail" checked class="w-4 h-4 rounded bg-white/10 border-white/20 text-blue-600 focus:ring-blue-500 focus:ring-2">
+                    <span class="ml-2 text-gray-300">Enviar por email</span>
+                </label>
+                <label class="flex items-center">
+                    <input type="checkbox" id="enviarSMS" class="w-4 h-4 rounded bg-white/10 border-white/20 text-blue-600 focus:ring-blue-500 focus:ring-2">
+                    <span class="ml-2 text-gray-300">Enviar por SMS</span>
+                </label>
+            </div>
+
+            <div>
+                <label class="block text-gray-300 text-sm font-medium mb-2">Observações:</label>
+                <textarea 
+                    id="observacoes" 
+                    rows="3" 
+                    placeholder="Observações adicionais para as cobranças..."
+                    class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-gray-400"
+                ></textarea>
+            </div>
+        </div>
+
+        <div class="flex gap-3 mt-6">
+            <button onclick="fecharModal('configModal')" class="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
+                Cancelar
+            </button>
+            <button onclick="salvarConfiguracoes()" class="flex-1 px-4 py-2 gradient-emerald text-white rounded-lg hover:shadow-lg transition-all">
+                Salvar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Progresso -->
+<div id="progressModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="glass rounded-xl max-w-md w-full p-6 border border-white/20">
+        <h3 class="text-xl font-bold text-white mb-4">🚀 Integrando Cobranças...</h3>
+        
+        <!-- Barra de Progresso -->
+        <div class="w-full bg-white/10 rounded-full h-3 mb-4 overflow-hidden">
+            <div id="progressBar" class="h-full gradient-emerald transition-all duration-300 ease-out" style="width: 0%"></div>
+        </div>
+        
+        <div id="progressText" class="text-gray-300 text-center mb-4">Preparando integração...</div>
+        
+        <!-- Log Container -->
+        <div id="logContainer" class="bg-black/30 rounded-lg p-4 max-h-60 overflow-y-auto space-y-2 font-mono text-sm">
+            <!-- Logs aparecerão aqui -->
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- CSRF Token -->
+{% csrf_token %}
+
+<script>
+// ✅ SUBSTITUA ESTA PARTE NO SEU SCRIPT
+console.log('🚀 Iniciando Dashboard Asaas...');
+
+// ✅ FUNÇÃO CORRIGIDA PARA DATAS - VERSÃO FINAL
+function formatarDataSegura(dataString) {
+    if (!dataString) return 'N/A';
+    
+    try {
+        // Se a data vem no formato YYYY-MM-DD, processar manualmente
+        if (dataString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            const [ano, mes, dia] = dataString.split('-');
+            
+            // ⭐ CORREÇÃO: Usar valores diretamente sem new Date()
+            const anoNum = parseInt(ano, 10);
+            const mesNum = parseInt(mes, 10);
+            const diaNum = parseInt(dia, 10);
+            
+            // Validação básica
+            if (anoNum < 1900 || anoNum > 2100 || mesNum < 1 || mesNum > 12 || diaNum < 1 || diaNum > 31) {
+                console.warn(`⚠️ Data inválida: ${dataString}`);
+                return 'Data inválida';
+            }
+            
+            // ⭐ FORMATAÇÃO DIRETA - SEM TIMEZONE
+            const diaFormatado = String(diaNum).padStart(2, '0');
+            const mesFormatado = String(mesNum).padStart(2, '0');
+            
+            return `${diaFormatado}/${mesFormatado}/${anoNum}`;
+        }
+        
+        // Fallback para outros formatos
+        const data = new Date(dataString);
+        if (isNaN(data.getTime())) {
+            return 'Data inválida';
+        }
+        
+        return data.toLocaleDateString('pt-BR');
+        
+    } catch (error) {
+        console.error(`❌ Erro ao formatar data: ${dataString}`, error);
+        return 'Erro na data';
+    }
+}
+
+// O resto do seu código continua igual...
+let cobrancas = [];
+
+let configuracoes = {
+    billingType: 'BOLETO',
+    enviarEmail: true,
+    enviarSMS: false,
+    observacoes: 'Integração automática via sistema'
+};
+
+// Função para obter CSRF token
+function getCSRFToken() {
+    const token = document.querySelector('[name=csrfmiddlewaretoken]');
+    return token ? token.value : '';
+}
+
+// Função principal para carregar dados
+async function carregarDados() {
+    console.log('🔍 Iniciando carregamento...');
+    
+    // Mostrar loading
+    const loadingDiv = document.getElementById('loadingStatus');
+    if (loadingDiv) loadingDiv.classList.remove('hidden');
+    
+    try {
+        console.log('📡 Fazendo requisição para API...');
+        
+        const response = await fetch('/financeiro/cobrancas/asaas/dashboard-data/', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+            },
+        });
+        
+        console.log('📥 Resposta recebida:', response.status);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('📊 Dados JSON:', data);
+            
+            if (data.cobrancas && Array.isArray(data.cobrancas)) {
+                cobrancas = data.cobrancas;
+                console.log(`✅ ${cobrancas.length} cobranças carregadas`);
+                
+                // Atualizar estatísticas
+                atualizarEstatisticas();
+                
+                // Atualizar tabela
+                renderizarTabela();
+                
+                // Mostrar sucesso
+                mostrarMensagem(`${cobrancas.length} cobranças carregadas!`, 'success');
+                
+            } else {
+                console.error('❌ Estrutura de dados inválida:', data);
+                mostrarMensagem('Dados inválidos recebidos', 'error');
+            }
+        } else {
+            const errorText = await response.text();
+            console.error('❌ Erro HTTP:', response.status, errorText);
+            mostrarMensagem(`Erro ${response.status}: ${errorText}`, 'error');
+        }
+        
+    } catch (error) {
+        console.error('❌ Erro de conexão:', error);
+        mostrarMensagem('Erro de conexão: ' + error.message, 'error');
+    } finally {
+        // Esconder loading
+        const loadingDiv = document.getElementById('loadingStatus');
+        if (loadingDiv) loadingDiv.classList.add('hidden');
+    }
+}
+
+// Atualizar estatísticas
+function atualizarEstatisticas() {
+    const total = cobrancas.length;
+    const integradas = cobrancas.filter(c => c.integrada).length;
+    const pendentes = total - integradas;
+    const valorTotal = cobrancas.reduce((sum, c) => sum + (c.valor || 0), 0);
+
+    // Atualizar elementos na tela
+    const elements = {
+        'totalCobrancas': total,
+        'cobrancasPendentes': pendentes,
+        'cobrancasIntegradas': integradas,
+        'valorTotal': `R$ ${valorTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`
+    };
+
+    for (const [id, value] of Object.entries(elements)) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = value;
+        }
+    }
+
+    console.log('📊 Estatísticas atualizadas:', elements);
+}
+
+// ✅ FUNÇÃO RENDERIZAR TABELA CORRIGIDA
+function renderizarTabela() {
+    console.log('🎨 Iniciando renderização da tabela...');
+    
+    const tbody = document.getElementById('cobrancasTable');
+    if (!tbody) {
+        console.error('❌ Elemento cobrancasTable não encontrado');
+        return;
+    }
+
+    console.log(`📋 Renderizando ${cobrancas.length} cobranças na tabela`);
+
+    if (cobrancas.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="px-6 py-8 text-center text-gray-400">
+                    <i class="fas fa-database text-2xl mb-2"></i>
+                    <p>Nenhuma cobrança encontrada</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    try {
+        const rows = cobrancas.map((cobranca, index) => {
+            // Debug para cobrança #127
+            if (cobranca.id === 127) {
+                console.log(`🔍 Debug cobrança #127:`);
+                console.log(`   📅 Vencimento recebido: ${cobranca.vencimento}`);
+                console.log(`   📅 Formatado: ${formatarDataSegura(cobranca.vencimento)}`);
+            }
+            
+            return `
+                <tr class="hover:bg-white/5 transition-colors">
+                    <td class="px-6 py-4">
+                        <input type="checkbox" value="${cobranca.id}" class="w-4 h-4 rounded bg-white/10 border-white/20 text-blue-600">
+                    </td>
+                    <td class="px-6 py-4 font-mono text-blue-400">#${cobranca.id}</td>
+                    <td class="px-6 py-4 text-white">${cobranca.cliente || 'N/A'}</td>
+                    <td class="px-6 py-4 font-bold text-green-400">R$ ${(cobranca.valor || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="px-6 py-4 text-gray-300">${formatarDataSegura(cobranca.vencimento)}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(cobranca.status)}">
+                            ${getStatusText(cobranca.status)}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 font-mono text-xs">
+                        ${cobranca.asaas_id ? 
+                            `<span class="text-green-400">${cobranca.asaas_id}</span>` : 
+                            '<span class="text-gray-500 italic">Não integrada</span>'
+                        }
+                    </td>
+                    <td class="px-6 py-4">
+                        ${!cobranca.integrada ? 
+                            `<button onclick="integrarUnica(${cobranca.id})" class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded transition-colors">
+                                Integrar
+                            </button>` :
+                            `<button onclick="verDetalhes(${cobranca.id})" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors">
+                                Detalhes
+                            </button>`
+                        }
+                    </td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = rows.join('');
+        console.log(`✅ Tabela renderizada com ${cobrancas.length} linhas`);
+        
+    } catch (error) {
+        console.error('❌ Erro ao renderizar tabela:', error);
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="px-6 py-8 text-center text-red-400">
+                    <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                    <p>Erro ao renderizar tabela: ${error.message}</p>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Renderizar tabela filtrada - TAMBÉM CORRIGIDA
+function renderizarTabelaFiltrada(cobrancasFiltradas) {
+    const tbody = document.getElementById('cobrancasTable');
+    
+    if (cobrancasFiltradas.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="px-6 py-8 text-center text-gray-400">
+                    <i class="fas fa-search text-2xl mb-2"></i>
+                    <p>Nenhuma cobrança encontrada com os filtros aplicados</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    const rows = cobrancasFiltradas.map(cobranca => `
+        <tr class="hover:bg-white/5 transition-colors">
+            <td class="px-6 py-4">
+                <input type="checkbox" value="${cobranca.id}" class="w-4 h-4 rounded bg-white/10 border-white/20 text-blue-600">
+            </td>
+            <td class="px-6 py-4 font-mono text-blue-400">#${cobranca.id}</td>
+            <td class="px-6 py-4 text-white">${cobranca.cliente || 'N/A'}</td>
+            <td class="px-6 py-4 font-bold text-green-400">R$ ${(cobranca.valor || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+            <td class="px-6 py-4 text-gray-300">${formatarDataSegura(cobranca.vencimento)}</td>
+            <td class="px-6 py-4">
+                <span class="px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(cobranca.status)}">
+                    ${getStatusText(cobranca.status)}
+                </span>
+            </td>
+            <td class="px-6 py-4 font-mono text-xs">
+                ${cobranca.asaas_id ? 
+                    `<span class="text-green-400">${cobranca.asaas_id}</span>` : 
+                    '<span class="text-gray-500 italic">Não integrada</span>'
+                }
+            </td>
+            <td class="px-6 py-4">
+                ${!cobranca.integrada ? 
+                    `<button onclick="integrarUnica(${cobranca.id})" class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded transition-colors">
+                        Integrar
+                    </button>` :
+                    `<button onclick="verDetalhes(${cobranca.id})" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors">
+                        Detalhes
+                    </button>`
+                }
+            </td>
+        </tr>
+    `);
+    
+    tbody.innerHTML = rows.join('');
+}
+
+function getStatusColor(status) {
+    const colors = {
+        'rascunho': 'bg-gray-600 text-gray-200',
+        'pendente': 'bg-orange-600 text-orange-100',
+        'pago': 'bg-green-600 text-green-100',
+        'vencido': 'bg-red-600 text-red-100'
+    };
+    return colors[status] || 'bg-gray-600 text-gray-200';
+}
+
+function getStatusText(status) {
+    const texts = {
+        'rascunho': 'Rascunho',
+        'pendente': 'Pendente',
+        'pago': 'Pago',
+        'vencido': 'Vencido'
+    };
+    return texts[status] || status;
+}
+
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('#cobrancasTable input[type="checkbox"]:not([disabled])');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+}
+
+// Integração individual
+async function integrarUnica(id) {
+    console.log(`🔄 Integrando cobrança individual #${id}`);
+    
+    try {
+        const response = await fetch('/financeiro/cobrancas/asaas/integrar-lote/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+            },
+            body: JSON.stringify({
+                cobrancas_ids: [id],
+                configuracoes: configuracoes
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.resultados.length > 0) {
+                const resultado = data.resultados[0];
+                if (resultado.success) {
+                    mostrarMensagem(`Cobrança #${id} integrada com sucesso!`, 'success');
+                    // Atualizar dados locais
+                    const cobrancaIndex = cobrancas.findIndex(c => c.id === id);
+                    if (cobrancaIndex !== -1) {
+                        cobrancas[cobrancaIndex].integrada = true;
+                        cobrancas[cobrancaIndex].asaas_id = resultado.asaas_id || `integrada_${id}`;
+                    }
+                    // Atualizar tela
+                    atualizarEstatisticas();
+                    renderizarTabela();
+                } else {
+                    mostrarMensagem(`Erro na integração #${id}: ${resultado.error}`, 'error');
+                }
+            }
+        } else {
+            throw new Error(`Erro HTTP: ${response.status}`);
+        }
+    } catch (error) {
+        console.error('❌ Erro na integração:', error);
+        mostrarMensagem(`Erro ao integrar cobrança #${id}: ${error.message}`, 'error');
+    }
+}
+
+// Integração em lote
+async function integrarSelecionadas() {
+    const checkboxes = document.querySelectorAll('#cobrancasTable input[type="checkbox"]:checked');
+    
+    if (checkboxes.length === 0) {
+        mostrarMensagem('Selecione pelo menos uma cobrança para integrar!', 'error');
+        return;
+    }
+
+    const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
+    console.log(`🔄 Integrando ${ids.length} cobranças em lote:`, ids);
+
+    mostrarMensagem(`Iniciando integração de ${ids.length} cobrança(s)...`, 'info');
+
+    try {
+        const response = await fetch('/financeiro/cobrancas/asaas/integrar-lote/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+            },
+            body: JSON.stringify({
+                cobrancas_ids: ids,
+                configuracoes: configuracoes
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                let sucessos = 0;
+                let erros = 0;
+
+                data.resultados.forEach(resultado => {
+                    if (resultado.success) {
+                        sucessos++;
+                        const cobrancaIndex = cobrancas.findIndex(c => c.id === resultado.cobranca_id);
+                        if (cobrancaIndex !== -1) {
+                            cobrancas[cobrancaIndex].integrada = true;
+                            cobrancas[cobrancaIndex].asaas_id = resultado.asaas_id || `integrada_${resultado.cobranca_id}`;
+                        }
+                    } else {
+                        erros++;
+                    }
+                });
+
+                if (sucessos > 0) {
+                    mostrarMensagem(`${sucessos} cobrança(s) integrada(s) com sucesso!`, 'success');
+                }
+                if (erros > 0) {
+                    mostrarMensagem(`${erros} erro(s) na integração`, 'error');
+                }
+
+                atualizarEstatisticas();
+                renderizarTabela();
+                checkboxes.forEach(cb => cb.checked = false);
+                
+            } else {
+                throw new Error(data.error || 'Erro desconhecido');
+            }
+        } else {
+            throw new Error(`Erro HTTP: ${response.status}`);
+        }
+    } catch (error) {
+        console.error('❌ Erro na integração em lote:', error);
+        mostrarMensagem(`Erro na integração em lote: ${error.message}`, 'error');
+    }
+}
+
+// Filtros em tempo real
+function aplicarFiltros() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+    
+    let cobrancasFiltradas = cobrancas.filter(cobranca => {
+        const matchSearch = !searchTerm || (
+            cobranca.cliente.toLowerCase().includes(searchTerm) ||
+            cobranca.descricao.toLowerCase().includes(searchTerm) ||
+            cobranca.id.toString().includes(searchTerm)
+        );
+        
+        const matchStatus = !statusFilter || cobranca.status === statusFilter;
+        
+        return matchSearch && matchStatus;
+    });
+    
+    renderizarTabelaFiltrada(cobrancasFiltradas);
+}
+
+// ✅ FUNÇÃO SINCRONIZAR STATUS - VERSÃO COMPLETA
+// ✅ SINCRONIZAÇÃO DE STATUS SIMPLES - APENAS VERIFICAR MUDANÇAS
+async function sincronizarStatus() {
+    console.log('🔄 Verificando status das cobranças no Asaas...');
+    
+    // Filtrar apenas cobranças que JÁ estão integradas
+    const cobrancasIntegradas = cobrancas.filter(c => c.integrada && c.asaas_id);
+    
+    if (cobrancasIntegradas.length === 0) {
+        mostrarMensagem('Nenhuma cobrança integrada encontrada para verificar!', 'warning');
+        return;
+    }
+    
+    console.log(`📊 Verificando ${cobrancasIntegradas.length} cobranças integradas`);
+    
+    // Mostrar loading
+    const loadingDiv = document.getElementById('loadingStatus');
+    if (loadingDiv) {
+        loadingDiv.classList.remove('hidden');
+        loadingDiv.innerHTML = `
+            <div class="flex items-center justify-center">
+                <i class="fas fa-spinner fa-spin mr-3 text-blue-400"></i>
+                <span class="text-white">Verificando status de ${cobrancasIntegradas.length} cobranças...</span>
+            </div>
+        `;
+    }
+    
+    try {
+        let atualizadas = 0;
+        let erros = 0;
+        const mudancas = [];
+        
+        // Processar em pequenos lotes para não sobrecarregar
+        for (let i = 0; i < cobrancasIntegradas.length; i += 5) {
+            const lote = cobrancasIntegradas.slice(i, i + 5);
+            
+            // Processar lote
+            const promessas = lote.map(cobranca => verificarStatusCobranca(cobranca));
+            const resultados = await Promise.allSettled(promessas);
+            
+            // Processar resultados
+            resultados.forEach((resultado, index) => {
+                const cobranca = lote[index];
+                
+                if (resultado.status === 'fulfilled' && resultado.value) {
+                    const novoStatus = resultado.value;
+                    const statusAnterior = cobranca.status;
+                    
+                    if (statusAnterior !== novoStatus) {
+                        // Houve mudança de status
+                        mudancas.push({
+                            id: cobranca.id,
+                            cliente: cobranca.cliente,
+                            statusAnterior: statusAnterior,
+                            statusNovo: novoStatus,
+                            asaas_id: cobranca.asaas_id
+                        });
+                        
+                        // Atualizar localmente
+                        const cobrancaIndex = cobrancas.findIndex(c => c.id === cobranca.id);
+                        if (cobrancaIndex !== -1) {
+                            cobrancas[cobrancaIndex].status = novoStatus;
+                        }
+                        
+                        atualizadas++;
+                        console.log(`✅ Status atualizado - Cobrança #${cobranca.id}: ${statusAnterior} → ${novoStatus}`);
+                    }
+                } else {
+                    erros++;
+                    console.error(`❌ Erro ao verificar cobrança #${cobranca.id}`);
+                }
+            });
+            
+            // Pequena pausa entre lotes
+            if (i + 5 < cobrancasIntegradas.length) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+        
+        // Esconder loading
+        if (loadingDiv) loadingDiv.classList.add('hidden');
+        
+        // Mostrar resultados
+        if (atualizadas > 0) {
+            mostrarMensagem(`✅ ${atualizadas} cobrança(s) tiveram status atualizado!`, 'success');
+            
+            // Mostrar detalhes das mudanças
+            if (mudancas.length > 0) {
+                mostrarResumoMudancas(mudancas);
+            }
+            
+            // Atualizar interface
+            atualizarEstatisticas();
+            renderizarTabela();
+            
+        } else {
+            mostrarMensagem('ℹ️ Nenhuma mudança de status detectada', 'info');
+        }
+        
+        if (erros > 0) {
+            mostrarMensagem(`⚠️ ${erros} erro(s) durante a verificação`, 'warning');
+        }
+        
+    } catch (error) {
+        console.error('❌ Erro geral na sincronização:', error);
+        mostrarMensagem(`Erro na verificação: ${error.message}`, 'error');
+        
+        // Esconder loading
+        if (loadingDiv) loadingDiv.classList.add('hidden');
+    }
+}
+
+// ✅ VERIFICAR STATUS DE UMA COBRANÇA ESPECÍFICA
+async function verificarStatusCobranca(cobranca) {
+    try {
+        const response = await fetch('/financeiro/cobrancas/asaas/verificar-status/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+            },
+            body: JSON.stringify({
+                asaas_id: cobranca.asaas_id,
+                cobranca_id: cobranca.id
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                // Mapear status do Asaas para nosso sistema
+                return mapearStatusAsaas(data.status_asaas);
+            }
+        }
+        
+        return null;
+        
+    } catch (error) {
+        console.error(`❌ Erro ao verificar cobrança ${cobranca.id}:`, error);
+        return null;
+    }
+}
+
+// ✅ MAPEAR STATUS DO ASAAS PARA NOSSO SISTEMA
+function mapearStatusAsaas(statusAsaas) {
+    const mapeamento = {
+        'PENDING': 'pendente',           // Aguardando pagamento
+        'RECEIVED': 'pago',              // Pago
+        'CONFIRMED': 'pago',             // Confirmado
+        'OVERDUE': 'vencido',            // Vencido
+        'REFUNDED': 'reembolsado',       // Estornado
+        'RECEIVED_IN_CASH': 'pago',      // Recebido em dinheiro
+        'AWAITING_RISK_ANALYSIS': 'pendente' // Aguardando análise
+    };
+    
+    return mapeamento[statusAsaas] || 'pendente';
+}
+
+// ✅ MOSTRAR RESUMO DAS MUDANÇAS
+function mostrarResumoMudancas(mudancas) {
+    if (mudancas.length === 0) return;
+    
+    console.log('📋 Resumo das mudanças:', mudancas);
+    
+    // Criar modal simples para mostrar mudanças
+    const modalHTML = `
+        <div id="resumoMudancasModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="glass rounded-xl max-w-2xl w-full max-h-96 overflow-hidden border border-white/20">
+                <div class="flex items-center justify-between p-6 border-b border-white/10">
+                    <h3 class="text-xl font-bold text-white">📊 Status Atualizados</h3>
+                    <button onclick="fecharModal('resumoMudancasModal')" class="text-gray-400 hover:text-white">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="p-6 overflow-y-auto max-h-80">
+                    <p class="text-gray-300 mb-4">
+                        ${mudancas.length} cobrança(s) tiveram seu status atualizado:
+                    </p>
+                    
+                    <div class="space-y-3">
+                        ${mudancas.map(mudanca => `
+                            <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                                <div>
+                                    <div class="font-semibold text-white">
+                                        #${mudanca.id} - ${mudanca.cliente}
+                                    </div>
+                                    <div class="text-sm text-gray-400">
+                                        Asaas ID: ${mudanca.asaas_id}
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="px-2 py-1 bg-red-500/20 text-red-200 text-xs rounded">
+                                            ${getStatusText(mudanca.statusAnterior)}
+                                        </span>
+                                        <i class="fas fa-arrow-right text-gray-400"></i>
+                                        <span class="px-2 py-1 bg-green-500/20 text-green-200 text-xs rounded">
+                                            ${getStatusText(mudanca.statusNovo)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div class="p-6 pt-0">
+                    <button onclick="fecharModal('resumoMudancasModal')" 
+                            class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remover modal existente se houver
+    const existingModal = document.getElementById('resumoMudancasModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+// ✅ FUNÇÃO AUXILIAR PARA FECHAR MODAIS
+function fecharModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// ✅ VERIFICAÇÃO AUTOMÁTICA (OPCIONAL)
+let intervaloVerificacao = null;
+
+function iniciarVerificacaoAutomatica(intervalMinutos = 30) {
+    if (intervaloVerificacao) {
+        clearInterval(intervaloVerificacao);
+    }
+    
+    intervaloVerificacao = setInterval(() => {
+        console.log('🔄 Verificação automática de status...');
+        sincronizarStatus();
+    }, intervalMinutos * 60 * 1000);
+    
+    console.log(`⏰ Verificação automática configurada para cada ${intervalMinutos} minutos`);
+    mostrarMensagem(`Verificação automática ativada (${intervalMinutos}min)`, 'info');
+}
+
+function pararVerificacaoAutomatica() {
+    if (intervaloVerificacao) {
+        clearInterval(intervaloVerificacao);
+        intervaloVerificacao = null;
+        console.log('⏹️ Verificação automática desativada');
+        mostrarMensagem('Verificação automática desativada', 'info');
+    }
+}
+
+// ✅ FUNÇÃO PARA VERIFICAR APENAS COBRANÇAS PENDENTES OU VENCIDAS
+async function verificarCobrancasPendentesVencidas() {
+    const cobrancasParaVerificar = cobrancas.filter(c => 
+        c.integrada && 
+        c.asaas_id && 
+        (c.status === 'pendente' || c.status === 'vencido')
+    );
+    
+    if (cobrancasParaVerificar.length === 0) {
+        mostrarMensagem('Nenhuma cobrança pendente/vencida para verificar', 'info');
+        return;
+    }
+    
+    console.log(`🔍 Verificando apenas ${cobrancasParaVerificar.length} cobranças pendentes/vencidas`);
+    
+    // Temporariamente substituir array para usar a função principal
+    const cobrancasOriginais = [...cobrancas];
+    cobrancas.length = 0;
+    cobrancas.push(...cobrancasParaVerificar.map(c => ({...c, integrada: true})));
+    
+    try {
+        await sincronizarStatus();
+    } finally {
+        // Restaurar array original com as atualizações
+        cobrancas.length = 0;
+        cobrancas.push(...cobrancasOriginais);
+    }
+}
+
+// ✅ EXPORTAR FUNÇÕES PARA USO GLOBAL
+window.sincronizarStatus = sincronizarStatus;
+window.verificarCobrancasPendentesVencidas = verificarCobrancasPendentesVencidas;
+window.iniciarVerificacaoAutomatica = iniciarVerificacaoAutomatica;
+window.pararVerificacaoAutomatica = pararVerificacaoAutomatica;
+
+console.log('✅ Sincronização de status simples carregada!');
+console.log('💡 Funções disponíveis:');
+console.log('   - sincronizarStatus() - Verifica todas as cobranças integradas');
+console.log('   - verificarCobrancasPendentesVencidas() - Verifica apenas pendentes/vencidas');
+console.log('   - iniciarVerificacaoAutomatica(30) - Verificação a cada 30min');
+console.log('   - pararVerificacaoAutomatica() - Para verificação automática');
+
+async function sincronizarCobrancaIndividual(cobranca) {
+    try {
+        console.log(`🔍 Consultando status da cobrança #${cobranca.id} (Asaas ID: ${cobranca.asaas_id})`);
+        
+        const response = await fetch('/financeiro/cobrancas/asaas/consultar-status/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+            },
+            body: JSON.stringify({
+                asaas_id: cobranca.asaas_id,
+                cobranca_id: cobranca.id
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            return {
+                sucesso: true,
+                dados: data.dados_asaas
+            };
+        } else {
+            throw new Error(data.error || 'Erro na consulta do Asaas');
+        }
+        
+    } catch (error) {
+        console.error(`❌ Erro ao sincronizar cobrança #${cobranca.id}:`, error);
+        return {
+            sucesso: false,
+            erro: error.message
+        };
+    }
+}
+
+// Mapear status do Asaas para status local
+function mapearStatusAsaas(statusAsaas) {
+    const mapeamento = {
+        'PENDING': 'pendente',
+        'RECEIVED': 'pago',
+        'CONFIRMED': 'pago',
+        'OVERDUE': 'vencido',
+        'REFUNDED': 'reembolsado',
+        'RECEIVED_IN_CASH': 'pago',
+        'REFUND_REQUESTED': 'reembolso_solicitado',
+        'REFUND_IN_PROGRESS': 'reembolsando',
+        'CHARGEBACK_REQUESTED': 'chargeback',
+        'CHARGEBACK_DISPUTE': 'chargeback',
+        'AWAITING_CHARGEBACK_REVERSAL': 'chargeback',
+        'DUNNING_REQUESTED': 'cobranca_judicial',
+        'DUNNING_RECEIVED': 'cobranca_judicial',
+        'AWAITING_RISK_ANALYSIS': 'analise_risco'
+    };
+    
+    return mapeamento[statusAsaas] || 'pendente';
+}
+
+// Funções do Modal de Progresso
+function abrirModalProgresso() {
+    const modal = document.getElementById('progressModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        // Resetar estado
+        atualizarProgresso(0, 'Preparando sincronização...');
+        limparLog();
+        
+        // Focar no modal
+        modal.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+function fecharModalProgresso() {
+    const modal = document.getElementById('progressModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
+function atualizarProgresso(porcentagem, texto) {
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    
+    if (progressBar) {
+        progressBar.style.width = `${porcentagem}%`;
+    }
+    
+    if (progressText) {
+        progressText.textContent = texto;
+    }
+}
+
+function limparLog() {
+    const logContainer = document.getElementById('logContainer');
+    if (logContainer) {
+        logContainer.innerHTML = '';
+    }
+}
+
+function adicionarLog(mensagem, tipo = 'info') {
+    const logContainer = document.getElementById('logContainer');
+    if (!logContainer) return;
+    
+    const timestamp = new Date().toLocaleTimeString('pt-BR');
+    const icone = tipo === 'error' ? '❌' : tipo === 'success' ? '✅' : 'ℹ️';
+    const cor = tipo === 'error' ? 'text-red-400' : tipo === 'success' ? 'text-green-400' : 'text-gray-300';
+    
+    const logElement = document.createElement('div');
+    logElement.className = `text-xs ${cor}`;
+    logElement.innerHTML = `<span class="text-gray-500">[${timestamp}]</span> ${icone} ${mensagem}`;
+    
+    logContainer.appendChild(logElement);
+    
+    // Auto-scroll para a última mensagem
+    logContainer.scrollTop = logContainer.scrollHeight;
+}
+
+// Função para sincronização automática periódica (opcional)
+let intervaloSincronizacao = null;
+
+function iniciarSincronizacaoAutomatica(intervalMinutos = 30) {
+    if (intervaloSincronizacao) {
+        clearInterval(intervaloSincronizacao);
+    }
+    
+    intervaloSincronizacao = setInterval(() => {
+        console.log('🔄 Sincronização automática iniciada...');
+        sincronizarStatus();
+    }, intervalMinutos * 60 * 1000);
+    
+    console.log(`⏰ Sincronização automática configurada para cada ${intervalMinutos} minutos`);
+}
+
+function pararSincronizacaoAutomatica() {
+    if (intervaloSincronizacao) {
+        clearInterval(intervaloSincronizacao);
+        intervaloSincronizacao = null;
+        console.log('⏹️ Sincronização automática interrompida');
+    }
+}
+
+// Função para sincronizar apenas cobranças com status específico
+async function sincronizarPorStatus(statusFiltro = null) {
+    const cobrancasFiltradas = statusFiltro 
+        ? cobrancas.filter(c => c.integrada && c.asaas_id && c.status === statusFiltro)
+        : cobrancas.filter(c => c.integrada && c.asaas_id);
+    
+    if (cobrancasFiltradas.length === 0) {
+        mostrarMensagem(`Nenhuma cobrança ${statusFiltro ? `com status '${statusFiltro}'` : 'integrada'} encontrada!`, 'error');
+        return;
+    }
+    
+    // Temporariamente substituir array global
+    const cobrancasOriginal = [...cobrancas];
+    cobrancas.length = 0;
+    cobrancas.push(...cobrancasFiltradas);
+    
+    try {
+        await sincronizarStatus();
+    } finally {
+        // Restaurar array original
+        cobrancas.length = 0;
+        cobrancas.push(...cobrancasOriginal);
+    }
+}
+
+// Exportar funções para uso no console (debugging)
+window.sincronizarStatus = sincronizarStatus;
+window.sincronizarPorStatus = sincronizarPorStatus;
+window.iniciarSincronizacaoAutomatica = iniciarSincronizacaoAutomatica;
+window.pararSincronizacaoAutomatica = pararSincronizacaoAutomatica;
+
+console.log('✅ Funções de sincronização carregadas!');
+
+function abrirModalConfiguracoes() {
+    mostrarMensagem('Modal de configurações em desenvolvimento', 'info');
+}
+
+function verDetalhes(id) {
+    const cobranca = cobrancas.find(c => c.id === id);
+    if (cobranca) {
+        const detalhes = `
+📋 Detalhes da Cobrança #${id}
+
+👤 Cliente: ${cobranca.cliente || 'N/A'}
+💰 Valor: R$ ${cobranca.valor.toFixed(2)}
+📅 Vencimento: ${formatarDataSegura(cobranca.vencimento)}
+📊 Status: ${cobranca.status}
+🔗 Asaas ID: ${cobranca.asaas_id || 'Não integrada'}
+📝 Descrição: ${cobranca.descricao}
+        `.trim();
+        
+        alert(detalhes);
+    }
+}
+
+function mostrarMensagem(texto, tipo = 'info') {
+    console.log(`💬 ${tipo.toUpperCase()}: ${texto}`);
+    
+    if (tipo === 'success') {
+        alert(`✅ ${texto}`);
+    } else if (tipo === 'error') {
+        alert(`❌ ${texto}`);
+    } else {
+        alert(`ℹ️ ${texto}`);
+    }
+}
+
+// Inicialização quando a página carregar
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📱 DOM carregado, iniciando dashboard...');
+    
+    // Carregar dados automaticamente após 500ms
+    setTimeout(() => {
+        console.log('⏰ Auto-carregando dados...');
+        carregarDados();
+    }, 500);
+});
+
+// Para testes no console
+window.testarDataSegura = function() {
+    console.log('🧪 Testando formatação de data:');
+    console.log('2025-07-30 →', formatarDataSegura('2025-07-30'));
+    console.log('2025-07-27 →', formatarDataSegura('2025-07-27'));
+};
+
+console.log('✅ JavaScript do Dashboard carregado completamente!');
+console.log('💡 Para testar datas: testarDataSegura()');
+</script>
+{% endblock %}

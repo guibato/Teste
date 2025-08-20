@@ -6,105 +6,111 @@ from django.core.exceptions import ValidationError
 from decimal import Decimal
 from django.apps import apps
 import datetime
+from financeiro.mixins.asaas_mixin import AsaasIntegracaoMixin
+
 
 
 class Cobranca(models.Model):
     """
-    Modelo para cobrança de aluguel e outras despesas.
-    Redesenhado para maior clareza, flexibilidade e robustez.
+    Modelo para cobrança mensal de contratos.
+    
+    LÓGICA SIMPLES (como era antes, mas melhor organizada):
+    1. Contrato tem valor_base
+    2. Despesas são calculadas/rateadas conforme regras
+    3. Cobrança tem UM ÚNICO VALOR = contrato.valor_base + despesas
+    4. Este valor é o que vai no boleto/PIX
     """
     STATUS_CHOICES = [
-        ('pendente', 'Pendente'),
-        ('paga', 'Recebida'),
-        ('atrasada', 'Atrasada'),
-        ('cancelada', 'Cancelada'),
+        ('rascunho', 'Rascunho'),        # Em preparação
+        ('pendente', 'Pendente'),        # Enviada para pagamento  
+        ('paga', 'Paga'),               # Pagamento confirmado
+        ('atrasada', 'Atrasada'),       # Vencida sem pagamento
+        ('cancelada', 'Cancelada'),     # Cancelada
+        ('parcial', 'Pago Parcial'),    # Pagamento parcial recebido
     ]
 
-    # === RELACIONAMENTOS PRINCIPAIS ===
+    # === RELACIONAMENTOS ===
     contrato = models.ForeignKey(
         'sisimob.Contrato', 
         on_delete=models.CASCADE, 
         related_name='cobrancas_financeiro',
-        help_text="Contrato ao qual esta cobrança se refere"
+        help_text="Contrato base desta cobrança"
     )
-    # REMOVIDO: inquilino (agora é property através do contrato)
 
-    # === DADOS DE REFERÊNCIA ===
+    # === PERÍODO DE REFERÊNCIA ===
     mes_referencia = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(12)],
-        help_text="Mês ao qual se refere esta cobrança"
+        help_text="Mês de referência da cobrança"
     )
     ano_referencia = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(2020), MaxValueValidator(2030)],
         help_text="Ano de referência da cobrança"
     )
-    descricao = models.TextField(
-        blank=True, 
-        null=True,
-        help_text="Descrição detalhada da cobrança"
-    )
-
-    # === VALORES ===
-    valor_aluguel = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
-        default=Decimal('0.00'),
-        validators=[MinValueValidator(Decimal('0.01'))],
-        help_text="Valor base do aluguel"
-    )
-    valor_despesas = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
-        default=Decimal('0.00'),
-        validators=[MinValueValidator(Decimal('0.00'))],
-        help_text="Valor total das despesas incluídas"
-    )
-    valor_total = models.DecimalField(
+    
+    # === VALOR ÚNICO (como era antes) ===
+    valor = models.DecimalField(
         max_digits=10, 
         decimal_places=2,
-        help_text="Valor total da cobrança (aluguel + despesas)"
+        validators=[MinValueValidator(Decimal('0.01'))],
+        help_text="Valor total da cobrança (contrato.valor_base + despesas)"
+    )
+
+    # === CONTROLE E IDENTIFICAÇÃO ===
+    numero_cobranca = models.CharField(
+        max_length=20,
+        unique=True,
+        blank=True,
+        help_text="Número único da cobrança"
+    )
+    
+    descricao = models.TextField(
+        blank=True,
+        help_text="Descrição detalhada da cobrança"
     )
 
     # === DATAS ===
     data_vencimento = models.DateField(
-        help_text="Data limite para pagamento"
+        help_text="Data de vencimento"
     )
     data_emissao = models.DateField(
         auto_now_add=True,
-        help_text="Data de criação da cobrança"
+        help_text="Data de criação"
     )
     data_pagamento = models.DateField(
         null=True, 
         blank=True,
-        help_text="Data em que o pagamento foi recebido"
+        help_text="Data do pagamento (quando paga)"
     )
-    data_criacao = models.DateTimeField(auto_now_add=True)
-    data_atualizacao = models.DateTimeField(auto_now=True)
-
+    
     # === STATUS ===
     status = models.CharField(
         max_length=20, 
         choices=STATUS_CHOICES, 
-        default='pendente'
+        default='rascunho'
     )
-    status_detalhes = models.JSONField(
-        default=dict, 
-        blank=True,
-        help_text="Detalhes adicionais sobre o status"
-    )
-
-    # === CONTROLE DE LEMBRETES ===
-    lembrete_10_enviado = models.BooleanField(default=False)
-    lembrete_3_enviado = models.BooleanField(default=False)
-    lembrete_0_enviado = models.BooleanField(default=False)
-
-    # === CAMPOS ADICIONAIS ===
+    
+    # === CONTROLE INTERNO ===
     observacoes = models.TextField(
         blank=True, 
-        null=True, 
         help_text="Observações internas"
     )
     
+    # === METADADOS PARA TRANSPARÊNCIA ===
+    # Guardamos os componentes do valor para transparência/auditoria
+    detalhes_calculo = models.JSONField(
+        default=dict,
+        help_text="Detalhes de como o valor foi calculado (valor_base + despesas)"
+    )
+    
+    criada_automaticamente = models.BooleanField(
+        default=True,
+        help_text="Se foi criada pelo processo automático"
+    )
+
+    # === TIMESTAMPS ===
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+
     class Meta:
         verbose_name = "Cobrança"
         verbose_name_plural = "Cobranças"
@@ -112,32 +118,17 @@ class Cobranca(models.Model):
         unique_together = [('contrato', 'mes_referencia', 'ano_referencia')]
         
         indexes = [
-            # Consultas mais comuns
-            models.Index(fields=['status', 'data_vencimento'], name='idx_status_vencimento'),
             models.Index(fields=['contrato', 'mes_referencia', 'ano_referencia'], name='idx_contrato_periodo'),
-            
-            # Relatórios e dashboards
-            models.Index(fields=['ano_referencia', 'mes_referencia'], name='idx_periodo'),
-            models.Index(fields=['data_emissao'], name='idx_data_emissao'),
-            models.Index(fields=['data_pagamento'], name='idx_data_pagamento'),
-            
-            # Status e controle
+            models.Index(fields=['status', 'data_vencimento'], name='idx_status_vencimento'),
+            models.Index(fields=['numero_cobranca'], name='idx_numero_cobranca'),
+            models.Index(fields=['data_vencimento'], name='idx_vencimento'),
             models.Index(fields=['status'], name='idx_status'),
         ]
         
         constraints = [
-            # Validações a nível de banco
             models.CheckConstraint(
-                check=models.Q(valor_aluguel__gt=0),
-                name='valor_aluguel_positivo'
-            ),
-            models.CheckConstraint(
-                check=models.Q(valor_total__gte=models.F('valor_aluguel')),
-                name='valor_total_maior_igual_aluguel'
-            ),
-            models.CheckConstraint(
-                check=models.Q(valor_despesas__gte=0),
-                name='valor_despesas_nao_negativo'
+                check=models.Q(valor__gt=0),
+                name='valor_positivo'
             ),
             models.CheckConstraint(
                 check=models.Q(mes_referencia__gte=1, mes_referencia__lte=12),
@@ -145,179 +136,153 @@ class Cobranca(models.Model):
             ),
         ]
 
-    # === PROPERTIES ===
+    # === PROPERTIES ESSENCIAIS ===
     @property
     def inquilino(self):
-        """Acessa inquilino através do contrato"""
+        """Inquilino do contrato"""
         if self.contrato and hasattr(self.contrato, 'inquilino'):
-            # Suporte para relacionamento ManyToMany ou ForeignKey
             if hasattr(self.contrato.inquilino, 'all'):
                 return self.contrato.inquilino.first()
             return self.contrato.inquilino
         return None
 
     @property
-    def esta_atrasada(self):
-        """Verifica se a cobrança está atrasada"""
-        return (
-            self.status in ['pendente', 'atrasada'] and 
-            self.data_vencimento < timezone.now().date()
-        )
-
-    @property
-    def dias_atraso(self):
-        """Calcula dias de atraso"""
-        if self.esta_atrasada:
-            return (timezone.now().date() - self.data_vencimento).days
-        return 0
-
-    @property
     def data_referencia_texto(self):
-        """Retorna período em formato legível"""
+        """Período em formato legível"""
         meses = {
             1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril',
             5: 'Maio', 6: 'Junho', 7: 'Julho', 8: 'Agosto',
             9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'
         }
         mes_nome = meses.get(self.mes_referencia, f'Mês {self.mes_referencia}')
-        return f"{mes_nome} de {self.ano_referencia}"
+        return f"{mes_nome}/{self.ano_referencia}"
 
     @property
-    def is_quitada(self):
-        """Verifica se a cobrança está quitada"""
-        return self.status == 'paga' and self.data_pagamento is not None
-
-    # === VALIDAÇÕES ===
-    def clean(self):
-        """Validações customizadas do modelo"""
-        super().clean()
-        
-        errors = {}
-        
-        # Validar período de referência
-        if self.mes_referencia and self.ano_referencia:
-            try:
-                data_referencia = datetime.date(self.ano_referencia, self.mes_referencia, 1)
-                data_limite_passado = datetime.date(2020, 1, 1)
-                data_limite_futuro = datetime.date(2030, 12, 31)
-                
-                if data_referencia < data_limite_passado:
-                    errors['ano_referencia'] = 'Data de referência muito antiga'
-                elif data_referencia > data_limite_futuro:
-                    errors['ano_referencia'] = 'Data de referência muito distante'
-                    
-            except ValueError:
-                errors['mes_referencia'] = 'Combinação mês/ano inválida'
-        
-        # Validar valores
-        if self.valor_aluguel is not None and self.valor_aluguel <= 0:
-            errors['valor_aluguel'] = 'Valor do aluguel deve ser positivo'
-            
-        if self.valor_despesas is not None and self.valor_despesas < 0:
-            errors['valor_despesas'] = 'Valor das despesas não pode ser negativo'
-            
-        if (self.valor_aluguel and self.valor_despesas and self.valor_total and
-            self.valor_total < (self.valor_aluguel + self.valor_despesas)):
-            errors['valor_total'] = 'Valor total deve ser pelo menos a soma do aluguel e despesas'
-        
-        # Validar datas
-        if self.data_vencimento and self.data_emissao:
-            if self.data_vencimento < self.data_emissao:
-                errors['data_vencimento'] = 'Data de vencimento não pode ser anterior à emissão'
-        
-        if self.data_pagamento and self.data_emissao:
-            if self.data_pagamento < self.data_emissao:
-                errors['data_pagamento'] = 'Data de pagamento não pode ser anterior à emissão'
-        
-        # Validar status vs datas
-        if self.status == 'paga' and not self.data_pagamento:
-            errors['data_pagamento'] = 'Data de pagamento é obrigatória para cobranças pagas'
-            
-        if self.data_pagamento and self.status not in ['paga']:
-            errors['status'] = 'Status deve ser "paga" quando há data de pagamento'
-        
-        if errors:
-            raise ValidationError(errors)
-
-    def save(self, *args, **kwargs):
-        """Save simplificado - apenas validações essenciais"""
-        # Executar validações
-        self.full_clean()
-        
-        # Atualizar status automático baseado na data (só se ainda não foi definido manualmente)
-        if self.status == 'pendente' and self.data_vencimento < timezone.now().date():
-            self.status = 'atrasada'
-        
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"Cobrança {self.mes_referencia}/{self.ano_referencia} - {self.contrato}"
-
-    # === MÉTODOS DE CÁLCULO (usando services) ===
-    def calcular_valor_administracao(self):
-        """Calcula valor da taxa de administração"""
-        from financeiro.services.cobranca.cobranca_calculadora_service import CobrancaCalculadoraService
-        return CobrancaCalculadoraService.calcular_taxa_administracao(self.contrato, self.valor_aluguel)
-
-    def get_despesas_cobranca(self):
-        """Retorna despesas ativas para esta cobrança"""
-        from financeiro.services.cobranca.cobranca_calculadora_service import CobrancaCalculadoraService
-        return CobrancaCalculadoraService.buscar_despesas_periodo(
-            self.contrato, self.mes_referencia, self.ano_referencia
+    def esta_atrasada(self):
+        """Verifica se está atrasada"""
+        return (
+            self.status in ['pendente', 'atrasada', 'parcial'] and 
+            self.data_vencimento < timezone.now().date()
         )
 
-    def calcular_valor_total(self):
-        """Calcula valor total incluindo despesas"""
-        from financeiro.services.cobranca.cobranca_calculadora_service import CobrancaCalculadoraService
-        return CobrancaCalculadoraService.calcular_valor_total(
-            self.valor_aluguel, 
-            self.get_despesas_cobranca()
+    @property
+    def dias_atraso(self):
+        """Dias em atraso"""
+        if self.esta_atrasada:
+            return (timezone.now().date() - self.data_vencimento).days
+        return 0
+
+    # === PROPERTIES PARA COMPATIBILIDADE ===
+    @property
+    def valor_total(self):
+        """Compatibilidade: mesmo que .valor"""
+        return self.valor
+
+    @property
+    def valor_aluguel(self):
+        """Valor base do contrato (do detalhes_calculo)"""
+        return Decimal(str(self.detalhes_calculo.get('valor_base', '0.00')))
+
+    @property
+    def valor_despesas(self):
+        """Valor das despesas (do detalhes_calculo)"""
+        return Decimal(str(self.detalhes_calculo.get('valor_despesas', '0.00')))
+
+    @property
+    def valor_base_contrato(self):
+        """Alias para valor_aluguel"""
+        return self.valor_aluguel
+
+    @property
+    def valor_despesas_rateadas(self):
+        """Alias para valor_despesas"""
+        return self.valor_despesas
+
+    # === MÉTODOS DE CÁLCULO ===
+    def recalcular_valor_total(self):
+        """Recalcula o valor baseado no contrato + despesas atuais com lógica de crédito/débito"""
+        from ..services.cobranca.cobranca_calculadora_service import CobrancaCalculadoraService
+        
+        # 1. Pegar valor base atual do contrato
+        valor_base = getattr(self.contrato, 'valor_base', Decimal('0.00'))
+        if hasattr(self.contrato, 'valor_aluguel'):
+            valor_base = self.contrato.valor_aluguel
+        
+        # 2. Usar o método completo que já inclui a lógica de crédito/débito
+        calculo = CobrancaCalculadoraService.calcular_valor_completo(
+            self.contrato, 
+            self.mes_referencia, 
+            self.ano_referencia
         )
-
-    def atualizar_valor_total(self):
-        """Atualiza o valor total da cobrança"""
-        despesas = self.get_despesas_cobranca()
-        self.valor_despesas = sum(d.calcular_valor_parcela() for d in despesas)
-        self.valor_total = self.valor_aluguel + self.valor_despesas
-        self.save(update_fields=['valor_despesas', 'valor_total'])
-
-    def gerar_descricao_automatica(self):
-        """Gera descrição automática baseada nas despesas"""
-        from ..services.cobranca_descricao_service import CobrancaDescricaoService
-        return CobrancaDescricaoService.gerar_descricao_completa(self)
+        
+        # 3. Calcular valor total com a nova lógica
+        novo_valor = calculo['valor_total']
+        
+        # 4. Atualizar se mudou
+        if novo_valor != self.valor:
+            self.valor = novo_valor
+            self.detalhes_calculo = {
+                'valor_base': float(calculo['valor_base']),
+                'valor_despesas_liquido': float(calculo['valor_despesas']),  # Já é líquido (débitos - créditos)
+                'detalhes_despesas': calculo['detalhes'],
+                'data_calculo': timezone.now().isoformat(),
+                'despesas_incluidas': calculo['detalhes'],  # Para compatibilidade
+                'formula_calculo': f"Aluguel: R$ {calculo['valor_base']:.2f} + Despesas Inquilino: R$ {calculo['detalhes']['total_debitos']:.2f} - Créditos Proprietário: R$ {calculo['detalhes']['total_creditos']:.2f} = R$ {novo_valor:.2f}",
+                'breakdown': {
+                    'aluguel': float(calculo['valor_base']),
+                    'despesas_inquilino': calculo['detalhes']['total_debitos'],
+                    'creditos_proprietario': calculo['detalhes']['total_creditos'],
+                    'valor_final': float(novo_valor)
+                }
+            }
+            self.save(update_fields=['valor', 'detalhes_calculo'])
+            
+        return self.valor
 
     def get_detalhes_financeiros(self):
-        """Retorna detalhamento financeiro da cobrança"""
-        despesas = self.get_despesas_cobranca()
+        """Detalhes de como o valor foi composto"""
+        detalhes = self.detalhes_calculo or {}
         
         return {
-            "valor_aluguel": self.valor_aluguel,
-            "valor_despesas": self.valor_despesas,
-            "valor_total": self.valor_total,
-            "taxa_administracao": self.calcular_valor_administracao(),
-            "valor_repasse": self.calcular_valor_repasse(),
-            "despesas_detalhadas": [
-                {
-                    'nome': d.nome if hasattr(d, 'nome') else str(d.tipo),
-                    'valor': d.calcular_valor_parcela(),
-                    'tipo': d.tipo.nome if hasattr(d, 'tipo') else 'Despesa'
-                } for d in despesas
-            ]
+            'valor_total': self.valor,
+            'valor_base': Decimal(str(detalhes.get('valor_base', '0.00'))),
+            'valor_despesas': Decimal(str(detalhes.get('valor_despesas', '0.00'))),
+            'despesas_incluidas': detalhes.get('despesas_incluidas', []),
+            'data_ultimo_calculo': detalhes.get('data_calculo'),
+            'periodo': self.data_referencia_texto,
+            'status': self.get_status_display(),
         }
 
-    def get_descricao_formatada(self):
-        """Retorna descrição formatada para WhatsApp"""
-        if not self.descricao:
-            return ""
-            
-        linhas = self.descricao.strip().split('\n') if self.descricao else []
-        return '\n'.join([linha.strip() for linha in linhas if linha.strip()])
+    def get_resumo_financeiro(self):
+        """Resumo completo para exibição"""
+        detalhes = self.get_detalhes_financeiros()
+        
+        return {
+            **detalhes,
+            'percentual_despesas': (
+                (detalhes['valor_despesas'] / self.valor * 100) 
+                if self.valor > 0 else Decimal('0.00')
+            ),
+            'dias_atraso': self.dias_atraso if self.esta_atrasada else 0,
+            'pode_ser_paga': self.status in ['pendente', 'atrasada', 'parcial']
+        }
 
-    # === MÉTODOS DE AÇÃO ===
+    # === AÇÕES DE STATUS ===
+    def enviar_para_pagamento(self):
+        """Move de rascunho para pendente"""
+        if self.status == 'rascunho':
+            if self.valor <= 0:
+                raise ValidationError("Cobrança deve ter valor maior que zero")
+            
+            self.status = 'pendente'
+            self.save(update_fields=['status'])
+            return True
+        return False
+
     def marcar_como_paga(self, data_pagamento=None):
-        """Marca cobrança como paga e cria repasse"""
+        """Marca como paga"""
         if self.status == 'paga':
-            return
+            return False
             
         if not data_pagamento:
             data_pagamento = timezone.now().date()
@@ -325,175 +290,267 @@ class Cobranca(models.Model):
         self.status = 'paga'
         self.data_pagamento = data_pagamento
         self.save(update_fields=['status', 'data_pagamento'])
-
-        # Criar repasse automaticamente
+        
+        # Criar repasse automático
         self._criar_repasse_automatico()
-
-    def _criar_repasse_automatico(self):
-        """Cria repasse automático para o proprietário"""
-        try:
-            Repasse = apps.get_model('financeiro', 'Repasse')
-            Repasse.objects.get_or_create(
-                cobranca=self,
-                defaults={
-                    'valor': self.calcular_valor_repasse(),
-                    'status': 'pendente'
-                }
-            )
-        except LookupError:
-            # Modelo Repasse não existe ainda
-            pass
-
-    def calcular_valor_repasse(self):
-        """Calcula valor do repasse para o proprietário"""
-        from financeiro.services.cobranca.cobranca_calculadora_service import CobrancaCalculadoraService
-        return CobrancaCalculadoraService.calcular_valor_repasse(self)
+        return True
 
     def cancelar(self, motivo=None):
         """Cancela a cobrança"""
         if self.status == 'paga':
-            raise ValidationError("Não é possível cancelar uma cobrança já paga")
+            raise ValidationError("Não é possível cancelar cobrança paga")
             
         self.status = 'cancelada'
         if motivo:
-            self.status_detalhes['motivo_cancelamento'] = motivo
-            self.status_detalhes['data_cancelamento'] = timezone.now().isoformat()
+            self.observacoes = f"{self.observacoes}\n\nCancelada: {motivo}".strip()
         
-        self.save(update_fields=['status', 'status_detalhes'])
+        self.save(update_fields=['status', 'observacoes'])
 
-    @property
-    def valor_repasse_proprietario(self):
-        """Retorna o valor a ser repassado para o proprietário"""
-        return self.calcular_valor_repasse()
+    # === GERAÇÃO AUTOMÁTICA ===
+    def gerar_numero_cobranca(self):
+        """Gera número único"""
+        if not self.numero_cobranca:
+            prefixo = f"COB{self.ano_referencia}{str(self.mes_referencia).zfill(2)}"
+            contador = str(self.contrato.id).zfill(4)
+            self.numero_cobranca = f"{prefixo}{contador}"
+            
+    def gerar_descricao_automatica(self):
+        """Gera descrição baseada nos componentes do valor"""
+        detalhes = self.detalhes_calculo or {}
+        valor_base = Decimal(str(detalhes.get('valor_base', '0.00')))
+        valor_despesas = Decimal(str(detalhes.get('valor_despesas', '0.00')))
+        
+        linhas = [
+            f"🏠 COBRANÇA {self.data_referencia_texto}",
+            f"Contrato: {self.contrato}",
+            "",
+        ]
+        
+        # Mostrar composição do valor
+        if valor_base > 0:
+            linhas.append(f"💰 Valor Base: R$ {valor_base:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'))
+        
+        if valor_despesas > 0:
+            linhas.append(f"🏢 Despesas: R$ {valor_despesas:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'))
+            
+            # Listar despesas se disponível
+            despesas_info = detalhes.get('despesas_incluidas', [])
+            if despesas_info:
+                linhas.append("")
+                linhas.append("📋 DESPESAS INCLUÍDAS:")
+                for despesa in despesas_info:
+                    if isinstance(despesa, dict):
+                        nome = despesa.get('nome', 'Despesa')
+                        valor = despesa.get('valor_rateado', 0)
+                    else:
+                        nome = str(despesa)
+                        valor = 0
+                    
+                    if valor > 0:
+                        valor_fmt = f"R$ {valor:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
+                        linhas.append(f"• {nome}: {valor_fmt}")
+        
+        linhas.extend([
+            "",
+            f"💸 TOTAL: R$ {self.valor:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
+            f"📅 Vencimento: {self.data_vencimento.strftime('%d/%m/%Y')}"
+        ])
+        
+        return "\n".join(linhas)
 
-    # === PROPERTIES PARA CÁLCULOS FINANCEIROS ===
-    @property
-    def valor_administracao(self):
-        """Retorna o valor da taxa de administração"""
+    # === VALIDAÇÕES ===
+    def clean(self):
+        """Validações customizadas"""
+        super().clean()
+        
+        errors = {}
+        
+        # Validar período
+        if self.mes_referencia and self.ano_referencia:
+            try:
+                datetime.date(self.ano_referencia, self.mes_referencia, 1)
+            except ValueError:
+                errors['mes_referencia'] = 'Período inválido'
+        
+        # Validar valor
+        if self.valor and self.valor <= 0:
+            errors['valor'] = 'Valor deve ser positivo'
+        
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        """Save com automações"""
+        # Gerar número se não existe
+        if not self.numero_cobranca:
+            self.gerar_numero_cobranca()
+        
+        # Gerar descrição se vazia e criada automaticamente
+        if not self.descricao and self.criada_automaticamente:
+            self.descricao = self.gerar_descricao_automatica()
+        
+        # Validar
+        self.full_clean()
+        
+        super().save(*args, **kwargs)
+        
+        # Atualizar status baseado na data
+        self._atualizar_status_automatico()
+
+    def _atualizar_status_automatico(self):
+        """Atualiza status baseado na data de vencimento"""
+        if self.status == 'pendente' and self.data_vencimento < timezone.now().date():
+            self.status = 'atrasada'
+            Cobranca.objects.filter(id=self.id).update(status='atrasada')
+
+    def _criar_repasse_automatico(self):
+        """Cria repasse para o proprietário"""
         try:
-            return self.calcular_valor_administracao()
-        except Exception:
-            return Decimal('0.00')
+            from ..models.repasse import Repasse
+            
+            # Calcular valor do repasse (total - taxa de admin)
+            valor_repasse = self.calcular_valor_repasse()
+            
+            Repasse.objects.get_or_create(
+                cobranca=self,
+                defaults={
+                    'valor': valor_repasse,
+                    'status': 'pendente',
+                    'data_prevista': self.data_pagamento
+                }
+            )
+        except ImportError:
+            # Modelo Repasse ainda não criado
+            pass
 
-    @property
-    def valor_liquido(self):
-        """
-        Calcula o valor líquido do repasse para o proprietário
-        Fórmula: valor_total - taxa_administracao
-        """
-        try:
-            taxa_admin = self.calcular_valor_administracao()
-            return self.valor_total - taxa_admin
-        except Exception:
-            return self.valor_total
+    def calcular_valor_repasse(self):
+        """Calcula valor a ser repassado ao proprietário"""
+        # Por enquanto, repassa o valor total (depois implementar taxa de administração)
+        return self.valor
 
-    @property
-    def percentual_administracao(self):
-        """Retorna o percentual da taxa de administração"""
-        if self.valor_total > 0:
-            return (self.valor_administracao / self.valor_total) * 100
-        return Decimal('0.00')
+    def __str__(self):
+        return f"{self.numero_cobranca} - {self.contrato} - {self.data_referencia_texto}"
 
 
-# === MODELO SEPARADO PARA INTEGRAÇÃO ASAAS ===
-class AsaasIntegracao(models.Model):
+
+def criar_cobranca_do_contrato(contrato, mes_referencia, ano_referencia, data_vencimento, **opcoes):
     """
-    Modelo separado para dados de integração com Asaas
-    Segue o princípio de responsabilidade única
+    Factory function para criar cobrança com a lógica CORRETA:
+    VALOR = contrato.valor_base + despesas_inquilino - despesas_proprietario
     """
+    from ..services.cobranca.cobranca_calculadora_service import CobrancaCalculadoraService
+    from financeiro.views.cobranca_views import obter_valor_atual_contrato
+    
+    # 1. VALOR BASE: pegar do contrato
+    
+    valor_base = Decimal(str(obter_valor_atual_contrato(contrato, mes_referencia, ano_referencia)))
+        
+    if valor_base <= 0:
+        raise ValidationError("Contrato deve ter valor base/aluguel definido")
+    
+    # 2. USAR O CÁLCULO COMPLETO COM LÓGICA CORRETA
+    if opcoes.get('incluir_despesas', True):
+        calculo = CobrancaCalculadoraService.calcular_valor_completo(
+            contrato, mes_referencia, ano_referencia
+        )
+        valor_total = calculo['valor_total']
+        detalhes_calculo = {
+            'valor_base': float(calculo['valor_base']),
+            'valor_despesas_liquido': float(calculo['valor_despesas']),
+            'data_calculo': timezone.now().isoformat(),
+            'despesas_incluidas': calculo['detalhes'],
+            'metodo_calculo': 'automatico_com_creditos',
+            'formula_calculo': f"R$ {calculo['valor_base']:.2f} + R$ {calculo['detalhes']['total_debitos']:.2f} - R$ {calculo['detalhes']['total_creditos']:.2f} = R$ {valor_total:.2f}",
+            'breakdown': {
+                'aluguel': float(calculo['valor_base']),
+                'despesas_inquilino': calculo['detalhes']['total_debitos'],
+                'creditos_proprietario': calculo['detalhes']['total_creditos'],
+                'valor_final': float(valor_total)
+            }
+        }
+    else:
+        # Apenas aluguel, sem despesas
+        valor_total = valor_base
+        detalhes_calculo = {
+            'valor_base': float(valor_base),
+            'valor_despesas_liquido': 0.00,
+            'data_calculo': timezone.now().isoformat(),
+            'metodo_calculo': 'apenas_aluguel'
+        }
+    
+    # 3. CRIAR COBRANÇA
+    cobranca = Cobranca.objects.create(
+        contrato=contrato,
+        mes_referencia=mes_referencia,
+        ano_referencia=ano_referencia,
+        data_vencimento=data_vencimento,
+        valor=valor_total,  # Valor com a lógica correta
+        detalhes_calculo=detalhes_calculo,
+        criada_automaticamente=True
+    )
+    
+    return cobranca
+
+# Em models.py ou em uma função de cálculo
+def calcular_valor_devido_inquilino(contrato):
+    """Calcula valor devido usando a nova lógica"""
+    from ..services.cobranca.cobranca_calculadora_service import CobrancaCalculadoraService
+    import datetime
+    
+    # Usar mês/ano atual para o cálculo
+    hoje = datetime.date.today()
+    
+    calculo = CobrancaCalculadoraService.calcular_valor_completo(
+        contrato, hoje.month, hoje.year
+    )
+    
+    return calculo['valor_total']
+
+class AsaasIntegracao(models.Model, AsaasIntegracaoMixin):
+    """Integração com gateway Asaas"""
     cobranca = models.OneToOneField(
         Cobranca, 
         on_delete=models.CASCADE, 
         related_name='asaas_integracao'
     )
     
-    # IDs e status do Asaas
-    asaas_id = models.CharField(
-        max_length=100, 
-        unique=True,
-        help_text="ID da cobrança no Asaas"
-    )
-    gateway_status = models.CharField(
-        max_length=30, 
-        blank=True, 
-        null=True,
-        help_text="Status retornado pelo Asaas"
-    )
-    
-    # URLs e dados de pagamento
+    asaas_id = models.CharField(max_length=100, unique=True)
+    gateway_status = models.CharField(max_length=30, blank=True, null=True)
     boleto_url = models.URLField(blank=True, null=True)
     pix_copia_cola = models.TextField(blank=True, null=True)
     pix_qrcode = models.TextField(blank=True, null=True)
     pix_url = models.URLField(blank=True, null=True)
-    codigo_barras = models.CharField(max_length=150, blank=True, null=True)
-    fatura_url = models.URLField(blank=True, null=True)
-    
-    # Configurações da integração
-    formas_pagamento = models.JSONField(
-        default=list,
-        help_text="Formas de pagamento habilitadas ['BOLETO', 'PIX', etc]"
+    codigo_barras = models.TextField(
+        blank=True, null=True, 
+        verbose_name='Código de Barras',
+        help_text='Código de barras numérico do boleto'
     )
-    envio_email = models.BooleanField(default=True)
-    envio_whatsapp = models.BooleanField(default=False)
     
-    # Controle
+    linha_digitavel = models.TextField(
+        blank=True, null=True,
+        verbose_name='Linha Digitável', 
+        help_text='Linha digitável do boleto (identificationField)'
+    )
+    
+    nosso_numero = models.CharField(
+        max_length=50, blank=True, null=True,
+        verbose_name='Nosso Número',
+        help_text='Nosso número do boleto'
+    )
     data_integracao = models.DateTimeField(auto_now_add=True)
     data_ultima_atualizacao = models.DateTimeField(auto_now=True)
-    
-    # Webhooks e logs
-    webhooks_recebidos = models.JSONField(
-        default=list,
-        help_text="Log dos webhooks recebidos do Asaas"
-    )
     
     class Meta:
         verbose_name = "Integração Asaas"
         verbose_name_plural = "Integrações Asaas"
-        indexes = [
-            models.Index(fields=['asaas_id'], name='idx_asaas_id'),
-            models.Index(fields=['gateway_status'], name='idx_gateway_status'),
-        ]
     
     def __str__(self):
-        return f"Asaas {self.asaas_id} - {self.cobranca}"
-    
-    def pode_ser_integrada(self):
-        """Verifica se a cobrança pode ser integrada"""
-        erros = []
-        
-        if not self.cobranca.data_vencimento:
-            erros.append("Data de vencimento não informada")
-        if self.cobranca.valor_total <= 0:
-            erros.append("Valor total deve ser maior que zero")
-        if not self.cobranca.descricao:
-            erros.append("Descrição é obrigatória")
-        if not self.cobranca.inquilino:
-            erros.append("Inquilino não informado")
-        if hasattr(self, 'asaas_id') and self.asaas_id:
-            erros.append("Cobrança já foi integrada")
-            
-        return len(erros) == 0, erros
-    
-    def integrar_asaas(self, opcoes_integracao=None):
-        """Integra cobrança com o gateway de pagamento (Asaas)"""
-        pode_integrar, erros = self.pode_ser_integrada()
-        
-        if not pode_integrar:
-            return {'status': 'error', 'erros': erros}
-        
-        from ..services.asaas_integracao_service import AsaasIntegracaoService
-        return AsaasIntegracaoService.criar_cobranca(self, opcoes_integracao)
-    
-    def processar_webhook(self, dados_webhook):
-        """Processa webhook recebido do Asaas"""
-        from ..services.asaas_integracao_service import AsaasIntegracaoService
-        return AsaasIntegracaoService.processar_webhook(self, dados_webhook)
+        return f"Asaas {self.cobranca}"
 
 
-# === HELPER PARA COMPATIBILIDADE ===
-# Adiciona propriedades na Cobrança para manter compatibilidade
-def _add_asaas_properties():
-    """Adiciona properties para compatibilidade com código existente"""
+# === HELPER PARA COMPATIBILIDADE COM CÓDIGO EXISTENTE ===
+def _add_compatibility_properties():
+    """Adiciona properties para manter compatibilidade"""
     
     @property
     def integrada_asaas(self):
@@ -527,6 +584,7 @@ def _add_asaas_properties():
     Cobranca.pix_url = pix_url
     Cobranca.gateway_status = gateway_status
 
-# Executar ao importar o módulo
-_add_asaas_properties()
+# Executar ao importar
+_add_compatibility_properties()
+
 

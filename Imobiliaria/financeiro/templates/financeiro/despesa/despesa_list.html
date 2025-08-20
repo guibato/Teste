@@ -1,4 +1,4 @@
-<!-- financeiro/templates/financeiro/despesa/despesa_list.html -->
+<!-- financeiro/templates/financeiro/despesa/despesa_list.html - ADAPTADO AO MODELO COMPLETO -->
 {% extends 'base/base.html' %}
 
 {% block page_title %}Despesas{% endblock %}
@@ -14,7 +14,12 @@
             </h1>
             <p class="text-gray-400 mt-1">Gerencie as despesas dos contratos</p>
         </div>
-        <div class="mt-4 md:mt-0">
+        <div class="mt-4 md:mt-0 flex space-x-3">
+            <button onclick="toggleViewMode()" 
+                    class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
+                <i id="viewModeIcon" class="fas fa-list mr-2"></i>
+                <span id="viewModeText">Visualização Detalhada</span>
+            </button>
             <a href="{% url 'financeiro:despesa_create' %}" 
                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
                 <i class="fas fa-plus mr-2"></i>
@@ -24,7 +29,7 @@
     </div>
 
     <!-- Cards de estatísticas -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
         <div class="bg-blue-600 rounded-lg p-6 text-white">
             <div class="flex items-center justify-between">
                 <div>
@@ -64,11 +69,22 @@
                 <i class="fas fa-dollar-sign text-3xl text-purple-200"></i>
             </div>
         </div>
+
+        <!-- NOVO: Card Taxa Admin -->
+        <div class="bg-yellow-600 rounded-lg p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-yellow-100">Com Taxa Admin</p>
+                    <p class="text-3xl font-bold">{{ despesas_com_taxa }}</p>
+                </div>
+                <i class="fas fa-percentage text-3xl text-yellow-200"></i>
+            </div>
+        </div>
     </div>
 
     <!-- Filtros -->
     <div class="bg-gray-800 rounded-lg p-6">
-        <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-7 gap-4 items-end">
             <!-- Status -->
             <div>
                 <label class="block text-sm font-medium text-gray-300 mb-2">Status</label>
@@ -91,6 +107,28 @@
                     <option value="imobiliaria" {% if filtro_paga_por == 'imobiliaria' %}selected{% endif %}>Imobiliária</option>
                 </select>
             </div>
+
+            <!-- NOVO: Filtro Taxa Admin -->
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Taxa Admin</label>
+                <select name="incidencia_taxa" onchange="this.form.submit()" 
+                        class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="todas" {% if filtro_incidencia_taxa == 'todas' %}selected{% endif %}>Todas</option>
+                    <option value="com_taxa" {% if filtro_incidencia_taxa == 'com_taxa' %}selected{% endif %}>Com Taxa</option>
+                    <option value="sem_taxa" {% if filtro_incidencia_taxa == 'sem_taxa' %}selected{% endif %}>Sem Taxa</option>
+                    <option value="parcial" {% if filtro_incidencia_taxa == 'parcial' %}selected{% endif %}>Parcial</option>
+                </select>
+            </div>
+            
+            <!-- Período -->
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Período</label>
+                <select name="periodo_filtro" onchange="this.form.submit()" 
+                        class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="todas" {% if filtro_periodo == 'todas' %}selected{% endif %}>Todas as Despesas</option>
+                    <option value="periodo" {% if filtro_periodo == 'periodo' %}selected{% endif %}>Apenas Período Atual</option>
+                </select>
+            </div>
             
             <!-- Tipo -->
             <div>
@@ -98,7 +136,7 @@
                 <select name="tipo" onchange="this.form.submit()" 
                         class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Todos os tipos</option>
-                    {% for tipo in despesas.0.tipo.get_queryset %}
+                    {% for tipo in tipos_despesa %}
                         <option value="{{ tipo.pk }}" {% if filtro_tipo == tipo.pk|stringformat:"s" %}selected{% endif %}>
                             {{ tipo.nome }}
                         </option>
@@ -134,95 +172,125 @@
     <div class="bg-gray-800 rounded-lg overflow-hidden">
         {% if despesas %}
             <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-gray-700">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Contrato</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Tipo</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Descrição</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Valor</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Paga Por</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-32">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-700">
-                        {% for despesa in despesas %}
-                        <tr class="hover:bg-gray-700 transition-colors">
-                            <td class="px-6 py-4">
-                                <div class="text-white font-medium">{{ despesa.contrato }}</div>
-                                <div class="text-gray-400 text-sm">{{ despesa.contrato.imovel.endereco|default:"" }}</div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="text-white">{{ despesa.tipo.nome }}</div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="text-gray-300">
-                                    {{ despesa.descricao|default:despesa.get_descricao_padrao|truncatechars:30 }}
-                                </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="text-white font-medium">R$ {{ despesa.valor_total|floatformat:2 }}</div>
-                                {% if despesa.numero_parcelas > 1 %}
-                                    <div class="text-gray-400 text-sm">
-                                        {{ despesa.numero_parcelas }}x R$ {{ despesa.calcular_valor_parcela|floatformat:2 }}
+                <!-- Visualização Detalhada (simplificada por enquanto) -->
+                <div id="detailedView">
+                    <table class="w-full">
+                        <thead class="bg-gray-700">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Contrato</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Tipo</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Descrição</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Valor</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Paga Por</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Taxa Admin</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-32">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-700">
+                            {% for despesa in despesas %}
+                            <tr class="hover:bg-gray-700 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="text-white font-medium">{{ despesa.contrato }}</div>
+                                    <div class="text-gray-400 text-sm">{{ despesa.contrato.imovel.endereco|default:"" }}</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-white">{{ despesa.tipo.nome }}</div>
+                                    <div class="text-xs text-gray-400">{{ despesa.tipo.get_categoria_display }}</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-gray-300 flex items-center">
+                                        <!-- NOVO: Ícone de taxa -->
+                                        {% if despesa.tem_incidencia_taxa %}
+                                            <i class="fas fa-percentage text-yellow-400 mr-1" title="Com taxa administrativa"></i>
+                                        {% else %}
+                                            <i class="fas fa-ban text-gray-500 mr-1" title="Sem taxa administrativa"></i>
+                                        {% endif %}
+                                        {{ despesa.get_descricao_completa|truncatechars:30 }}
                                     </div>
-                                {% endif %}
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="px-2 py-1 rounded-full text-xs font-medium
-                                    {% if despesa.paga_por == 'proprietario' %}bg-blue-600 text-blue-100
-                                    {% elif despesa.paga_por == 'inquilino' %}bg-green-600 text-green-100
-                                    {% else %}bg-purple-600 text-purple-100{% endif %}">
-                                    {{ despesa.get_paga_por_display }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4">
-                                {% if despesa.is_ativa %}
-                                    <span class="bg-green-600 text-green-100 px-2 py-1 rounded-full text-xs font-medium">Ativa</span>
-                                {% else %}
-                                    <span class="bg-gray-600 text-gray-100 px-2 py-1 rounded-full text-xs font-medium">Inativa</span>
-                                {% endif %}
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="relative">
-                                    <button class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm flex items-center transition-colors"
-                                            onclick="toggleDropdown('dropdown-{{ despesa.pk }}')">
-                                        Ações
-                                        <i class="fas fa-chevron-down ml-1"></i>
-                                    </button>
-                                    
-                                    <div id="dropdown-{{ despesa.pk }}" class="hidden absolute right-0 mt-2 w-48 bg-gray-700 rounded-lg shadow-lg z-10">
-                                        <div class="py-1">
-                                            <a href="{% url 'financeiro:despesa_detail' despesa.pk %}" 
-                                               class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">
-                                                <i class="fas fa-eye mr-2"></i> Ver Detalhes
-                                            </a>
-                                            <a href="{% url 'financeiro:despesa_update' despesa.pk %}" 
-                                               class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">
-                                                <i class="fas fa-edit mr-2"></i> Editar
-                                            </a>
-                                            <a href="{% url 'financeiro:despesa_duplicar' despesa.pk %}" 
-                                               class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">
-                                                <i class="fas fa-copy mr-2"></i> Duplicar
-                                            </a>
-                                            <div class="border-t border-gray-600 my-1"></div>
-                                            <button onclick="toggleStatus({{ despesa.pk }}, '{{ despesa.get_descricao_padrao }}', {{ despesa.is_ativa|yesno:'true,false' }})"
-                                                    class="w-full text-left block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">
-                                                {% if despesa.is_ativa %}
-                                                    <i class="fas fa-times text-red-400 mr-2"></i> Inativar
-                                                {% else %}
-                                                    <i class="fas fa-check text-green-400 mr-2"></i> Ativar
-                                                {% endif %}
-                                            </button>
+                                    {% if despesa.cobranca_referencia %}
+                                        <div class="text-xs text-blue-300">Ref: {{ despesa.cobranca_referencia }}</div>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-white font-medium">R$ {{ despesa.valor_total|floatformat:2 }}</div>
+                                    {% if despesa.numero_parcelas > 1 %}
+                                        <div class="text-gray-400 text-sm">
+                                            {{ despesa.numero_parcelas }}x R$ {{ despesa.calcular_valor_parcela|floatformat:2 }}
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-1 rounded-full text-xs font-medium
+                                        {% if despesa.paga_por == 'proprietario' %}bg-blue-600 text-blue-100
+                                        {% elif despesa.paga_por == 'inquilino' %}bg-green-600 text-green-100
+                                        {% else %}bg-purple-600 text-purple-100{% endif %}">
+                                        {{ despesa.get_paga_por_display }}
+                                    </span>
+                                </td>
+                                <!-- NOVA: Coluna Taxa Admin -->
+                                <td class="px-6 py-4">
+                                    {% if despesa.incidencia_taxa_admin == 'sim' %}
+                                        <span class="bg-yellow-600 text-yellow-100 px-2 py-1 rounded-full text-xs font-medium">
+                                            <i class="fas fa-percentage mr-1"></i>Total
+                                        </span>
+                                    {% elif despesa.incidencia_taxa_admin == 'parcial' %}
+                                        <span class="bg-orange-600 text-orange-100 px-2 py-1 rounded-full text-xs font-medium">
+                                            <i class="fas fa-adjust mr-1"></i>{{ despesa.percentual_com_incidencia }}%
+                                        </span>
+                                    {% else %}
+                                        <span class="bg-gray-600 text-gray-100 px-2 py-1 rounded-full text-xs font-medium">
+                                            <i class="fas fa-ban mr-1"></i>Sem taxa
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {% if despesa.is_ativa %}
+                                        <span class="bg-green-600 text-green-100 px-2 py-1 rounded-full text-xs font-medium">Ativa</span>
+                                    {% else %}
+                                        <span class="bg-gray-600 text-gray-100 px-2 py-1 rounded-full text-xs font-medium">Inativa</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="relative">
+                                        <button class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm flex items-center transition-colors"
+                                                onclick="toggleDropdown('dropdown-detail-{{ despesa.pk }}')">
+                                            Ações
+                                            <i class="fas fa-chevron-down ml-1"></i>
+                                        </button>
+                                        
+                                        <div id="dropdown-detail-{{ despesa.pk }}" class="dropdown-menu hidden">
+                                            <div class="py-1">
+                                                <a href="{% url 'financeiro:despesa_detail' despesa.pk %}" 
+                                                   class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">
+                                                    <i class="fas fa-eye mr-2"></i> Ver Detalhes
+                                                </a>
+                                                <a href="{% url 'financeiro:despesa_update' despesa.pk %}" 
+                                                   class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">
+                                                    <i class="fas fa-edit mr-2"></i> Editar
+                                                </a>
+                                                <a href="{% url 'financeiro:despesa_duplicar' despesa.pk %}" 
+                                                   class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">
+                                                    <i class="fas fa-copy mr-2"></i> Duplicar
+                                                </a>
+                                                <div class="border-t border-gray-600 my-1"></div>
+                                                <button onclick="toggleStatus({{ despesa.pk }}, '{{ despesa.get_descricao_padrao }}', {{ despesa.is_ativa|yesno:'true,false' }})"
+                                                        class="w-full text-left block px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white">
+                                                    {% if despesa.is_ativa %}
+                                                        <i class="fas fa-times text-red-400 mr-2"></i> Inativar
+                                                    {% else %}
+                                                        <i class="fas fa-check text-green-400 mr-2"></i> Ativar
+                                                    {% endif %}
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- Paginação -->
@@ -233,14 +301,14 @@
                 </div>
                 <div class="flex space-x-1">
                     {% if page_obj.has_previous %}
-                        <a href="?page={{ page_obj.previous_page_number }}{% if filtro_status != 'ativa' %}&status={{ filtro_status }}{% endif %}{% if filtro_paga_por != 'todos' %}&paga_por={{ filtro_paga_por }}{% endif %}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_busca %}&busca={{ filtro_busca }}{% endif %}" 
+                        <a href="?page={{ page_obj.previous_page_number }}{% if filtro_status != 'ativa' %}&status={{ filtro_status }}{% endif %}{% if filtro_paga_por != 'todos' %}&paga_por={{ filtro_paga_por }}{% endif %}{% if filtro_incidencia_taxa != 'todas' %}&incidencia_taxa={{ filtro_incidencia_taxa }}{% endif %}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_busca %}&busca={{ filtro_busca }}{% endif %}" 
                            class="bg-gray-600 hover:bg-gray-500 text-white px-3 py-1 rounded text-sm transition-colors">
                             Anterior
                         </a>
                     {% endif %}
                     
                     {% if page_obj.has_next %}
-                        <a href="?page={{ page_obj.next_page_number }}{% if filtro_status != 'ativa' %}&status={{ filtro_status }}{% endif %}{% if filtro_paga_por != 'todos' %}&paga_por={{ filtro_paga_por }}{% endif %}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_busca %}&busca={{ filtro_busca }}{% endif %}" 
+                        <a href="?page={{ page_obj.next_page_number }}{% if filtro_status != 'ativa' %}&status={{ filtro_status }}{% endif %}{% if filtro_paga_por != 'todos' %}&paga_por={{ filtro_paga_por }}{% endif %}{% if filtro_incidencia_taxa != 'todas' %}&incidencia_taxa={{ filtro_incidencia_taxa }}{% endif %}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_busca %}&busca={{ filtro_busca }}{% endif %}" 
                            class="bg-gray-600 hover:bg-gray-500 text-white px-3 py-1 rounded text-sm transition-colors">
                             Próxima
                         </a>
@@ -254,7 +322,7 @@
             <div class="text-center py-12">
                 <i class="fas fa-receipt text-6xl text-gray-600 mb-4"></i>
                 <h3 class="text-xl font-medium text-gray-300 mb-2">Nenhuma despesa encontrada</h3>
-                {% if filtro_busca or filtro_status != 'ativa' or filtro_paga_por != 'todos' or filtro_tipo %}
+                {% if filtro_busca or filtro_status != 'ativa' or filtro_paga_por != 'todos' or filtro_tipo or filtro_incidencia_taxa != 'todas' %}
                     <p class="text-gray-400 mb-4">Tente ajustar os filtros ou 
                         <a href="{% url 'financeiro:despesa_list' %}" class="text-blue-400 hover:text-blue-300">remover filtros</a>
                     </p>
@@ -292,23 +360,24 @@
 </div>
 
 <script>
-// Fechar dropdowns quando clicar fora
-document.addEventListener('click', function(event) {
-    const dropdowns = document.querySelectorAll('[id^="dropdown-"]');
-    dropdowns.forEach(dropdown => {
-        if (!dropdown.closest('.relative').contains(event.target)) {
+// Toggle dropdown
+function toggleDropdown(id) {
+    // Primeiro, fecha todos os outros dropdowns
+    const allDropdowns = document.querySelectorAll('[id^="dropdown-"]');
+    allDropdowns.forEach(dropdown => {
+        if (dropdown.id !== id) {
             dropdown.classList.add('hidden');
         }
     });
-});
-
-// Toggle dropdown
-function toggleDropdown(id) {
+    
+    // Depois abre/fecha o dropdown clicado
     const dropdown = document.getElementById(id);
-    dropdown.classList.toggle('hidden');
+    if (dropdown) {
+        dropdown.classList.toggle('hidden');
+    }
 }
 
-// Toggle status da despesa
+// Toggle status da despesa individual
 function toggleStatus(despesaId, despesaDescricao, statusAtual) {
     const acao = statusAtual ? 'inativar' : 'ativar';
     const modal = document.getElementById('confirmModal');
@@ -348,5 +417,31 @@ function toggleStatus(despesaId, despesaDescricao, statusAtual) {
 function closeModal() {
     document.getElementById('confirmModal').classList.add('hidden');
 }
+
+// Fechar dropdowns quando clicar fora
+document.addEventListener('click', function(event) {
+    const dropdowns = document.querySelectorAll('[id^="dropdown-"]');
+    dropdowns.forEach(dropdown => {
+        if (!dropdown.closest('.relative').contains(event.target)) {
+            dropdown.classList.add('hidden');
+        }
+    });
+});
 </script>
+
+<style>
+/* Melhor posicionamento dos dropdowns */
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 0.25rem;
+    z-index: 1000;
+    min-width: 12rem;
+    background-color: #374151;
+    border: 1px solid #4B5563;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+}
+</style>
 {% endblock %}

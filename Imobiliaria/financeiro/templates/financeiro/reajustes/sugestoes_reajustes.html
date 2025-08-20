@@ -6,23 +6,23 @@
 {% block title %}Sugestões de Reajustes{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50 py-8">
+<div class="min-h-screen bg-gray-900 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <!-- Header -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900 flex items-center">
-                    <svg class="w-8 h-8 mr-3 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                <h1 class="text-3xl font-bold text-white flex items-center">
+                    <svg class="w-8 h-8 mr-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.477.859h4z"/>
                     </svg>
                     Sugestões de Reajustes
                 </h1>
-                <p class="text-gray-600 mt-1">{{ stats.total }} sugestões encontradas</p>
+                <p class="text-gray-400 mt-1">{{ stats.total }} sugestões encontradas</p>
             </div>
             <div class="flex space-x-3 mt-4 sm:mt-0">
-                <a href="{% url 'financeiro:lista_reajustes' %}" 
-                   class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
+                <a href="{% url 'financeiro:reajustes_list' %}" 
+                   class="inline-flex items-center px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
                     <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
                     </svg>
@@ -39,13 +39,13 @@
         </div>
 
         <!-- Filtros -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
+        <div class="bg-gray-800 rounded-xl shadow-lg border border-gray-700 mb-8">
             <div class="p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Filtros</h3>
+                <h3 class="text-lg font-medium text-white mb-4">Filtros</h3>
                 <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Meses de Antecedência</label>
-                        <select name="meses" class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" onchange="this.form.submit()">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Meses de Antecedência</label>
+                        <select name="meses" class="w-full rounded-lg border-gray-600 bg-gray-700 text-white focus:border-blue-500 focus:ring-blue-500" onchange="this.form.submit()">
                             <option value="1" {% if meses_antecedencia == 1 %}selected{% endif %}>1 mês</option>
                             <option value="2" {% if meses_antecedencia == 2 %}selected{% endif %}>2 meses</option>
                             <option value="3" {% if meses_antecedencia == 3 %}selected{% endif %}>3 meses</option>
@@ -53,18 +53,28 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Filtrar Contratos</label>
-                        <select name="contratos" class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" multiple>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Filtrar Contratos</label>
+                        <select name="contratos" class="w-full rounded-lg border-gray-600 bg-gray-700 text-white focus:border-blue-500 focus:ring-blue-500" multiple>
                             {% for contrato in contratos %}
                                 <option value="{{ contrato.id }}" 
                                         {% if contrato.id in contratos_selecionados %}selected{% endif %}>
-                                    {{ contrato.imovel.endereco|truncatechars:40 }} - 
+                                    {{ contrato.imovel.endereco_completo }} - 
                                     {% if contrato.nome_locatario %}
                                         {{ contrato.nome_locatario }}
-                                    {% elif contrato.locatario %}
-                                        {{ contrato.locatario }}
-                                    {% elif contrato.inquilino %}
-                                        {{ contrato.inquilino }}
+                                    {% elif contrato.locatario and contrato.locatario != 'None' %}
+                                        {% if contrato.locatario.nome %}
+                                            {{ contrato.locatario.nome }}
+                                        {% else %}
+                                            {{ contrato.locatario }}
+                                        {% endif %}
+                                    {% elif contrato.inquilino and contrato.inquilino != 'None' %}
+                                        {% if contrato.inquilino.nome %}
+                                            {{ contrato.inquilino.nome }}
+                                        {% elif contrato.inquilino.cliente %}
+                                            {{ contrato.inquilino.cliente.nome|default:contrato.inquilino.cliente }}
+                                        {% else %}
+                                            Cliente não informado
+                                        {% endif %}
                                     {% else %}
                                         Sem locatário
                                     {% endif %}
@@ -87,7 +97,7 @@
         <!-- Estatísticas -->
         {% if sugestoes %}
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-gradient-to-r from-purple-500 to-purple-600 p-6 rounded-xl text-white">
+            <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-6 rounded-xl text-white shadow-lg">
                 <div class="flex items-center">
                     <div class="p-2 bg-white bg-opacity-20 rounded-lg">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -95,13 +105,13 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-purple-100">Total de Sugestões</p>
+                        <p class="text-purple-200">Total de Sugestões</p>
                         <p class="text-3xl font-bold">{{ stats.total }}</p>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-gradient-to-r from-red-500 to-red-600 p-6 rounded-xl text-white">
+            <div class="bg-gradient-to-r from-red-600 to-red-700 p-6 rounded-xl text-white shadow-lg">
                 <div class="flex items-center">
                     <div class="p-2 bg-white bg-opacity-20 rounded-lg">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -109,13 +119,13 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-red-100">Vencidos</p>
+                        <p class="text-red-200">Vencidos</p>
                         <p class="text-3xl font-bold">{{ stats.vencidos }}</p>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 p-6 rounded-xl text-white">
+            <div class="bg-gradient-to-r from-yellow-600 to-yellow-700 p-6 rounded-xl text-white shadow-lg">
                 <div class="flex items-center">
                     <div class="p-2 bg-white bg-opacity-20 rounded-lg">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -123,13 +133,13 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-yellow-100">Urgentes</p>
+                        <p class="text-yellow-200">Urgentes</p>
                         <p class="text-3xl font-bold">{{ stats.urgentes }}</p>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-xl text-white">
+            <div class="bg-gradient-to-r from-green-600 to-green-700 p-6 rounded-xl text-white shadow-lg">
                 <div class="flex items-center">
                     <div class="p-2 bg-white bg-opacity-20 rounded-lg">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -137,7 +147,7 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-green-100">Pendentes</p>
+                        <p class="text-green-200">Pendentes</p>
                         <p class="text-3xl font-bold">{{ stats.pendentes }}</p>
                     </div>
                 </div>
@@ -146,19 +156,19 @@
 
         <!-- Resumo Financeiro -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 text-center">
-                <h3 class="text-sm font-medium text-gray-500 mb-2">Valor Total Atual</h3>
-                <p class="text-2xl font-bold text-gray-900">R$ {{ stats.valor_total_atual|floatformat:2 }}</p>
+            <div class="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700 text-center">
+                <h3 class="text-sm font-medium text-gray-400 mb-2">Valor Total Atual</h3>
+                <p class="text-2xl font-bold text-white">R$ {{ stats.valor_total_atual|floatformat:2 }}</p>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 text-center">
-                <h3 class="text-sm font-medium text-gray-500 mb-2">Valor Total Sugerido</h3>
-                <p class="text-2xl font-bold text-green-600">R$ {{ stats.valor_total_sugerido|floatformat:2 }}</p>
+            <div class="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700 text-center">
+                <h3 class="text-sm font-medium text-gray-400 mb-2">Valor Total Sugerido</h3>
+                <p class="text-2xl font-bold text-green-400">R$ {{ stats.valor_total_sugerido|floatformat:2 }}</p>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 text-center">
-                <h3 class="text-sm font-medium text-gray-500 mb-2">Aumento Total</h3>
-                <p class="text-2xl font-bold text-blue-600">
+            <div class="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700 text-center">
+                <h3 class="text-sm font-medium text-gray-400 mb-2">Aumento Total</h3>
+                <p class="text-2xl font-bold text-blue-400">
                     +{{ stats.aumento_percentual|floatformat:2 }}%
-                    <span class="block text-sm text-gray-500 mt-1">
+                    <span class="block text-sm text-gray-400 mt-1">
                         +R$ {{ stats.aumento_valor|floatformat:2 }}
                     </span>
                 </p>
@@ -169,28 +179,28 @@
         <!-- Lista de Sugestões -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for sugestao in sugestoes %}
-                <div class="bg-white rounded-xl shadow-sm border-l-4 
+                <div class="bg-gray-800 rounded-xl shadow-lg border-l-4 
                            {% if sugestao.status == 'vencido' %}border-red-500
                            {% elif sugestao.status == 'urgente' %}border-yellow-500
                            {% else %}border-green-500{% endif %} 
-                           hover:shadow-md transition-all duration-300">
+                           hover:shadow-xl transition-all duration-300 border border-gray-700">
                     
                     <div class="p-6">
                         <!-- Header do Card -->
                         <div class="flex items-start justify-between mb-4">
                             <div class="flex items-center">
-                                <input type="checkbox" class="sugestao-check rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
+                                <input type="checkbox" class="sugestao-check rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500" 
                                        value="{{ sugestao.contrato.id }}_{{ sugestao.data_reajuste|date:'Y-m-d' }}"
                                        id="sugestao_{{ sugestao.contrato.id }}"
                                        onchange="updateProcessarButton()">
-                                <label for="sugestao_{{ sugestao.contrato.id }}" class="ml-3 text-sm font-medium text-gray-900 cursor-pointer">
+                                <label for="sugestao_{{ sugestao.contrato.id }}" class="ml-3 text-sm font-medium text-white cursor-pointer">
                                     {{ sugestao.contrato.imovel.endereco|truncatechars:25 }}
                                 </label>
                             </div>
                             <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
-                                       {% if sugestao.status == 'vencido' %}bg-red-100 text-red-800
-                                       {% elif sugestao.status == 'urgente' %}bg-yellow-100 text-yellow-800
-                                       {% else %}bg-green-100 text-green-800{% endif %}">
+                                       {% if sugestao.status == 'vencido' %}bg-red-900 text-red-200
+                                       {% elif sugestao.status == 'urgente' %}bg-yellow-900 text-yellow-200
+                                       {% else %}bg-green-900 text-green-200{% endif %}">
                                 {% if sugestao.status == 'vencido' %}Vencido
                                 {% elif sugestao.status == 'urgente' %}Urgente
                                 {% else %}Pendente{% endif %}
@@ -198,7 +208,7 @@
                         </div>
 
                         <!-- Locatário -->
-                        <p class="text-sm text-gray-600 mb-4">
+                        <p class="text-sm text-gray-400 mb-4">
                             {% if sugestao.contrato.nome_locatario %}
                                 {{ sugestao.contrato.nome_locatario }}
                             {% elif sugestao.contrato.locatario %}
@@ -213,46 +223,46 @@
                         <!-- Valores -->
                         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div class="text-center">
-                                <p class="text-xs text-gray-500 mb-1">Valor Atual</p>
-                                <p class="text-lg font-semibold text-gray-900">R$ {{ sugestao.valor_anterior|floatformat:2 }}</p>
+                                <p class="text-xs text-gray-400 mb-1">Valor Atual</p>
+                                <p class="text-lg font-semibold text-white">R$ {{ sugestao.valor_anterior|floatformat:2 }}</p>
                             </div>
                             <div class="text-center">
-                                <p class="text-xs text-gray-500 mb-1">Valor Sugerido</p>
-                                <p class="text-lg font-semibold text-green-600">R$ {{ sugestao.valor_sugerido|floatformat:2 }}</p>
+                                <p class="text-xs text-gray-400 mb-1">Valor Sugerido</p>
+                                <p class="text-lg font-semibold text-green-400">R$ {{ sugestao.valor_sugerido|floatformat:2 }}</p>
                             </div>
                         </div>
 
                         <!-- Detalhes -->
                         <div class="space-y-3 mb-4">
                             <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">Fator Aplicado:</span>
-                                <span class="inline-flex px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                                <span class="text-sm text-gray-400">Fator Aplicado:</span>
+                                <span class="inline-flex px-2 py-1 text-xs font-medium bg-blue-900 text-blue-200 rounded-full">
                                     {{ sugestao.fator_aplicado|floatformat:2 }}%
                                 </span>
                             </div>
                             
                             <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">Índice:</span>
-                                <span class="inline-flex px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
+                                <span class="text-sm text-gray-400">Índice:</span>
+                                <span class="inline-flex px-2 py-1 text-xs font-medium bg-gray-700 text-gray-200 rounded-full">
                                     {{ sugestao.indice_utilizado }}
                                 </span>
                             </div>
                             
                             <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">Data Reajuste:</span>
-                                <span class="text-sm font-medium text-gray-900">{{ sugestao.data_reajuste|date:"d/m/Y" }}</span>
+                                <span class="text-sm text-gray-400">Data Reajuste:</span>
+                                <span class="text-sm font-medium text-white">{{ sugestao.data_reajuste|date:"d/m/Y" }}</span>
                             </div>
                         </div>
 
                         <!-- Variação -->
-                        <div class="text-center mb-4 p-3 bg-green-50 rounded-lg">
-                            <div class="flex items-center justify-center text-green-600">
+                        <div class="text-center mb-4 p-3 bg-green-900 bg-opacity-50 rounded-lg border border-green-800">
+                            <div class="flex items-center justify-center text-green-400">
                                 <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z"/>
                                 </svg>
                                 <span class="font-semibold">+{{ sugestao.variacao_percentual|floatformat:2 }}%</span>
                             </div>
-                            <p class="text-sm text-green-600 mt-1">
+                            <p class="text-sm text-green-400 mt-1">
                                 +R$ {{ sugestao.valor_sugerido|subtract:sugestao.valor_anterior|floatformat:2 }}
                             </p>
                         </div>
@@ -260,7 +270,7 @@
                         <!-- Botões -->
                         <div class="flex space-x-2">
                             <button onclick="verHistorico({{ sugestao.contrato.id }})" 
-                                    class="flex-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-lg transition-colors">
+                                    class="flex-1 px-3 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm rounded-lg transition-colors">
                                 <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/>
                                 </svg>
@@ -278,19 +288,19 @@
                 </div>
             {% empty %}
                 <div class="col-span-full">
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-                        <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div class="bg-gray-800 rounded-xl shadow-lg border border-gray-700 p-12 text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                         </svg>
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhuma sugestão encontrada</h3>
-                        <p class="text-gray-500 mb-6">
+                        <h3 class="text-lg font-medium text-white mb-2">Nenhuma sugestão encontrada</h3>
+                        <p class="text-gray-400 mb-6">
                             {% if meses_antecedencia == 1 %}
                                 Não há reajustes pendentes para o próximo mês.
                             {% else %}
                                 Não há reajustes pendentes para os próximos {{ meses_antecedencia }} meses.
                             {% endif %}
                         </p>
-                        <a href="{% url 'financeiro:lista_reajustes' %}" 
+                        <a href="{% url 'financeiro:reajustes_list' %}" 
                            class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
                             <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
@@ -305,27 +315,27 @@
 </div>
 
 <!-- Modal de Processamento Individual -->
-<div id="modalProcessarIndividual" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+<div id="modalProcessarIndividual" class="fixed inset-0 bg-black bg-opacity-75 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border border-gray-600 w-96 shadow-2xl rounded-md bg-gray-800">
         <div class="mt-3">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Aprovar Reajuste</h3>
-                <button onclick="fecharModalIndividual()" class="text-gray-400 hover:text-gray-600">
+                <h3 class="text-lg font-medium text-white">Aprovar Reajuste</h3>
+                <button onclick="fecharModalIndividual()" class="text-gray-400 hover:text-gray-200">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
             </div>
-            <p class="text-sm text-gray-500 mb-4">Tem certeza que deseja aprovar este reajuste?</p>
+            <p class="text-sm text-gray-400 mb-4">Tem certeza que deseja aprovar este reajuste?</p>
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Observação (opcional)</label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Observação (opcional)</label>
                 <textarea id="observacaoIndividual" rows="3" 
                           placeholder="Observação para este reajuste..."
-                          class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"></textarea>
+                          class="w-full rounded-lg border-gray-600 bg-gray-700 text-white focus:border-blue-500 focus:ring-blue-500"></textarea>
             </div>
             <div class="flex justify-end space-x-3">
                 <button onclick="fecharModalIndividual()" 
-                        class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors">
+                        class="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-gray-200 rounded-lg transition-colors">
                     Cancelar
                 </button>
                 <button onclick="confirmarProcessamentoIndividual()" 
@@ -341,29 +351,29 @@
 </div>
 
 <!-- Modal de Processamento em Lote -->
-<div id="modalProcessarLote" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+<div id="modalProcessarLote" class="fixed inset-0 bg-black bg-opacity-75 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border border-gray-600 w-96 shadow-2xl rounded-md bg-gray-800">
         <div class="mt-3">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Processar Reajustes em Lote</h3>
-                <button onclick="fecharModalLote()" class="text-gray-400 hover:text-gray-600">
+                <h3 class="text-lg font-medium text-white">Processar Reajustes em Lote</h3>
+                <button onclick="fecharModalLote()" class="text-gray-400 hover:text-gray-200">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
             </div>
-            <p class="text-sm text-gray-500 mb-4">
-                Tem certeza que deseja processar <span id="qtdSelecionadosLote" class="font-medium">0</span> reajustes selecionados?
+            <p class="text-sm text-gray-400 mb-4">
+                Tem certeza que deseja processar <span id="qtdSelecionadosLote" class="font-medium text-white">0</span> reajustes selecionados?
             </p>
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Observação (opcional)</label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Observação (opcional)</label>
                 <textarea id="observacaoLote" rows="3" 
                           placeholder="Observação para todos os reajustes..."
-                          class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"></textarea>
+                          class="w-full rounded-lg border-gray-600 bg-gray-700 text-white focus:border-blue-500 focus:ring-blue-500"></textarea>
             </div>
             <div class="flex justify-end space-x-3">
                 <button onclick="fecharModalLote()" 
-                        class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors">
+                        class="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-gray-200 rounded-lg transition-colors">
                     Cancelar
                 </button>
                 <button onclick="confirmarProcessamentoLote()" 
@@ -442,7 +452,7 @@ function confirmarProcessamentoIndividual() {
             // Remover o card da tela com animação
             const checkbox = document.querySelector(`input[value="${sugestaoAtual}"]`);
             if (checkbox) {
-                const card = checkbox.closest('.bg-white');
+                const card = checkbox.closest('.bg-gray-800');
                 if (card) {
                     card.style.transition = 'all 0.3s ease';
                     card.style.opacity = '0';
@@ -520,14 +530,14 @@ function verHistorico(contratoId) {
 
 function showNotification(message, type = 'info') {
     const colors = {
-        success: 'bg-green-100 text-green-800 border-green-200',
-        error: 'bg-red-100 text-red-800 border-red-200',
-        warning: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-        info: 'bg-blue-100 text-blue-800 border-blue-200'
+        success: 'bg-green-800 text-green-200 border-green-600',
+        error: 'bg-red-800 text-red-200 border-red-600',
+        warning: 'bg-yellow-800 text-yellow-200 border-yellow-600',
+        info: 'bg-blue-800 text-blue-200 border-blue-600'
     };
     
     const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 p-4 rounded-lg border z-50 ${colors[type]} transform transition-all duration-300 translate-x-full`;
+    notification.className = `fixed top-4 right-4 p-4 rounded-lg border z-50 ${colors[type]} transform transition-all duration-300 translate-x-full shadow-lg`;
     notification.innerHTML = `
         <div class="flex items-center">
             <div class="flex-shrink-0">
@@ -540,7 +550,7 @@ function showNotification(message, type = 'info') {
                 <p class="text-sm font-medium">${message}</p>
             </div>
             <div class="ml-4 flex-shrink-0">
-                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="text-gray-400 hover:text-gray-600">
+                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="text-gray-400 hover:text-gray-200">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
                     </svg>
@@ -578,7 +588,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateProcessarButton();
     
     // Animação de entrada dos cards
-    const cards = document.querySelectorAll('.bg-white.rounded-xl');
+    const cards = document.querySelectorAll('.bg-gray-800.rounded-xl');
     cards.forEach((card, index) => {
         card.style.opacity = '0';
         card.style.transform = 'translateY(20px)';
@@ -589,469 +599,6 @@ document.addEventListener('DOMContentLoaded', function() {
             card.style.transform = 'translateY(0)';
         }, index * 100);
     });
-});
-</script>
-{% endblock %}
-                                <!-- financeiro/templates/financeiro/reajustes/sugestoes_reajustes.html -->
-{% extends 'base/base.html' %}
-{% load static %}
-
-{% block title %}Sugestões de Reajustes{% endblock %}
-
-{% block extra_css %}
-<style>
-    .card-sugestao {
-        transition: all 0.3s ease;
-        border-left: 4px solid #dee2e6;
-    }
-    .card-sugestao:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-    .card-sugestao.vencido { border-left-color: #dc3545; }
-    .card-sugestao.urgente { border-left-color: #fd7e14; }
-    .card-sugestao.pendente { border-left-color: #198754; }
-    
-    .stats-card { 
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-    }
-    .stats-number { font-size: 2rem; font-weight: bold; }
-    
-    .valor-destaque { font-size: 1.25rem; font-weight: bold; }
-    .variacao-positiva { color: #198754; }
-    .variacao-negativa { color: #dc3545; }
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="fas fa-lightbulb"></i> Sugestões de Reajustes</h2>
-        <div>
-            <a href="{% url 'financeiro:lista_reajustes' %}" class="btn btn-outline-secondary">
-                <i class="fas fa-list"></i> Ver Lista
-            </a>
-            <button class="btn btn-success" onclick="processarTodosSelecionados()" id="btnProcessarTodos" disabled>
-                <i class="fas fa-check-double"></i> Processar Selecionados
-            </button>
-        </div>
-    </div>
-
-    <!-- Filtros -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="GET" class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">Meses de Antecedência</label>
-                    <select name="meses" class="form-select" onchange="this.form.submit()">
-                        <option value="1" {% if meses_antecedencia == 1 %}selected{% endif %}>1 mês</option>
-                        <option value="2" {% if meses_antecedencia == 2 %}selected{% endif %}>2 meses</option>
-                        <option value="3" {% if meses_antecedencia == 3 %}selected{% endif %}>3 meses</option>
-                        <option value="6" {% if meses_antecedencia == 6 %}selected{% endif %}>6 meses</option>
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Filtrar Contratos</label>
-                    <select name="contratos" class="form-select" multiple size="1">
-                        {% for contrato in contratos %}
-                            <option value="{{ contrato.id }}" 
-                                    {% if contrato.id in contratos_selecionados %}selected{% endif %}>
-                                {{ contrato.imovel.endereco }} - {{ contrato.locatario.nome }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-filter"></i> Filtrar
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Estatísticas -->
-    {% if sugestoes %}
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card stats-card h-100">
-                <div class="card-body text-center">
-                    <div class="stats-number">{{ stats.total }}</div>
-                    <div>Total de Sugestões</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-danger text-white h-100">
-                <div class="card-body text-center">
-                    <div class="stats-number">{{ stats.vencidos }}</div>
-                    <div>Vencidos</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-warning text-white h-100">
-                <div class="card-body text-center">
-                    <div class="stats-number">{{ stats.urgentes }}</div>
-                    <div>Urgentes</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-success text-white h-100">
-                <div class="card-body text-center">
-                    <div class="stats-number">{{ stats.pendentes }}</div>
-                    <div>Pendentes</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Resumo Financeiro -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body text-center">
-                    <h6 class="card-subtitle mb-2 text-muted">Valor Total Atual</h6>
-                    <div class="valor-destaque">R$ {{ stats.valor_total_atual|floatformat:2 }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body text-center">
-                    <h6 class="card-subtitle mb-2 text-muted">Valor Total Sugerido</h6>
-                    <div class="valor-destaque text-success">R$ {{ stats.valor_total_sugerido|floatformat:2 }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body text-center">
-                    <h6 class="card-subtitle mb-2 text-muted">Aumento Total</h6>
-                    <div class="valor-destaque variacao-positiva">
-                        +{{ stats.aumento_percentual|floatformat:2 }}%
-                        <small class="d-block">+R$ {{ stats.valor_total_sugerido|floatformat:2|add:0|subtract:stats.valor_total_atual|floatformat:2 }}</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Lista de Sugestões -->
-    <div class="row">
-        {% for sugestao in sugestoes %}
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card card-sugestao {{ sugestao.status }} h-100">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <div class="form-check">
-                            <input class="form-check-input sugestao-check" type="checkbox" 
-                                   value="{{ sugestao.contrato.id }}_{{ sugestao.data_reajuste|date:'Y-m-d' }}"
-                                   id="sugestao_{{ sugestao.contrato.id }}"
-                                   onchange="updateProcessarButton()">
-                            <label class="form-check-label fw-bold" for="sugestao_{{ sugestao.contrato.id }}">
-                                {{ sugestao.contrato.imovel.endereco|truncatechars:30 }}
-                            </label>
-                        </div>
-                        <span class="badge bg-{% if sugestao.status == 'vencido' %}danger{% elif sugestao.status == 'urgente' %}warning{% else %}success{% endif %}">
-                            {% if sugestao.status == 'vencido' %}Vencido
-                            {% elif sugestao.status == 'urgente' %}Urgente
-                            {% else %}Pendente{% endif %}
-                        </span>
-                    </div>
-                    <div class="card-body">
-                        <h6 class="card-subtitle mb-2 text-muted">{{ sugestao.contrato.locatario.nome }}</h6>
-                        
-                        <div class="row text-center mb-3">
-                            <div class="col-6">
-                                <small class="text-muted">Valor Atual</small>
-                                <div class="fw-bold">R$ {{ sugestao.valor_anterior|floatformat:2 }}</div>
-                            </div>
-                            <div class="col-6">
-                                <small class="text-muted">Valor Sugerido</small>
-                                <div class="fw-bold text-success">R$ {{ sugestao.valor_sugerido|floatformat:2 }}</div>
-                            </div>
-                        </div>
-
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-muted">Fator Aplicado:</span>
-                            <span class="badge bg-primary">{{ sugestao.fator_aplicado|floatformat:2 }}%</span>
-                        </div>
-                        
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-muted">Índice:</span>
-                            <span class="badge bg-secondary">{{ sugestao.indice_utilizado }}</span>
-                        </div>
-                        
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span class="text-muted">Data Reajuste:</span>
-                            <span class="fw-bold">{{ sugestao.data_reajuste|date:"d/m/Y" }}</span>
-                        </div>
-
-                        <div class="text-center mb-3">
-                            <div class="text-success">
-                                <i class="fas fa-arrow-up"></i>
-                                +{{ sugestao.variacao_percentual|floatformat:2 }}%
-                                <small class="d-block">
-                                    +R$ {{ sugestao.valor_sugerido|floatformat:2|add:0|subtract:sugestao.valor_anterior|floatformat:2 }}
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-footer">
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button class="btn btn-sm btn-outline-info" 
-                                    onclick="verHistorico({{ sugestao.contrato.id }})">
-                                <i class="fas fa-history"></i> Histórico
-                            </button>
-                            <button class="btn btn-sm btn-success" 
-                                    onclick="processarIndividual('{{ sugestao.contrato.id }}_{{ sugestao.data_reajuste|date:'Y-m-d' }}')">
-                                <i class="fas fa-check"></i> Aprovar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        {% empty %}
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body text-center py-5">
-                        <i class="fas fa-calendar-check fa-4x text-muted mb-3"></i>
-                        <h4 class="text-muted">Nenhuma sugestão encontrada</h4>
-                        <p class="text-muted">
-                            {% if meses_antecedencia == 1 %}
-                                Não há reajustes pendentes para o próximo mês.
-                            {% else %}
-                                Não há reajustes pendentes para os próximos {{ meses_antecedencia }} meses.
-                            {% endif %}
-                        </p>
-                        <a href="{% url 'financeiro:lista_reajustes' %}" class="btn btn-primary">
-                            <i class="fas fa-list"></i> Ver Histórico de Reajustes
-                        </a>
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-</div>
-
-<!-- Modal de Processamento Individual -->
-<div class="modal fade" id="modalProcessarIndividual" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Aprovar Reajuste</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Tem certeza que deseja aprovar este reajuste?</p>
-                <div class="mb-3">
-                    <label class="form-label">Observação (opcional)</label>
-                    <textarea class="form-control" id="observacaoIndividual" rows="3" 
-                              placeholder="Observação para este reajuste..."></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-success" onclick="confirmarProcessamentoIndividual()">
-                    <i class="fas fa-check"></i> Aprovar
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal de Processamento em Lote -->
-<div class="modal fade" id="modalProcessarLote" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Processar Reajustes em Lote</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Tem certeza que deseja processar <span id="qtdSelecionadosLote">0</span> reajustes selecionados?</p>
-                <div class="mb-3">
-                    <label class="form-label">Observação (opcional)</label>
-                    <textarea class="form-control" id="observacaoLote" rows="3" 
-                              placeholder="Observação para todos os reajustes..."></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-success" onclick="confirmarProcessamentoLote()">
-                    <i class="fas fa-check-double"></i> Processar Todos
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-let sugestaoAtual = null;
-
-function updateProcessarButton() {
-    const checked = document.querySelectorAll('.sugestao-check:checked');
-    const btnProcessar = document.getElementById('btnProcessarTodos');
-    
-    btnProcessar.disabled = checked.length === 0;
-    
-    if (checked.length > 0) {
-        btnProcessar.innerHTML = `<i class="fas fa-check-double"></i> Processar Selecionados (${checked.length})`;
-    } else {
-        btnProcessar.innerHTML = '<i class="fas fa-check-double"></i> Processar Selecionados';
-    }
-}
-
-function processarIndividual(sugestaoId) {
-    sugestaoAtual = sugestaoId;
-    const modal = new bootstrap.Modal(document.getElementById('modalProcessarIndividual'));
-    modal.show();
-}
-
-function confirmarProcessamentoIndividual() {
-    if (!sugestaoAtual) return;
-    
-    const observacao = document.getElementById('observacaoIndividual').value;
-    
-    fetch('{% url "financeiro:processar_reajustes_lote" %}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: JSON.stringify({
-            sugestoes_ids: [sugestaoAtual],
-            observacao: observacao
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showAlert('success', data.message);
-            // Remover o card da tela
-            const checkbox = document.querySelector(`input[value="${sugestaoAtual}"]`);
-            if (checkbox) {
-                const card = checkbox.closest('.col-md-6, .col-lg-4');
-                if (card) {
-                    card.style.transition = 'all 0.3s ease';
-                    card.style.opacity = '0';
-                    card.style.transform = 'scale(0.8)';
-                    setTimeout(() => card.remove(), 300);
-                }
-            }
-            updateStats();
-        } else {
-            showAlert('danger', 'Erro: ' + data.message);
-        }
-    })
-    .catch(error => {
-        showAlert('danger', 'Erro ao processar: ' + error);
-    });
-    
-    // Fechar modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('modalProcessarIndividual'));
-    modal.hide();
-    
-    // Limpar
-    sugestaoAtual = null;
-    document.getElementById('observacaoIndividual').value = '';
-}
-
-function processarTodosSelecionados() {
-    const checked = document.querySelectorAll('.sugestao-check:checked');
-    
-    if (checked.length === 0) {
-        showAlert('warning', 'Selecione pelo menos uma sugestão');
-        return;
-    }
-    
-    document.getElementById('qtdSelecionadosLote').textContent = checked.length;
-    const modal = new bootstrap.Modal(document.getElementById('modalProcessarLote'));
-    modal.show();
-}
-
-function confirmarProcessamentoLote() {
-    const checked = document.querySelectorAll('.sugestao-check:checked');
-    const observacao = document.getElementById('observacaoLote').value;
-    
-    const ids = Array.from(checked).map(cb => cb.value);
-    
-    fetch('{% url "financeiro:processar_reajustes_lote" %}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: JSON.stringify({
-            sugestoes_ids: ids,
-            observacao: observacao
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showAlert('success', data.message);
-            // Recarregar página após sucesso
-            setTimeout(() => location.reload(), 1500);
-        } else {
-            showAlert('danger', 'Erro: ' + data.message);
-        }
-    })
-    .catch(error => {
-        showAlert('danger', 'Erro ao processar: ' + error);
-    });
-    
-    // Fechar modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('modalProcessarLote'));
-    modal.hide();
-}
-
-function verHistorico(contratoId) {
-    window.open(`{% url 'financeiro:historico_contrato' 0 %}`.replace('0', contratoId), '_blank');
-}
-
-function showAlert(type, message) {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    document.body.appendChild(alertDiv);
-    
-    // Auto remove após 5 segundos
-    setTimeout(() => {
-        if (alertDiv.parentNode) {
-            alertDiv.remove();
-        }
-    }, 5000);
-}
-
-function updateStats() {
-    // Atualizar estatísticas na tela se necessário
-    const totalCards = document.querySelectorAll('.card-sugestao').length;
-    if (totalCards === 0) {
-        location.reload(); // Recarregar se não há mais sugestões
-    }
-}
-
-// Inicializar
-document.addEventListener('DOMContentLoaded', function() {
-    updateProcessarButton();
-    
-    // Configurar select múltiplo
-    const selectContratos = document.querySelector('select[name="contratos"]');
-    if (selectContratos) {
-        selectContratos.addEventListener('change', function() {
-            // Auto-submit quando selecionar contratos
-            setTimeout(() => this.form.submit(), 500);
-        });
-    }
 });
 </script>
 {% endblock %}

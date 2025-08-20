@@ -1,0 +1,430 @@
+<!-- financeiro/templates/financeiro/csv/upload_csv.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Upload CSV de Leads{% endblock %}
+
+{% block extra_css %}
+<style>
+.upload-area {
+    border: 2px dashed #dee2e6;
+    border-radius: 0.5rem;
+    padding: 3rem 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+}
+
+.upload-area:hover {
+    border-color: #0d6efd;
+    background: #e7f3ff;
+}
+
+.upload-area.dragover {
+    border-color: #0d6efd;
+    background: #e7f3ff;
+    transform: scale(1.02);
+}
+
+.config-card {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.dry-run-warning {
+    background: #fff3cd;
+    border: 1px solid #ffecb5;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.exemplo-csv {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    overflow-x: auto;
+    white-space: pre;
+}
+
+.file-info {
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-top: 1rem;
+    display: none;
+}
+
+.step-indicator {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: #e9ecef;
+    border-radius: 2rem;
+    margin: 0 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.step.active {
+    background: #0d6efd;
+    color: white;
+}
+
+.step.completed {
+    background: #198754;
+    color: white;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1>📤 Upload CSV de Leads</h1>
+            
+            <!-- Indicador de Passos -->
+            <div class="step-indicator">
+                <div class="step active">
+                    <i class="fas fa-upload me-2"></i>
+                    1. Upload CSV
+                </div>
+                <div class="step">
+                    <i class="fas fa-cogs me-2"></i>
+                    2. Configurar Envio
+                </div>
+                <div class="step">
+                    <i class="fas fa-paper-plane me-2"></i>
+                    3. Enviar Mensagens
+                </div>
+                <div class="step">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    4. Resultados
+                </div>
+            </div>
+            
+            {% if dry_run_ativo %}
+            <div class="dry-run-warning">
+                <strong>🧪 MODO DRY RUN ATIVO</strong><br>
+                As mensagens não serão enviadas de verdade - apenas simuladas para teste.
+            </div>
+            {% endif %}
+            
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="config-card">
+                        <h5 class="mb-4">📁 Selecionar Arquivo CSV</h5>
+                        
+                        <form method="post" enctype="multipart/form-data" id="upload-form">
+                            {% csrf_token %}
+                            
+                            <!-- Área de Upload -->
+                            <div class="upload-area" id="upload-area">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                <h6>Arraste seu arquivo CSV aqui ou clique para selecionar</h6>
+                                <p class="text-muted mb-0">Formatos aceitos: .csv, .txt</p>
+                                {{ form.arquivo_csv }}
+                            </div>
+                            
+                            <!-- Informações do Arquivo -->
+                            <div class="file-info" id="file-info">
+                                <h6><i class="fas fa-file-csv text-success me-2"></i>Arquivo Selecionado</h6>
+                                <div id="file-details"></div>
+                            </div>
+                            
+                            <!-- Configurações de Parse -->
+                            <div class="row mt-4">
+                                <div class="col-md-4">
+                                    <label class="form-label">{{ form.delimitador.label }}</label>
+                                    {{ form.delimitador }}
+                                    <small class="form-text text-muted">{{ form.delimitador.help_text }}</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">{{ form.codificacao.label }}</label>
+                                    {{ form.codificacao }}
+                                    <small class="form-text text-muted">{{ form.codificacao.help_text }}</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check mt-4">
+                                        {{ form.primeira_linha_cabecalho }}
+                                        <label class="form-check-label" for="{{ form.primeira_linha_cabecalho.id_for_label }}">
+                                            {{ form.primeira_linha_cabecalho.label }}
+                                        </label>
+                                        <small class="form-text text-muted d-block">{{ form.primeira_linha_cabecalho.help_text }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Botões -->
+                            <div class="d-flex gap-2 mt-4">
+                                <button type="submit" class="btn btn-primary" id="btn-upload">
+                                    <i class="fas fa-upload"></i> Processar CSV
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="btn-preview" style="display: none;">
+                                    <i class="fas fa-eye"></i> Visualizar Preview
+                                </button>
+                                <a href="{% url 'financeiro:lembrete_list' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left"></i> Voltar
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <!-- Exemplo de CSV -->
+                    <div class="config-card">
+                        <h6 class="mb-3">📋 Exemplo de CSV</h6>
+                        <div class="exemplo-csv">Nome,Email,Telefone,Estágio
+João Silva,joao@email.com,11999999999,Novo lead
+Maria Santos,maria@email.com,11888888888,Em análise
+Pedro Oliveira,pedro@email.com,11777777777,Interessado</div>
+                        <small class="text-muted mt-2 d-block">
+                            <strong>Campos obrigatórios:</strong><br>
+                            • Nome do lead<br>
+                            • Telefone (com DDD)
+                        </small>
+                    </div>
+                    
+                    <!-- Dicas -->
+                    <div class="config-card">
+                        <h6 class="mb-3">💡 Dicas Importantes</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Use telefones com DDD (11999999999)
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Primeira linha deve conter os cabeçalhos
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Salve o Excel como CSV UTF-8
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Máximo de 1000 leads por arquivo
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                Teste sempre com poucos leads primeiro
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Formatos Suportados -->
+                    <div class="config-card">
+                        <h6 class="mb-3">📄 Formatos Suportados</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge bg-primary">CSV</span>
+                            <span class="badge bg-primary">TXT</span>
+                            <span class="badge bg-success">UTF-8</span>
+                            <span class="badge bg-success">Latin-1</span>
+                            <span class="badge bg-info">Vírgula (,)</span>
+                            <span class="badge bg-info">Ponto e vírgula (;)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Preview -->
+<div class="modal fade" id="modal-preview" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Preview do CSV</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="preview-content">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <p class="mt-2">Processando arquivo...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                <button type="button" class="btn btn-primary" onclick="confirmarUpload()">
+                    Continuar com Upload
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let arquivoSelecionado = null;
+
+// Configurar drag and drop
+const uploadArea = document.getElementById('upload-area');
+const fileInput = document.getElementById('{{ form.arquivo_csv.id_for_label }}');
+const fileInfo = document.getElementById('file-info');
+const btnPreview = document.getElementById('btn-preview');
+
+// Esconder input file padrão
+fileInput.style.display = 'none';
+
+// Click na área de upload
+uploadArea.addEventListener('click', () => {
+    fileInput.click();
+});
+
+// Drag and drop
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragover');
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        fileInput.files = files;
+        mostrarInfoArquivo(files[0]);
+    }
+});
+
+// Mudança no input file
+fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        mostrarInfoArquivo(e.target.files[0]);
+    }
+});
+
+// Mostrar informações do arquivo
+function mostrarInfoArquivo(arquivo) {
+    arquivoSelecionado = arquivo;
+    
+    const tamanhoMB = (arquivo.size / 1024 / 1024).toFixed(2);
+    const ultimaModificacao = new Date(arquivo.lastModified).toLocaleString('pt-BR');
+    
+    document.getElementById('file-details').innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <strong>Nome:</strong> ${arquivo.name}<br>
+                <strong>Tamanho:</strong> ${tamanhoMB} MB
+            </div>
+            <div class="col-md-6">
+                <strong>Tipo:</strong> ${arquivo.type || 'text/csv'}<br>
+                <strong>Modificado:</strong> ${ultimaModificacao}
+            </div>
+        </div>
+    `;
+    
+    fileInfo.style.display = 'block';
+    btnPreview.style.display = 'inline-block';
+    
+    // Atualizar área de upload
+    uploadArea.innerHTML = `
+        <i class="fas fa-file-csv fa-3x text-success mb-3"></i>
+        <h6 class="text-success">Arquivo Selecionado: ${arquivo.name}</h6>
+        <p class="text-muted mb-0">Clique para selecionar outro arquivo</p>
+    `;
+}
+
+// Preview do arquivo
+document.getElementById('btn-preview').addEventListener('click', function() {
+    if (!arquivoSelecionado) {
+        alert('Selecione um arquivo primeiro!');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const conteudo = e.target.result;
+        const linhas = conteudo.split('\n').slice(0, 10); // Primeiras 10 linhas
+        
+        let tabelaHTML = '<div class="table-responsive"><table class="table table-sm table-bordered">';
+        
+        linhas.forEach((linha, index) => {
+            if (linha.trim()) {
+                const colunas = linha.split(',');
+                tabelaHTML += '<tr>';
+                
+                colunas.forEach(coluna => {
+                    const tag = index === 0 ? 'th' : 'td';
+                    tabelaHTML += `<${tag}>${coluna.trim()}</${tag}>`;
+                });
+                
+                tabelaHTML += '</tr>';
+            }
+        });
+        
+        tabelaHTML += '</table></div>';
+        
+        if (linhas.length >= 10) {
+            tabelaHTML += '<p class="text-muted text-center">Mostrando apenas as primeiras 10 linhas...</p>';
+        }
+        
+        document.getElementById('preview-content').innerHTML = tabelaHTML;
+    };
+    
+    reader.readAsText(arquivoSelecionado);
+    
+    // Mostrar modal
+    new bootstrap.Modal(document.getElementById('modal-preview')).show();
+});
+
+// Confirmar upload após preview
+function confirmarUpload() {
+    bootstrap.Modal.getInstance(document.getElementById('modal-preview')).hide();
+    document.getElementById('upload-form').submit();
+}
+
+// Validação do formulário
+document.getElementById('upload-form').addEventListener('submit', function(e) {
+    if (!arquivoSelecionado) {
+        e.preventDefault();
+        alert('Por favor, selecione um arquivo CSV primeiro!');
+        return;
+    }
+    
+    // Mostrar loading
+    const btnUpload = document.getElementById('btn-upload');
+    btnUpload.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+    btnUpload.disabled = true;
+});
+
+// Auto-detectar delimitador baseado no nome do arquivo
+fileInput.addEventListener('change', function() {
+    if (this.files.length > 0) {
+        const nomeArquivo = this.files[0].name.toLowerCase();
+        const delimitadorSelect = document.getElementById('{{ form.delimitador.id_for_label }}');
+        
+        // Se arquivo tem "semicolon" ou é de origem europeia, usar ponto e vírgula
+        if (nomeArquivo.includes('semicolon') || nomeArquivo.includes('ptbr')) {
+            delimitadorSelect.value = ';';
+        }
+    }
+});
+</script>
+{% endblock %}
