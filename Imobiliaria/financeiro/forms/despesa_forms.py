@@ -210,6 +210,8 @@ class DespesaForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
+        self.fields['percentual_com_incidencia'].required = False
+
         # Filtrar apenas tipos ativos
         self.fields['tipo'].queryset = TipoDespesa.objects.filter(ativo=True).order_by('categoria', 'nome')
         
@@ -381,13 +383,14 @@ class DespesaForm(forms.ModelForm):
         percentual = self.cleaned_data.get('percentual_com_incidencia')
         incidencia = self.data.get('incidencia_taxa_admin')
         
+
         if incidencia == 'parcial':
             if percentual is None:
                 raise ValidationError('Percentual é obrigatório para incidência parcial.')
             if percentual <= 0 or percentual > 100:
                 raise ValidationError('Percentual deve estar entre 0,01% e 100%.')
         
-        return percentual
+        return Decimal('0.00')
     
     def clean_comprovante(self):
         """Valida arquivo de comprovante"""

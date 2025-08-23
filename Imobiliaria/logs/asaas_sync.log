@@ -1670,3 +1670,144 @@ ERROR 2025-08-12 12:10:59,117 repasse_views Erro ao processar repasse 65: The fo
 INFO 2025-08-13 08:20:21,220 lembrete_views Enviando WhatsApp para 5511986148105 via Z-API
 INFO 2025-08-13 08:20:21,661 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB063B4FAFB91598323DF
 INFO 2025-08-13 08:20:21,675 lembrete_views REAL - Lembrete para Action 360 - ID: 3EB063B4FAFB91598323DF
+INFO 2025-08-23 03:04:50,912 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-23 03:04:50,914 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-23 03:04:50,914 asaas_mixin Iniciando integração da cobrança 172 com Asaas
+INFO 2025-08-23 03:04:51,236 asaas_service Cliente existente encontrado: cus_000118360514
+INFO 2025-08-23 03:04:51,416 asaas_mixin Cliente Asaas: cus_000118360514
+INFO 2025-08-23 03:04:51,417 asaas_service Criando cobrança - Valor: 1816.7
+INFO 2025-08-23 03:04:52,066 asaas_mixin Integração concluída - Asaas ID: pay_8zrtk3ioklf8b7id
+INFO 2025-08-23 03:04:52,125 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-23 03:04:52,127 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-23 03:04:52,130 asaas_mixin Iniciando integração da cobrança 171 com Asaas
+INFO 2025-08-23 03:04:52,358 asaas_service Cliente existente encontrado: cus_000118156507
+INFO 2025-08-23 03:04:52,549 asaas_mixin Cliente Asaas: cus_000118156507
+INFO 2025-08-23 03:04:52,550 asaas_service Criando cobrança - Valor: 5300.0
+INFO 2025-08-23 03:04:52,951 asaas_mixin Integração concluída - Asaas ID: pay_pmcm9lxuz067z92i
+INFO 2025-08-23 03:04:53,004 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-23 03:04:53,005 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-23 03:04:53,006 asaas_mixin Iniciando integração da cobrança 170 com Asaas
+INFO 2025-08-23 03:04:53,100 asaas_service Cliente existente encontrado: cus_000118359530
+INFO 2025-08-23 03:04:53,241 asaas_mixin Cliente Asaas: cus_000118359530
+INFO 2025-08-23 03:04:53,242 asaas_service Criando cobrança - Valor: 2350.51
+INFO 2025-08-23 03:04:53,743 asaas_mixin Integração concluída - Asaas ID: pay_zyleiahm04mcoolj
+INFO 2025-08-23 03:04:53,808 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-23 03:04:53,808 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-23 03:04:53,809 asaas_mixin Iniciando integração da cobrança 173 com Asaas
+INFO 2025-08-23 03:04:53,912 asaas_service Cliente existente encontrado: cus_000123800301
+INFO 2025-08-23 03:04:54,298 asaas_mixin Cliente Asaas: cus_000123800301
+INFO 2025-08-23 03:04:54,299 asaas_service Criando cobrança - Valor: 2129.38
+INFO 2025-08-23 03:04:54,752 asaas_mixin Integração concluída - Asaas ID: pay_74b7qafq5se04k4x
+INFO 2025-08-23 03:04:54,794 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-23 03:04:54,796 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-23 03:04:54,797 asaas_mixin Iniciando integração da cobrança 168 com Asaas
+INFO 2025-08-23 03:04:54,907 asaas_service Cliente existente encontrado: cus_000118243800
+INFO 2025-08-23 03:04:55,601 asaas_mixin Cliente Asaas: cus_000118243800
+INFO 2025-08-23 03:04:55,601 asaas_service Criando cobrança - Valor: 3831.69
+INFO 2025-08-23 03:04:56,098 asaas_mixin Integração concluída - Asaas ID: pay_82187cx6jgrwkvmg
+INFO 2025-08-23 03:04:56,148 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-23 03:04:56,149 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-23 03:04:56,150 asaas_mixin Iniciando integração da cobrança 167 com Asaas
+INFO 2025-08-23 03:04:56,355 asaas_service Cliente existente encontrado: cus_000118358133
+INFO 2025-08-23 03:04:56,529 asaas_mixin Cliente Asaas: cus_000118358133
+INFO 2025-08-23 03:04:56,529 asaas_service Criando cobrança - Valor: 3410.09
+INFO 2025-08-23 03:04:56,946 asaas_mixin Integração concluída - Asaas ID: pay_up8i8tusfh09tjgm
+INFO 2025-08-23 03:04:57,000 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-23 03:04:57,000 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-23 03:04:57,001 asaas_mixin Iniciando integração da cobrança 165 com Asaas
+INFO 2025-08-23 03:04:57,122 asaas_service Cliente existente encontrado: cus_000118148562
+INFO 2025-08-23 03:04:57,303 asaas_mixin Cliente Asaas: cus_000118148562
+INFO 2025-08-23 03:04:57,304 asaas_service Criando cobrança - Valor: 5324.53
+INFO 2025-08-23 03:04:57,783 asaas_mixin Integração concluída - Asaas ID: pay_wp0lnrn6nl0h5jgu
+INFO 2025-08-23 03:04:57,863 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-23 03:04:57,864 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-23 03:04:57,866 asaas_mixin Iniciando integração da cobrança 164 com Asaas
+INFO 2025-08-23 03:04:57,991 asaas_service Cliente existente encontrado: cus_000118150888
+INFO 2025-08-23 03:04:58,171 asaas_mixin Cliente Asaas: cus_000118150888
+INFO 2025-08-23 03:04:58,171 asaas_service Criando cobrança - Valor: 1465.0
+INFO 2025-08-23 03:04:58,960 asaas_mixin Integração concluída - Asaas ID: pay_5xmb25ruzz4fmfue
+INFO 2025-08-23 03:04:59,087 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-23 03:04:59,089 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-23 03:04:59,098 asaas_mixin Iniciando integração da cobrança 163 com Asaas
+INFO 2025-08-23 03:04:59,275 asaas_service Cliente existente encontrado: cus_000118150766
+INFO 2025-08-23 03:04:59,432 asaas_mixin Cliente Asaas: cus_000118150766
+INFO 2025-08-23 03:04:59,433 asaas_service Criando cobrança - Valor: 4444.91
+INFO 2025-08-23 03:05:00,199 asaas_mixin Integração concluída - Asaas ID: pay_hmbwmyd6bw9g8xt6
+INFO 2025-08-23 03:05:00,222 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-23 03:05:00,222 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-23 03:05:00,222 asaas_mixin Iniciando integração da cobrança 162 com Asaas
+INFO 2025-08-23 03:05:00,377 asaas_service Cliente existente encontrado: cus_000118150852
+INFO 2025-08-23 03:05:00,617 asaas_mixin Cliente Asaas: cus_000118150852
+INFO 2025-08-23 03:05:00,617 asaas_service Criando cobrança - Valor: 963.24
+INFO 2025-08-23 03:05:01,070 asaas_mixin Integração concluída - Asaas ID: pay_7w3ohacuxjunr3tm
+INFO 2025-08-23 03:05:01,092 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-23 03:05:01,092 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-23 03:05:01,092 asaas_mixin Iniciando integração da cobrança 161 com Asaas
+INFO 2025-08-23 03:05:01,251 asaas_service Cliente existente encontrado: cus_000118148519
+INFO 2025-08-23 03:05:01,395 asaas_mixin Cliente Asaas: cus_000118148519
+INFO 2025-08-23 03:05:01,396 asaas_service Criando cobrança - Valor: 4905.94
+INFO 2025-08-23 03:05:02,243 asaas_mixin Integração concluída - Asaas ID: pay_jvs2uvv8tj8ajbq3
+INFO 2025-08-23 03:05:02,267 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-23 03:05:02,267 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-23 03:05:02,268 asaas_mixin Iniciando integração da cobrança 160 com Asaas
+INFO 2025-08-23 03:05:02,352 asaas_service Cliente existente encontrado: cus_000118148440
+INFO 2025-08-23 03:05:02,499 asaas_mixin Cliente Asaas: cus_000118148440
+INFO 2025-08-23 03:05:02,500 asaas_service Criando cobrança - Valor: 3003.04
+INFO 2025-08-23 03:05:03,306 asaas_mixin Integração concluída - Asaas ID: pay_z8sad04qjkom18xy
+INFO 2025-08-23 03:05:03,333 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-23 03:05:03,334 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-23 03:05:03,335 asaas_mixin Iniciando integração da cobrança 159 com Asaas
+INFO 2025-08-23 03:05:03,421 asaas_service Cliente existente encontrado: cus_000118150825
+INFO 2025-08-23 03:05:03,583 asaas_mixin Cliente Asaas: cus_000118150825
+INFO 2025-08-23 03:05:03,584 asaas_service Criando cobrança - Valor: 1150.0
+INFO 2025-08-23 03:05:04,023 asaas_mixin Integração concluída - Asaas ID: pay_8cniw29nhdv1nkhy
+INFO 2025-08-23 03:05:04,048 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-23 03:05:04,048 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-23 03:05:04,049 asaas_mixin Iniciando integração da cobrança 158 com Asaas
+INFO 2025-08-23 03:05:04,139 asaas_service Cliente existente encontrado: cus_000118148497
+INFO 2025-08-23 03:05:04,287 asaas_mixin Cliente Asaas: cus_000118148497
+INFO 2025-08-23 03:05:04,287 asaas_service Criando cobrança - Valor: 4951.88
+INFO 2025-08-23 03:05:04,750 asaas_mixin Integração concluída - Asaas ID: pay_kwozo59dygu79exn
+INFO 2025-08-23 03:05:04,792 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-23 03:05:04,793 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-23 03:05:04,794 asaas_mixin Iniciando integração da cobrança 157 com Asaas
+INFO 2025-08-23 03:05:04,884 asaas_service Cliente existente encontrado: cus_000118148463
+INFO 2025-08-23 03:05:05,032 asaas_mixin Cliente Asaas: cus_000118148463
+INFO 2025-08-23 03:05:05,033 asaas_service Criando cobrança - Valor: 2175.82
+INFO 2025-08-23 03:05:05,882 asaas_mixin Integração concluída - Asaas ID: pay_3l1sgzulv2dpjxm9
+INFO 2025-08-23 03:05:05,927 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-23 03:05:05,928 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-23 03:05:05,929 asaas_mixin Iniciando integração da cobrança 156 com Asaas
+INFO 2025-08-23 03:05:06,103 asaas_service Cliente existente encontrado: cus_000118150575
+INFO 2025-08-23 03:05:06,354 asaas_mixin Cliente Asaas: cus_000118150575
+INFO 2025-08-23 03:05:06,354 asaas_service Criando cobrança - Valor: 1624.41
+INFO 2025-08-23 03:05:06,760 asaas_mixin Integração concluída - Asaas ID: pay_2122znqi9o59cfxf
+INFO 2025-08-23 03:05:06,783 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-23 03:05:06,784 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-23 03:05:06,784 asaas_mixin Iniciando integração da cobrança 155 com Asaas
+INFO 2025-08-23 03:05:06,969 asaas_service Cliente existente encontrado: cus_000118150627
+INFO 2025-08-23 03:05:07,252 asaas_mixin Cliente Asaas: cus_000118150627
+INFO 2025-08-23 03:05:07,253 asaas_service Criando cobrança - Valor: 1800.0
+INFO 2025-08-23 03:05:07,657 asaas_mixin Integração concluída - Asaas ID: pay_v59y4036i9jc9sio
+INFO 2025-08-23 03:05:07,686 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-23 03:05:07,686 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-23 03:05:07,687 asaas_mixin Iniciando integração da cobrança 154 com Asaas
+INFO 2025-08-23 03:05:07,784 asaas_service Cliente existente encontrado: cus_000118150605
+INFO 2025-08-23 03:05:07,963 asaas_mixin Cliente Asaas: cus_000118150605
+INFO 2025-08-23 03:05:07,963 asaas_service Criando cobrança - Valor: 1175.76
+INFO 2025-08-23 03:05:08,444 asaas_mixin Integração concluída - Asaas ID: pay_cliy5xubzp1jdt7q
+INFO 2025-08-23 03:05:08,485 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-23 03:05:08,486 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-23 03:05:08,487 asaas_mixin Iniciando integração da cobrança 153 com Asaas
+INFO 2025-08-23 03:05:08,584 asaas_service Cliente existente encontrado: cus_000118148533
+INFO 2025-08-23 03:05:08,757 asaas_mixin Cliente Asaas: cus_000118148533
+INFO 2025-08-23 03:05:08,758 asaas_service Criando cobrança - Valor: 2226.11
+INFO 2025-08-23 03:05:09,559 asaas_mixin Integração concluída - Asaas ID: pay_7ox30j8mjowf5xpw
+INFO 2025-08-23 03:05:09,615 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-23 03:05:09,618 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-23 03:05:09,619 asaas_mixin Iniciando integração da cobrança 152 com Asaas
+INFO 2025-08-23 03:05:09,732 asaas_service Cliente existente encontrado: cus_000118148479
+INFO 2025-08-23 03:05:09,892 asaas_mixin Cliente Asaas: cus_000118148479
+INFO 2025-08-23 03:05:09,893 asaas_service Criando cobrança - Valor: 1300.0
+INFO 2025-08-23 03:05:10,259 asaas_mixin Integração concluída - Asaas ID: pay_fovl269lztpgunuk
+WARNING 2025-08-23 03:05:10,966 asaas_mixin Integração 99 não pode ser processada: ['Data de vencimento não pode ser anterior a hoje']

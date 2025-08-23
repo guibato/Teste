@@ -25,40 +25,43 @@ class AsaasIntegracaoService:
                     'erros': ['Inquilino não possui ID do Asaas cadastrado']
                 }
             
-            # Preparar dados da cobrança
-            payload = {
-                "customer": inquilino.asaas_id,
-                "billingType": "BOLETO",  # Será sobrescrito pelas formas de pagamento
-                "dueDate": cobranca.data_vencimento.strftime('%Y-%m-%d'),
-                "value": float(cobranca.valor_total),
-                "description": cobranca.descricao or cobranca.gerar_descricao_automatica(),
-                "externalReference": f"cobranca_{cobranca.id}",
-                "postalService": False
-            }
-            
-            # Aplicar opções específicas
-            if opcoes.get('formas_pagamento'):
-                payload["billingType"] = opcoes['formas_pagamento'][0]  # Primeira forma como padrão
+            descricao = cobranca.descricao or cobranca.gerar_descricao_automatica()
             
             if opcoes.get('observacoes'):
-                payload["description"] += f"\n\n{opcoes['observacoes']}"
-            
-            # Fazer requisição para Asaas
-            resposta = gerar_cobranca(cobranca)
+                descricao += f"\n\n{opcoes['observacoes']}"
+
+            resposta = gerar_cobranca(
+                inquilino.asaas_id,
+                float(cobranca.valor_total),
+                cobranca.data_vencimento.strftime('%Y-%m-%d'),
+                getattr(inquilino, 'nome', ''),
+                descricao,
+            )
             
             if resposta and isinstance(resposta, dict) and resposta.get('id'):
                 # Salvar dados da integração
                 asaas_integracao.asaas_id = resposta.get('id')
                 asaas_integracao.boleto_url = resposta.get('bankSlipUrl')
-                asaas_integracao.pix_copia_cola = resposta.get('pixCopiaeCola')
-                asaas_integracao.pix_qrcode = resposta.get('pixQrCodeBase64')
-                asaas_integracao.pix_url = resposta.get('pixUrl')
-                asaas_integracao.codigo_barras = resposta.get('barCode')
-                asaas_integracao.fatura_url = resposta.get('invoiceUrl')
-                asaas_integracao.gateway_status = resposta.get('status')
-                asaas_integracao.formas_pagamento = opcoes.get('formas_pagamento', ['BOLETO'])
-                asaas_integracao.envio_email = opcoes.get('enviar_por_email', True)
-                asaas_integracao.envio_whatsapp = opcoes.get('enviar_por_whatsapp', False)
+                asaas_integracao.pix_copia_cola = (
+                    resposta.get('pix', {}).get('payload') or resposta.get('pixCopiaeCola')
+                )
+                asaas_integracao.pix_qrcode = (
+                    resposta.get('pix', {}).get('qrCode') or resposta.get('pixQrCodeBase64')
+                )
+                asaas_integracao.pix_url = (
+                    resposta.get('pix', {}).get('qrCodeUrl') or resposta.get('pixUrl')
+                )
+                asaas_integracao.codigo_barras = (
+                    resposta.get('identificationField') or resposta.get('barCode')
+                )
+                if hasattr(asaas_integracao, 'fatura_url'):
+                    asaas_integracao.fatura_url = resposta.get('invoiceUrl')
+                if hasattr(asaas_integracao, 'formas_pagamento'):
+                    asaas_integracao.formas_pagamento = opcoes.get('formas_pagamento', ['BOLETO'])
+                if hasattr(asaas_integracao, 'envio_email'):
+                    asaas_integracao.envio_email = opcoes.get('enviar_por_email', True)
+                if hasattr(asaas_integracao, 'envio_whatsapp'):
+                    asaas_integracao.envio_whatsapp = opcoes.get('enviar_por_whatsapp', False)
                 
                 asaas_integracao.save()
                 
@@ -77,12 +80,15 @@ class AsaasIntegracaoService:
         try:
             from django.utils import timezone
             
-            # Registrar webhook recebido
-            asaas_integracao.webhooks_recebidos.append({
-                'data': timezone.now().isoformat(),
-                'evento': dados_webhook.get('event'),
-                'dados': dados_webhook
-            })
+            if hasattr(asaas_integracao, 'webhooks_recebidos'):
+                registros = list(getattr(asaas_integracao, 'webhooks_recebidos', []))
+                registros.append({
+                    'data': timezone.now().isoformat(),
+                    'evento': dados_webhook.get('event'),
+                    'dados': dados_webhook
+                })
+                asaas_integracao.webhooks_recebidos = registros
+            
             
             cobranca = asaas_integracao.cobranca
             evento = dados_webhook.get('event')
@@ -106,7 +112,12 @@ class AsaasIntegracaoService:
             if gateway_status and asaas_integracao.gateway_status != gateway_status:
                 asaas_integracao.gateway_status = gateway_status
             
-            asaas_integracao.save()
+            campos_atualizados = ['webhooks_recebidos']
+            if gateway_status:
+                campos_atualizados.append('gateway_status')
+
+            asaas_integracao.save(update_fields=campos_atualizados)
+
             
             return {'status': 'success', 'message': 'Webhook processado com sucesso'}
             

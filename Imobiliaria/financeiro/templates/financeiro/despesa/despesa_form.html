@@ -25,6 +25,19 @@
                     </div>
                 {% endif %}
 
+                {% if form.errors %}
+                    <div class="bg-red-600 text-white p-4 rounded-lg mb-6">
+                        <ul class="list-disc list-inside">
+                            {% for field, errors in form.errors.items %}
+                                {% if field != '__all__' %}
+                                    {% for error in errors %}
+                                        <li><strong>{{ field|capfirst }}</strong>: {{ error }}</li>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
                 <!-- Formulário -->
                 <form method="post" enctype="multipart/form-data" class="space-y-6" id="despesa-form">
                     {% csrf_token %}

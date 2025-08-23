@@ -520,6 +520,17 @@ class AsaasIntegracao(models.Model, AsaasIntegracaoMixin):
     pix_copia_cola = models.TextField(blank=True, null=True)
     pix_qrcode = models.TextField(blank=True, null=True)
     pix_url = models.URLField(blank=True, null=True)
+    fatura_url = models.URLField(blank=True, null=True)
+    formas_pagamento = models.JSONField(
+        default=list,
+        help_text="Formas de pagamento habilitadas ['BOLETO', 'PIX', etc]"
+    )
+    envio_email = models.BooleanField(default=True)
+    envio_whatsapp = models.BooleanField(default=False)
+    webhooks_recebidos = models.JSONField(
+        default=list,
+        help_text='Log dos webhooks recebidos do Asaas'
+    )
     codigo_barras = models.TextField(
         blank=True, null=True, 
         verbose_name='Código de Barras',

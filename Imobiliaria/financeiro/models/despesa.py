@@ -4,6 +4,7 @@ from django.utils import timezone
 from decimal import Decimal
 from datetime import date
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
 
 # Constante reutilizável
 MESES_POR_PERIODICIDADE = {
@@ -67,7 +68,9 @@ class Despesa(models.Model):
         help_text="Define se esta despesa tem incidência de taxa administrativa"
     )
     percentual_com_incidencia = models.DecimalField(
-        max_digits=5, 
+        max_digits=5,
+        null=True, 
+        blank=True,
         decimal_places=2, 
         default=Decimal('0.00'),
         validators=[MinValueValidator(0), MaxValueValidator(100)],
