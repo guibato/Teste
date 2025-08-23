@@ -64,18 +64,20 @@ class AsaasIntegracaoServiceTests(TestCase):
 
         # Integração Asaas
         self.integracao = AsaasIntegracao.objects.create(cobranca=self.cobranca, asaas_id='tmp')
-
+    @patch('sisimob.utils.cobrancas_asaas.buscar_pix_qrcode')
     @patch('sisimob.utils.cobrancas_asaas.gerar_cobranca')
-    def test_criar_cobranca_salva_opcoes_envio(self, mock_gerar):
+    def test_criar_cobranca_salva_opcoes_envio(self, mock_gerar, mock_buscar):
         mock_gerar.return_value = {
             'id': 'pay_1',
             'bankSlipUrl': 'http://boleto',
-            'pixCopiaeCola': 'pixcode',
-            'pixQrCodeBase64': 'pixqrcode',
-            'pixUrl': 'http://pix',
-            'barCode': '123',
+            'identificationField': '123',
             'invoiceUrl': 'http://fatura',
             'status': 'PENDING'
+        }
+        mock_buscar.return_value = {
+            'payload': 'pixcode',
+            'qrCode': 'pixqrcode',
+            'qrCodeUrl': 'http://pix'
         }
         opcoes = {
             'formas_pagamento': ['PIX', 'BOLETO'],
@@ -91,6 +93,9 @@ class AsaasIntegracaoServiceTests(TestCase):
         self.assertFalse(self.integracao.envio_email)
         self.assertTrue(self.integracao.envio_whatsapp)
         self.assertEqual(self.integracao.fatura_url, 'http://fatura')
+        self.assertEqual(self.integracao.pix_copia_cola, 'pixcode')
+        self.assertEqual(self.integracao.pix_qrcode, 'pixqrcode')
+        self.assertEqual(self.integracao.pix_url, 'http://pix')
 
     @patch('financeiro.models.cobranca.Cobranca.marcar_como_paga')
     def test_processar_webhook_registra_evento(self, mock_marcar):

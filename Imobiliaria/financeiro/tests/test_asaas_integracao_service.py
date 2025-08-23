@@ -57,19 +57,26 @@ def test_criar_cobranca_sucesso():
         return {
             "id": "pay_123",
             "bankSlipUrl": "http://boleto",
-            "pix": {
-                "payload": "pix-copy",
-                "qrCode": "pix-qrcode",
-                "qrCodeUrl": "pix-url",
-            },
+            
             "identificationField": "123456789",
             "status": "PENDING",
         }
 
-    sys.modules["sisimob.utils.cobrancas_asaas"] = SimpleNamespace(gerar_cobranca=fake_gerar)
+    def fake_buscar(pagamento_id):
+        calls["pix_id"] = pagamento_id
+        return {
+            "payload": "pix-copy",
+            "qrCode": "pix-qrcode",
+            "qrCodeUrl": "pix-url",
+        }
+
+    sys.modules["sisimob.utils.cobrancas_asaas"] = SimpleNamespace(
+        gerar_cobranca=fake_gerar,
+        buscar_pix_qrcode=fake_buscar,
+    )
 
     resultado = AsaasIntegracaoService.criar_cobranca(
-        integracao, {"observacoes": "Obs"}
+        integracao, {"observacoes": "Obs", "formas_pagamento": ["PIX", "BOLETO"]}
     )
 
     assert resultado["status"] == "success"
@@ -88,7 +95,7 @@ def test_criar_cobranca_sucesso():
         "Fulano",
         "Descricao\n\nObs",
     )
-
+    assert calls["pix_id"] == "pay_123"
 
 def test_criar_cobranca_erro_integracao():
     inquilino = FakeInquilino(asaas_id="cus_1", nome="Fulano")
@@ -98,7 +105,10 @@ def test_criar_cobranca_erro_integracao():
     def fake_gerar(*args):
         return {"erro": "falha"}
 
-    sys.modules["sisimob.utils.cobrancas_asaas"] = SimpleNamespace(gerar_cobranca=fake_gerar)
+    sys.modules["sisimob.utils.cobrancas_asaas"] = SimpleNamespace(
+        gerar_cobranca=fake_gerar,
+        buscar_pix_qrcode=lambda _id: {},
+    )
 
     resultado = AsaasIntegracaoService.criar_cobranca(integracao)
 

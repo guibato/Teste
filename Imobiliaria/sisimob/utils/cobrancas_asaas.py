@@ -6,6 +6,33 @@ import os
 ASAAS_API_KEY = os.getenv('ASAAS_API_KEY')
 ASAAS_PAYMENTS_URL = os.getenv("ASAAS_PAYMENTS_URL")
 
+def buscar_pix_qrcode(pagamento_id):
+    """Busca o QR Code PIX de uma cobrança existente."""
+    if not pagamento_id:
+        return {"erro": "ID do pagamento não fornecido"}
+
+    url = f"{ASAAS_PAYMENTS_URL}/{pagamento_id}/pixQrCode"
+    headers = {
+        "Content-Type": "application/json",
+        "access_token": ASAAS_API_KEY,
+    }
+
+    try:
+        response = requests.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
+        try:
+            return response.json()
+        except json.JSONDecodeError:
+            return {"erro": "Resposta inválida do Asaas"}
+    except requests.exceptions.Timeout:
+        return {"erro": "Timeout na comunicação com o Asaas"}
+    except requests.exceptions.ConnectionError:
+        return {"erro": "Erro de conexão com o Asaas"}
+    except Exception as e:
+        traceback.print_exc()
+        return {"erro": f"Erro na comunicação com o Asaas: {str(e)}"}
+
+
 def gerar_cobranca(asaas_id, valor, vencimento, nome, descricao=None):
     """Cria uma cobrança no Asaas para um cliente existente com logs detalhados e retorno completo."""
 

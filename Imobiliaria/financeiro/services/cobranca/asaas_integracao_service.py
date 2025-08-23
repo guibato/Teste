@@ -12,7 +12,10 @@ class AsaasIntegracaoService:
         Cria cobrança no Asaas
         """
         try:
-            from sisimob.utils.cobrancas_asaas import gerar_cobranca
+            from sisimob.utils.cobrancas_asaas import (
+                gerar_cobranca,
+                buscar_pix_qrcode,
+            )
             
             cobranca = asaas_integracao.cobranca
             opcoes = opcoes or {}
@@ -42,18 +45,20 @@ class AsaasIntegracaoService:
                 # Salvar dados da integração
                 asaas_integracao.asaas_id = resposta.get('id')
                 asaas_integracao.boleto_url = resposta.get('bankSlipUrl')
-                asaas_integracao.pix_copia_cola = (
-                    resposta.get('pix', {}).get('payload') or resposta.get('pixCopiaeCola')
-                )
-                asaas_integracao.pix_qrcode = (
-                    resposta.get('pix', {}).get('qrCode') or resposta.get('pixQrCodeBase64')
-                )
-                asaas_integracao.pix_url = (
-                    resposta.get('pix', {}).get('qrCodeUrl') or resposta.get('pixUrl')
-                )
+                
                 asaas_integracao.codigo_barras = (
                     resposta.get('identificationField') or resposta.get('barCode')
                 )
+
+                if 'PIX' in opcoes.get('formas_pagamento', []):
+                    pix_dados = buscar_pix_qrcode(resposta.get('id'))
+                    if isinstance(pix_dados, dict):
+                        asaas_integracao.pix_copia_cola = pix_dados.get('payload')
+                        asaas_integracao.pix_qrcode = (
+                            pix_dados.get('qrCode') or pix_dados.get('encodedImage')
+                        )
+                        asaas_integracao.pix_url = pix_dados.get('qrCodeUrl')
+
                 if hasattr(asaas_integracao, 'fatura_url'):
                     asaas_integracao.fatura_url = resposta.get('invoiceUrl')
                 if hasattr(asaas_integracao, 'formas_pagamento'):
