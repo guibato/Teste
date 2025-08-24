@@ -28,7 +28,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'sisimob',
-    'imobiliaria',
     'django.contrib.humanize',
     'django_select2',
     'financeiro',

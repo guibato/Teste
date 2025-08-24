@@ -45,10 +45,19 @@ class AsaasIntegracaoService:
                 # Salvar dados da integração
                 asaas_integracao.asaas_id = resposta.get('id')
                 asaas_integracao.boleto_url = resposta.get('bankSlipUrl')
-                
-                asaas_integracao.codigo_barras = (
-                    resposta.get('identificationField') or resposta.get('barCode')
-                )
+                asaas_integracao.linha_digitavel = resposta.get('identificationField')
+                asaas_integracao.codigo_barras = resposta.get('barCode')
+                asaas_integracao.nosso_numero = resposta.get('nossoNumero')
+                asaas_integracao.fatura_url = resposta.get('invoiceUrl')
+
+                campos_atualizados = [
+                    'asaas_id',
+                    'boleto_url',
+                    'linha_digitavel',
+                    'codigo_barras',
+                    'nosso_numero',
+                    'fatura_url',
+                ]
 
                 if 'PIX' in opcoes.get('formas_pagamento', []):
                     pix_dados = buscar_pix_qrcode(resposta.get('id'))
@@ -58,17 +67,25 @@ class AsaasIntegracaoService:
                             pix_dados.get('qrCode') or pix_dados.get('encodedImage')
                         )
                         asaas_integracao.pix_url = pix_dados.get('qrCodeUrl')
+                        campos_atualizados.extend([
+                            'pix_copia_cola',
+                            'pix_qrcode',
+                            'pix_url',
+                        ])
 
-                if hasattr(asaas_integracao, 'fatura_url'):
-                    asaas_integracao.fatura_url = resposta.get('invoiceUrl')
+                
                 if hasattr(asaas_integracao, 'formas_pagamento'):
                     asaas_integracao.formas_pagamento = opcoes.get('formas_pagamento', ['BOLETO'])
+                    campos_atualizados.append('formas_pagamento')
                 if hasattr(asaas_integracao, 'envio_email'):
                     asaas_integracao.envio_email = opcoes.get('enviar_por_email', True)
+                    campos_atualizados.append('envio_email')
                 if hasattr(asaas_integracao, 'envio_whatsapp'):
                     asaas_integracao.envio_whatsapp = opcoes.get('enviar_por_whatsapp', False)
                 
-                asaas_integracao.save()
+                campos_atualizados.append('envio_whatsapp')
+
+                asaas_integracao.save(update_fields=campos_atualizados)
                 
                 return {'status': 'success', 'data': resposta}
             else:

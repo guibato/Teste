@@ -100,7 +100,12 @@ def gerar_cobranca(asaas_id, valor, vencimento, nome, descricao=None):
                             "qrCode": resposta_json.get("pix", {}).get("qrCode"),
                         }
                     }
-
+                    # Captura informações adicionais do boleto, se disponíveis
+                    if resposta_json.get("barCode"):
+                        retorno["barCode"] = resposta_json.get("barCode")
+                    if resposta_json.get("nossoNumero"):
+                        retorno["nossoNumero"] = resposta_json.get("nossoNumero")
+                        
                     return retorno
                 else:
                     print("❌ Resposta não contém ID da cobrança")
