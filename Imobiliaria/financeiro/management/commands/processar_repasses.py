@@ -179,7 +179,7 @@ class Command(BaseCommand):
 # financeiro/management/commands/testar_politicas.py
 from django.core.management.base import BaseCommand
 from financeiro.models.repasse import PoliticaRepasseContrato
-from sisimob.models import Contrato
+from cadastro.models import Contrato
 
 
 class Command(BaseCommand):

@@ -1,7 +1,7 @@
 from django import forms
 from django_select2.forms import Select2MultipleWidget
 from decimal import Decimal
-from sisimob.models import Contrato, Cliente
+from cadastro.models import Contrato, Cliente
 
 
 class ContratoForm(forms.ModelForm):

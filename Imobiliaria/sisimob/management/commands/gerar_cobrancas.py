@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from sisimob.models import Cobranca
+from cadastro.models import Cobranca
 from sisimob.utils.cobrancas_asaas import gerar_cobranca
 
 class Command(BaseCommand):

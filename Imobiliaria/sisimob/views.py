@@ -785,7 +785,7 @@ from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from sisimob.models import Contrato, Despesa, Cobranca
+from cadastro.models import Contrato, Despesa, Cobranca
 from sisimob.utils.cobrancas_asaas import gerar_cobranca  # Certifique-se de que esta importação está correta
 
 from datetime import date, timedelta
@@ -1731,7 +1731,7 @@ def reajustar_contrato_individual(request, contrato_id):
 
 from django.shortcuts import render
 from datetime import date
-from sisimob.models import Cobranca
+from cadastro.models import Cobranca
 from sisimob.services.notificacao import gerar_mensagem_cobranca
 from sisimob.utils.data import dia_util_anterior
 from collections import defaultdict
@@ -2448,7 +2448,7 @@ from django.http import JsonResponse
 from decimal import Decimal
 
 from .forms import CobrancaFiltroForm, PagamentoForm, RepasseForm
-from sisimob.models import Cobranca, MovimentoConta, Cliente
+from cadastro.models import Cobranca, MovimentoConta, Cliente
 
 
 

@@ -129,9 +129,57 @@ class AsaasIntegracaoMixin:
                 self.pix_copia_cola = pix_transaction.get('qrCode')
                 self.pix_qrcode = pix_transaction.get('qrCodeImage')
                 self.pix_url = pix_transaction.get('qrCodeUrl')
-            
+
             self.save()
-            
+
+            # 3.1 Buscar dados completos do pagamento
+            try:
+                logger.info(
+                    f"Buscando dados completos do pagamento Asaas {self.asaas_id}"
+                )
+                dados_completos = service.atualizar_dados_pagamento_completos(
+                    self.asaas_id
+                )
+
+                campos_atualizados = []
+
+                codigo_barras = dados_completos.get("codigo_barras")
+                if codigo_barras:
+                    self.codigo_barras = codigo_barras
+                    campos_atualizados.append("codigo_barras")
+
+                cobranca_info = dados_completos.get("cobranca") or {}
+                linha_digitavel = cobranca_info.get("identificationField")
+                if linha_digitavel:
+                    self.linha_digitavel = linha_digitavel
+                    campos_atualizados.append("linha_digitavel")
+
+                pix_info = dados_completos.get("pix_dados") or {}
+                pix_copia_cola = pix_info.get("pix_copia_cola")
+                if pix_copia_cola:
+                    self.pix_copia_cola = pix_copia_cola
+                    campos_atualizados.append("pix_copia_cola")
+
+                pix_qrcode = pix_info.get("qr_code_image")
+                if pix_qrcode:
+                    self.pix_qrcode = pix_qrcode
+                    campos_atualizados.append("pix_qrcode")
+
+                boleto_url = dados_completos.get("boleto_url")
+                if boleto_url:
+                    self.boleto_url = boleto_url
+                    campos_atualizados.append("boleto_url")
+
+                if campos_atualizados:
+                    logger.debug(
+                        f"Atualizando campos: {', '.join(campos_atualizados)}"
+                    )
+                    self.save(update_fields=campos_atualizados)
+            except Exception as e:
+                logger.error(
+                    f"Erro ao buscar dados completos do pagamento {self.asaas_id}: {e}"
+                )
+
             # 4. Atualizar status da cobrança local se necessário
             if self.cobranca.status == 'rascunho':
                 self.cobranca.status = 'pendente'

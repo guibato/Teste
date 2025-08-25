@@ -57,7 +57,7 @@ class Command(BaseCommand):
             else:
                 # Simular agendamento
                 from ...models.repasse import PoliticaRepasse
-                from sisimob.models import Contrato
+                from cadastro.models import Contrato
                 
                 politicas_ativas = PoliticaRepasse.objects.filter(ativa=True)
                 data_limite = date.today() + timedelta(days=dias_futuro)

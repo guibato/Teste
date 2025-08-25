@@ -1,6 +1,8 @@
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
-from sisimob.models import IndiceInflacao, Contrato
+from sisimob.models import IndiceInflacao
+from cadastro.models import Contrato
+
 from datetime import date
 
 def calcular_aluguel_projetado(contrato):

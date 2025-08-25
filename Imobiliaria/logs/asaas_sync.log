@@ -1811,3 +1811,226 @@ INFO 2025-08-23 03:05:09,892 asaas_mixin Cliente Asaas: cus_000118148479
 INFO 2025-08-23 03:05:09,893 asaas_service Criando cobrança - Valor: 1300.0
 INFO 2025-08-23 03:05:10,259 asaas_mixin Integração concluída - Asaas ID: pay_fovl269lztpgunuk
 WARNING 2025-08-23 03:05:10,966 asaas_mixin Integração 99 não pode ser processada: ['Data de vencimento não pode ser anterior a hoje']
+INFO 2025-08-24 03:03:11,332 asaas_utils Atualizando integração Asaas para cobrança 130, Asaas ID: pay_lfud33gvhcsqb07t
+INFO 2025-08-24 03:03:11,333 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-24 03:03:11,335 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-24 03:03:11,335 asaas_service Atualizando dados completos para: pay_lfud33gvhcsqb07t
+INFO 2025-08-24 03:03:11,634 asaas_service Buscando código de barras para: pay_lfud33gvhcsqb07t
+ERROR 2025-08-24 03:03:11,709 asaas_service Erro HTTP 400 para https://www.asaas.com/api/v3/payments/pay_lfud33gvhcsqb07t/identificationField: {"errors":[{"code":"invalid_action","description":"Somente é possível obter linha digitável quando a forma de pagamento for boleto bancário."}]}
+ERROR 2025-08-24 03:03:11,710 asaas_service Erro ao buscar código de barras para pay_lfud33gvhcsqb07t: Erro na API Asaas: 400
+INFO 2025-08-24 03:03:11,711 asaas_service Buscando PIX detalhado para: pay_lfud33gvhcsqb07t
+ERROR 2025-08-24 03:03:11,796 asaas_service Erro HTTP 400 para https://www.asaas.com/api/v3/payments/pay_lfud33gvhcsqb07t/pixQrCode: {"errors":[{"code":"invalid_action","description":"Esta cobrança não pode mais ser paga."}]}
+ERROR 2025-08-24 03:03:11,796 asaas_service Erro ao buscar PIX para pay_lfud33gvhcsqb07t: Erro na API Asaas: 400
+INFO 2025-08-24 03:03:11,797 asaas_service Dados completos coletados para pay_lfud33gvhcsqb07t - Erros: 2
+INFO 2025-08-24 03:03:11,808 asaas_utils Integração Asaas atualizada com sucesso para cobrança 130
+INFO 2025-08-24 03:03:11,809 asaas_utils Atualizando integração Asaas para cobrança 151, Asaas ID: pay_o0v23wjnei6hzxlt
+INFO 2025-08-24 03:03:11,810 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-24 03:03:11,810 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-24 03:03:11,810 asaas_service Atualizando dados completos para: pay_o0v23wjnei6hzxlt
+INFO 2025-08-24 03:03:11,941 asaas_service Buscando código de barras para: pay_o0v23wjnei6hzxlt
+INFO 2025-08-24 03:03:12,065 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-08-24 03:03:12,068 asaas_service Buscando PIX detalhado para: pay_o0v23wjnei6hzxlt
+INFO 2025-08-24 03:03:12,357 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-08-24 03:03:12,358 asaas_service Dados completos coletados para pay_o0v23wjnei6hzxlt - Erros: 0
+INFO 2025-08-24 03:03:12,368 asaas_utils Integração Asaas atualizada com sucesso para cobrança 151
+INFO 2025-08-24 03:03:12,372 asaas_utils Atualizando integração Asaas para cobrança 172, Asaas ID: pay_8zrtk3ioklf8b7id
+INFO 2025-08-24 03:03:12,373 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-24 03:03:12,374 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-24 03:03:12,374 asaas_service Atualizando dados completos para: pay_8zrtk3ioklf8b7id
+INFO 2025-08-24 03:03:12,638 asaas_service Buscando código de barras para: pay_8zrtk3ioklf8b7id
+INFO 2025-08-24 03:03:12,784 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-08-24 03:03:12,785 asaas_service Buscando PIX detalhado para: pay_8zrtk3ioklf8b7id
+INFO 2025-08-24 03:03:13,043 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-08-24 03:03:13,044 asaas_service Dados completos coletados para pay_8zrtk3ioklf8b7id - Erros: 0
+INFO 2025-08-24 03:03:13,053 asaas_utils Integração Asaas atualizada com sucesso para cobrança 172
+INFO 2025-08-24 03:03:13,055 asaas_utils Atualizando integração Asaas para cobrança 171, Asaas ID: pay_pmcm9lxuz067z92i
+INFO 2025-08-24 03:03:13,055 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-24 03:03:13,056 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-24 03:03:13,056 asaas_service Atualizando dados completos para: pay_pmcm9lxuz067z92i
+INFO 2025-08-24 03:03:13,176 asaas_service Buscando código de barras para: pay_pmcm9lxuz067z92i
+INFO 2025-08-24 03:03:13,249 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-08-24 03:03:13,249 asaas_service Buscando PIX detalhado para: pay_pmcm9lxuz067z92i
+INFO 2025-08-24 03:03:13,433 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-08-24 03:03:13,434 asaas_service Dados completos coletados para pay_pmcm9lxuz067z92i - Erros: 0
+INFO 2025-08-24 03:03:13,440 asaas_utils Integração Asaas atualizada com sucesso para cobrança 171
+INFO 2025-08-24 03:03:13,442 asaas_utils Atualizando integração Asaas para cobrança 170, Asaas ID: pay_zyleiahm04mcoolj
+INFO 2025-08-24 03:03:13,442 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-24 03:03:13,443 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-24 03:03:13,443 asaas_service Atualizando dados completos para: pay_zyleiahm04mcoolj
+INFO 2025-08-24 03:03:13,541 asaas_service Buscando código de barras para: pay_zyleiahm04mcoolj
+INFO 2025-08-24 03:03:13,652 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-08-24 03:03:13,653 asaas_service Buscando PIX detalhado para: pay_zyleiahm04mcoolj
+INFO 2025-08-24 03:03:13,829 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-08-24 03:03:13,829 asaas_service Dados completos coletados para pay_zyleiahm04mcoolj - Erros: 0
+INFO 2025-08-24 03:03:13,836 asaas_utils Integração Asaas atualizada com sucesso para cobrança 170
+INFO 2025-08-24 03:03:13,838 asaas_utils Atualizando integração Asaas para cobrança 173, Asaas ID: pay_74b7qafq5se04k4x
+INFO 2025-08-24 03:03:13,838 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-24 03:03:13,838 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-24 03:03:13,838 asaas_service Atualizando dados completos para: pay_74b7qafq5se04k4x
+INFO 2025-08-24 03:03:13,965 asaas_service Buscando código de barras para: pay_74b7qafq5se04k4x
+INFO 2025-08-24 03:03:14,056 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-08-24 03:03:14,058 asaas_service Buscando PIX detalhado para: pay_74b7qafq5se04k4x
+INFO 2025-08-24 03:03:14,318 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-08-24 03:03:14,319 asaas_service Dados completos coletados para pay_74b7qafq5se04k4x - Erros: 0
+INFO 2025-08-24 03:03:14,325 asaas_utils Integração Asaas atualizada com sucesso para cobrança 173
+INFO 2025-08-24 03:03:14,327 asaas_utils Atualizando integração Asaas para cobrança 168, Asaas ID: pay_82187cx6jgrwkvmg
+INFO 2025-08-24 03:03:14,327 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-24 03:03:14,327 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-24 03:03:14,328 asaas_service Atualizando dados completos para: pay_82187cx6jgrwkvmg
+INFO 2025-08-24 03:03:14,539 asaas_service Buscando código de barras para: pay_82187cx6jgrwkvmg
+INFO 2025-08-24 03:03:14,619 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-08-24 03:03:14,619 asaas_service Buscando PIX detalhado para: pay_82187cx6jgrwkvmg
+INFO 2025-08-24 03:03:14,821 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-08-24 03:03:14,821 asaas_service Dados completos coletados para pay_82187cx6jgrwkvmg - Erros: 0
+INFO 2025-08-24 03:03:14,827 asaas_utils Integração Asaas atualizada com sucesso para cobrança 168
+INFO 2025-08-24 03:03:14,829 asaas_utils Atualizando integração Asaas para cobrança 167, Asaas ID: pay_up8i8tusfh09tjgm
+INFO 2025-08-24 03:03:14,829 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-24 03:03:14,830 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-24 03:03:14,830 asaas_service Atualizando dados completos para: pay_up8i8tusfh09tjgm
+INFO 2025-08-24 03:03:14,932 asaas_service Buscando código de barras para: pay_up8i8tusfh09tjgm
+INFO 2025-08-24 03:03:15,082 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-08-24 03:03:15,082 asaas_service Buscando PIX detalhado para: pay_up8i8tusfh09tjgm
+INFO 2025-08-24 03:03:15,339 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-08-24 03:03:15,340 asaas_service Dados completos coletados para pay_up8i8tusfh09tjgm - Erros: 0
+INFO 2025-08-24 03:03:15,347 asaas_utils Integração Asaas atualizada com sucesso para cobrança 167
+INFO 2025-08-24 03:03:15,349 asaas_utils Atualizando integração Asaas para cobrança 165, Asaas ID: pay_wp0lnrn6nl0h5jgu
+INFO 2025-08-24 03:03:15,349 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-24 03:03:15,349 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-24 03:03:15,350 asaas_service Atualizando dados completos para: pay_wp0lnrn6nl0h5jgu
+INFO 2025-08-24 03:03:15,543 asaas_service Buscando código de barras para: pay_wp0lnrn6nl0h5jgu
+INFO 2025-08-24 03:03:15,624 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-08-24 03:03:15,624 asaas_service Buscando PIX detalhado para: pay_wp0lnrn6nl0h5jgu
+INFO 2025-08-24 03:03:15,898 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-08-24 03:03:15,899 asaas_service Dados completos coletados para pay_wp0lnrn6nl0h5jgu - Erros: 0
+INFO 2025-08-24 03:03:15,907 asaas_utils Integração Asaas atualizada com sucesso para cobrança 165
+INFO 2025-08-24 03:03:15,908 asaas_utils Atualizando integração Asaas para cobrança 164, Asaas ID: pay_5xmb25ruzz4fmfue
+INFO 2025-08-24 03:03:15,909 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-24 03:03:15,909 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-24 03:03:15,909 asaas_service Atualizando dados completos para: pay_5xmb25ruzz4fmfue
+INFO 2025-08-24 03:03:16,102 asaas_service Buscando código de barras para: pay_5xmb25ruzz4fmfue
+INFO 2025-08-24 03:03:16,215 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-08-24 03:03:16,215 asaas_service Buscando PIX detalhado para: pay_5xmb25ruzz4fmfue
+INFO 2025-08-24 03:03:16,416 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-08-24 03:03:16,416 asaas_service Dados completos coletados para pay_5xmb25ruzz4fmfue - Erros: 0
+INFO 2025-08-24 03:03:16,423 asaas_utils Integração Asaas atualizada com sucesso para cobrança 164
+INFO 2025-08-24 03:03:16,426 asaas_utils Atualizando integração Asaas para cobrança 163, Asaas ID: pay_hmbwmyd6bw9g8xt6
+INFO 2025-08-24 03:03:16,427 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-24 03:03:16,427 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-24 03:03:16,428 asaas_service Atualizando dados completos para: pay_hmbwmyd6bw9g8xt6
+INFO 2025-08-24 03:03:16,617 asaas_service Buscando código de barras para: pay_hmbwmyd6bw9g8xt6
+INFO 2025-08-24 03:03:16,766 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-08-24 03:03:16,767 asaas_service Buscando PIX detalhado para: pay_hmbwmyd6bw9g8xt6
+INFO 2025-08-24 03:03:17,036 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-08-24 03:03:17,037 asaas_service Dados completos coletados para pay_hmbwmyd6bw9g8xt6 - Erros: 0
+INFO 2025-08-24 03:03:17,043 asaas_utils Integração Asaas atualizada com sucesso para cobrança 163
+INFO 2025-08-24 03:03:17,044 asaas_utils Atualizando integração Asaas para cobrança 162, Asaas ID: pay_7w3ohacuxjunr3tm
+INFO 2025-08-24 03:03:17,045 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-24 03:03:17,045 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-24 03:03:17,045 asaas_service Atualizando dados completos para: pay_7w3ohacuxjunr3tm
+INFO 2025-08-24 03:03:17,285 asaas_service Buscando código de barras para: pay_7w3ohacuxjunr3tm
+INFO 2025-08-24 03:03:17,370 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-08-24 03:03:17,370 asaas_service Buscando PIX detalhado para: pay_7w3ohacuxjunr3tm
+INFO 2025-08-24 03:03:17,547 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-08-24 03:03:17,548 asaas_service Dados completos coletados para pay_7w3ohacuxjunr3tm - Erros: 0
+INFO 2025-08-24 03:03:17,554 asaas_utils Integração Asaas atualizada com sucesso para cobrança 162
+INFO 2025-08-24 03:03:17,555 asaas_utils Atualizando integração Asaas para cobrança 161, Asaas ID: pay_jvs2uvv8tj8ajbq3
+INFO 2025-08-24 03:03:17,556 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-24 03:03:17,556 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-24 03:03:17,556 asaas_service Atualizando dados completos para: pay_jvs2uvv8tj8ajbq3
+INFO 2025-08-24 03:03:17,729 asaas_service Buscando código de barras para: pay_jvs2uvv8tj8ajbq3
+INFO 2025-08-24 03:03:17,808 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-08-24 03:03:17,810 asaas_service Buscando PIX detalhado para: pay_jvs2uvv8tj8ajbq3
+INFO 2025-08-24 03:03:18,066 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-08-24 03:03:18,066 asaas_service Dados completos coletados para pay_jvs2uvv8tj8ajbq3 - Erros: 0
+INFO 2025-08-24 03:03:18,073 asaas_utils Integração Asaas atualizada com sucesso para cobrança 161
+INFO 2025-08-24 03:03:18,075 asaas_utils Atualizando integração Asaas para cobrança 160, Asaas ID: pay_z8sad04qjkom18xy
+INFO 2025-08-24 03:03:18,075 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-24 03:03:18,076 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-24 03:03:18,076 asaas_service Atualizando dados completos para: pay_z8sad04qjkom18xy
+INFO 2025-08-24 03:03:18,255 asaas_service Buscando código de barras para: pay_z8sad04qjkom18xy
+INFO 2025-08-24 03:03:18,336 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-08-24 03:03:18,336 asaas_service Buscando PIX detalhado para: pay_z8sad04qjkom18xy
+INFO 2025-08-24 03:03:18,554 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-08-24 03:03:18,554 asaas_service Dados completos coletados para pay_z8sad04qjkom18xy - Erros: 0
+INFO 2025-08-24 03:03:18,562 asaas_utils Integração Asaas atualizada com sucesso para cobrança 160
+INFO 2025-08-24 03:03:18,564 asaas_utils Atualizando integração Asaas para cobrança 159, Asaas ID: pay_8cniw29nhdv1nkhy
+INFO 2025-08-24 03:03:18,564 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-24 03:03:18,565 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-24 03:03:18,565 asaas_service Atualizando dados completos para: pay_8cniw29nhdv1nkhy
+INFO 2025-08-24 03:03:18,698 asaas_service Buscando código de barras para: pay_8cniw29nhdv1nkhy
+INFO 2025-08-24 03:03:18,774 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-08-24 03:03:18,774 asaas_service Buscando PIX detalhado para: pay_8cniw29nhdv1nkhy
+INFO 2025-08-24 03:03:19,071 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-08-24 03:03:19,072 asaas_service Dados completos coletados para pay_8cniw29nhdv1nkhy - Erros: 0
+INFO 2025-08-24 03:03:19,078 asaas_utils Integração Asaas atualizada com sucesso para cobrança 159
+INFO 2025-08-24 03:03:19,079 asaas_utils Atualizando integração Asaas para cobrança 158, Asaas ID: pay_kwozo59dygu79exn
+INFO 2025-08-24 03:03:19,079 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-24 03:03:19,080 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-24 03:03:19,080 asaas_service Atualizando dados completos para: pay_kwozo59dygu79exn
+INFO 2025-08-24 03:03:19,238 asaas_service Buscando código de barras para: pay_kwozo59dygu79exn
+INFO 2025-08-24 03:03:19,364 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-08-24 03:03:19,364 asaas_service Buscando PIX detalhado para: pay_kwozo59dygu79exn
+INFO 2025-08-24 03:03:19,696 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-08-24 03:03:19,698 asaas_service Dados completos coletados para pay_kwozo59dygu79exn - Erros: 0
+INFO 2025-08-24 03:03:19,705 asaas_utils Integração Asaas atualizada com sucesso para cobrança 158
+INFO 2025-08-24 03:03:19,706 asaas_utils Atualizando integração Asaas para cobrança 157, Asaas ID: pay_3l1sgzulv2dpjxm9
+INFO 2025-08-24 03:03:19,706 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-24 03:03:19,707 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-24 03:03:19,707 asaas_service Atualizando dados completos para: pay_3l1sgzulv2dpjxm9
+INFO 2025-08-24 03:03:19,905 asaas_service Buscando código de barras para: pay_3l1sgzulv2dpjxm9
+INFO 2025-08-24 03:03:20,041 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-08-24 03:03:20,042 asaas_service Buscando PIX detalhado para: pay_3l1sgzulv2dpjxm9
+INFO 2025-08-24 03:03:20,264 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-08-24 03:03:20,264 asaas_service Dados completos coletados para pay_3l1sgzulv2dpjxm9 - Erros: 0
+INFO 2025-08-24 03:03:20,272 asaas_utils Integração Asaas atualizada com sucesso para cobrança 157
+INFO 2025-08-24 03:03:20,275 asaas_utils Atualizando integração Asaas para cobrança 156, Asaas ID: pay_2122znqi9o59cfxf
+INFO 2025-08-24 03:03:20,275 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-24 03:03:20,275 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-24 03:03:20,276 asaas_service Atualizando dados completos para: pay_2122znqi9o59cfxf
+INFO 2025-08-24 03:03:20,374 asaas_service Buscando código de barras para: pay_2122znqi9o59cfxf
+INFO 2025-08-24 03:03:20,533 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-08-24 03:03:20,533 asaas_service Buscando PIX detalhado para: pay_2122znqi9o59cfxf
+INFO 2025-08-24 03:03:20,746 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-08-24 03:03:20,746 asaas_service Dados completos coletados para pay_2122znqi9o59cfxf - Erros: 0
+INFO 2025-08-24 03:03:20,752 asaas_utils Integração Asaas atualizada com sucesso para cobrança 156
+INFO 2025-08-24 03:03:20,754 asaas_utils Atualizando integração Asaas para cobrança 155, Asaas ID: pay_v59y4036i9jc9sio
+INFO 2025-08-24 03:03:20,755 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-24 03:03:20,755 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-24 03:03:20,755 asaas_service Atualizando dados completos para: pay_v59y4036i9jc9sio
+INFO 2025-08-24 03:03:20,865 asaas_service Buscando código de barras para: pay_v59y4036i9jc9sio
+INFO 2025-08-24 03:03:21,001 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-08-24 03:03:21,001 asaas_service Buscando PIX detalhado para: pay_v59y4036i9jc9sio
+INFO 2025-08-24 03:03:21,316 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-08-24 03:03:21,316 asaas_service Dados completos coletados para pay_v59y4036i9jc9sio - Erros: 0
+INFO 2025-08-24 03:03:21,323 asaas_utils Integração Asaas atualizada com sucesso para cobrança 155
+INFO 2025-08-24 03:03:21,325 asaas_utils Atualizando integração Asaas para cobrança 154, Asaas ID: pay_cliy5xubzp1jdt7q
+INFO 2025-08-24 03:03:21,325 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-24 03:03:21,325 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-24 03:03:21,326 asaas_service Atualizando dados completos para: pay_cliy5xubzp1jdt7q
+INFO 2025-08-24 03:03:21,507 asaas_service Buscando código de barras para: pay_cliy5xubzp1jdt7q
+INFO 2025-08-24 03:03:21,591 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-08-24 03:03:21,591 asaas_service Buscando PIX detalhado para: pay_cliy5xubzp1jdt7q
+INFO 2025-08-24 03:03:21,839 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-08-24 03:03:21,840 asaas_service Dados completos coletados para pay_cliy5xubzp1jdt7q - Erros: 0
+INFO 2025-08-24 03:03:21,845 asaas_utils Integração Asaas atualizada com sucesso para cobrança 154
+INFO 2025-08-24 03:03:21,847 asaas_utils Atualizando integração Asaas para cobrança 153, Asaas ID: pay_7ox30j8mjowf5xpw
+INFO 2025-08-24 03:03:21,848 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-24 03:03:21,848 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-24 03:03:21,848 asaas_service Atualizando dados completos para: pay_7ox30j8mjowf5xpw
+INFO 2025-08-24 03:03:21,944 asaas_service Buscando código de barras para: pay_7ox30j8mjowf5xpw
+INFO 2025-08-24 03:03:22,019 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-08-24 03:03:22,019 asaas_service Buscando PIX detalhado para: pay_7ox30j8mjowf5xpw
+INFO 2025-08-24 03:03:22,210 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-08-24 03:03:22,210 asaas_service Dados completos coletados para pay_7ox30j8mjowf5xpw - Erros: 0
+INFO 2025-08-24 03:03:22,217 asaas_utils Integração Asaas atualizada com sucesso para cobrança 153
+INFO 2025-08-24 03:03:22,219 asaas_utils Atualizando integração Asaas para cobrança 152, Asaas ID: pay_fovl269lztpgunuk
+INFO 2025-08-24 03:03:22,219 asaas_service AsaasService inicializado - Ambiente: production
+INFO 2025-08-24 03:03:22,220 asaas_service Base URL: https://www.asaas.com/api/v3/
+INFO 2025-08-24 03:03:22,220 asaas_service Atualizando dados completos para: pay_fovl269lztpgunuk
+INFO 2025-08-24 03:03:22,323 asaas_service Buscando código de barras para: pay_fovl269lztpgunuk
+INFO 2025-08-24 03:03:22,458 asaas_service Código de barras encontrado: 46191110000000000003...
+INFO 2025-08-24 03:03:22,459 asaas_service Buscando PIX detalhado para: pay_fovl269lztpgunuk
+INFO 2025-08-24 03:03:22,742 asaas_service PIX copia e cola encontrado: 00020101021226800014br.gov.bcb.pix2558pix.asaas.co...
+INFO 2025-08-24 03:03:22,742 asaas_service Dados completos coletados para pay_fovl269lztpgunuk - Erros: 0
+INFO 2025-08-24 03:03:22,747 asaas_utils Integração Asaas atualizada com sucesso para cobrança 152
+WARNING 2025-08-24 03:03:22,750 asaas_utils Cobrança 122 não tem integração Asaas

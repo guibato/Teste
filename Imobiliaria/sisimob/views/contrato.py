@@ -9,7 +9,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 
-from sisimob.models import Contrato, Cliente, Imovel
+from cadastro.models import Contrato, Cliente, Imovel
 from sisimob.forms import ContratoForm, ContratoFiltroForm, ReajusteContratosForm
 from financeiro.models.cobranca import Cobranca
 from financeiro.models.despesa import Despesa

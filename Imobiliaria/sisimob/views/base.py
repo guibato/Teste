@@ -65,7 +65,7 @@ def nacionalidade_autocomplete(request):
     """
     View AJAX para autocomplete de nacionalidade
     """
-    from sisimob.models import Cliente
+    from cadastro.models import Cliente
     
     query = request.GET.get('q', '')
     suggestions = Cliente.objects.filter(
@@ -79,7 +79,7 @@ def confirmar_exclusao(request, model_name, id):
     """
     View genérica para confirmação de exclusão
     """
-    from sisimob.models import Cliente, Imovel, Contrato
+    from cadastro.models import Cliente, Imovel, Contrato
     
     models = {
         'cliente': Cliente,

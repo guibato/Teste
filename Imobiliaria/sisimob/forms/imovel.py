@@ -1,5 +1,5 @@
 from django import forms
-from sisimob.models import Imovel
+from cadastro.models import Imovel
 
 
 class ImovelForm(forms.ModelForm):

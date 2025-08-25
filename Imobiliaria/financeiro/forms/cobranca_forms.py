@@ -107,7 +107,7 @@ class CobrancaBaseForm(forms.ModelForm):
         """Configura queryset para contratos ativos"""
         if 'contrato' in self.fields:
             try:
-                from sisimob.models import Contrato
+                from cadastro.models import Contrato
                 self.fields['contrato'].queryset = Contrato.objects.filter(
                     ativo=True
                 ).order_by('-data_inicio')

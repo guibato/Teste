@@ -873,7 +873,7 @@ class GerarExtratosMensaisCommand(BaseCommand):
         parser.add_argument('--enviar', action='store_true')
     
     def handle(self, *args, **options):
-        from sisimob.models import Cliente
+        from cadastro.models import Cliente
         
         mes = options['mes']
         ano = options['ano']

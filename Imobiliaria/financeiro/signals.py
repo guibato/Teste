@@ -29,7 +29,7 @@ except ImportError:
         AgendamentoRepasse = None
 
 try:
-    from sisimob.models import Contrato
+    from cadastro.models import Contrato
 except ImportError:
     logger.warning("Modelo Contrato não encontrado")
     Contrato = None

@@ -112,7 +112,7 @@ class Command(BaseCommand):
         )
         
         # Agendamentos órfãos (sem contrato ativo)
-        from sisimob.models import Contrato
+        from cadastro.models import Contrato
         
         agendamentos_orfaos = AgendamentoRepasse.objects.filter(
             status='agendado'

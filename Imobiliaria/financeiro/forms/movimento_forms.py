@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from decimal import Decimal
 from datetime import date
 from financeiro.models.movimento import MovimentoConta
-from sisimob.models import Contrato
+from cadastro.models import Contrato
 
 
 class MovimentoManualForm(forms.Form):

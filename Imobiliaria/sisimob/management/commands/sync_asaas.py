@@ -3,7 +3,7 @@ import os
 from django.core.management.base import BaseCommand
 from django.utils.timezone import make_aware
 from datetime import datetime
-from sisimob.models import Cobranca
+from cadastro.models import Cobranca
 from dotenv import load_dotenv
 
 

@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from sisimob.models import Cliente
+from cadastro.models import Cliente
 from sisimob.utils.cobrancas_asaas import criar_cobranca_asaas
 import requests
 

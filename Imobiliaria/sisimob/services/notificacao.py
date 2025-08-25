@@ -3,7 +3,7 @@ from datetime import date
 from django.utils import timezone
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
-from sisimob.models import Contrato, Cliente, Cobranca
+from cadastro.models import Contrato, Cliente, Cobranca
 
 # Configura o locale para o Brasil
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')

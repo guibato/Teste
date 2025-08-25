@@ -11,7 +11,7 @@ from reportlab.lib.colors import HexColor
 import io
 from datetime import date
 from django.db.models import Sum
-from sisimob.models import Contrato, Cobranca
+from cadastro.models import Contrato, Cobranca
 
 # Configura o Django antes de usar qualquer funcionalidade
 if not settings.configured:

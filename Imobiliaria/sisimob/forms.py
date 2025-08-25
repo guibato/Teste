@@ -342,7 +342,7 @@ class ReajusteContratosForm(forms.Form):
 
 from django import forms
 from django.utils import timezone
-from sisimob.models import Cobranca, Cliente, Contrato
+from cadastro.models import Cobranca, Cliente, Contrato
 
 class CobrancaFiltroForm(forms.Form):
     """

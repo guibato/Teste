@@ -24,7 +24,7 @@ try:
 except ImportError:
     Cobranca = None
 
-from sisimob.models import Contrato, Cliente
+from cadastro.models import Contrato, Cliente
 
 # Imports dos services e forms
 try:
@@ -2857,7 +2857,7 @@ try:
 except ImportError:
     Cobranca = None
 
-from sisimob.models import Contrato, Cliente
+from cadastro.models import Contrato, Cliente
 
 # Imports dos services e forms (assumindo que existem)
 try:

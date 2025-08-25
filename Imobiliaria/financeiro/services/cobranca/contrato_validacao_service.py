@@ -10,7 +10,7 @@ mas deveriam gerar cobranças para períodos anteriores.
 from datetime import date, datetime
 import calendar
 from django.db.models import Q
-from sisimob.models import Contrato
+from cadastro.models import Contrato
 
 
 class ContratoValidacaoService:

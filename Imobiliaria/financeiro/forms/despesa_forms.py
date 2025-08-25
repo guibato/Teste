@@ -217,7 +217,7 @@ class DespesaForm(forms.ModelForm):
         
         # Configurar campo contrato
         try:
-            from sisimob.models import Contrato
+            from cadastro.models import Contrato
             self.fields['contrato'].queryset = Contrato.objects.filter(
                 ativo=True
             ).order_by('-data_inicio')

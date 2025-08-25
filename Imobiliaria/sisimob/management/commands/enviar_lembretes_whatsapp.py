@@ -1,6 +1,6 @@
 from datetime import date
 from django.core.management.base import BaseCommand
-from sisimob.models import Cobranca, LembreteEnviado
+from cadastro.models import Cobranca, LembreteEnviado
 from sisimob.services.notificacao import gerar_mensagem_cobranca
 from sisimob.services.whatsapp import enviar_mensagem
 from sisimob.utils.data import dia_util_anterior
