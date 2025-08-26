@@ -27,12 +27,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'cadastro',
-    'sisimob',
+    'core',
     'imobiliaria',
     'django.contrib.humanize',
     'django_select2',
-    'core',
     'financeiro',
 ]
 
@@ -77,11 +75,10 @@ WSGI_APPLICATION = 'Imobiliaria.wsgi.application'
 # Configurações de arquivos estáticos
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    "C:/Users/guilh/OneDrive/Pessoal/Documentos/GitHub/Teste/imobiliaria/sisimob/static",
+    BASE_DIR / 'core' / 'static',
 ]
 
 USE_TZ = True
-
 # ============================================================================
 # CONFIGURAÇÕES ASAAS - ADICIONE ESTAS LINHAS NO FINAL DO ARQUIVO
 # ============================================================================

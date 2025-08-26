@@ -8,7 +8,7 @@ from django.db import transaction
 from django.apps import apps
 
 from financeiro.models import Cobranca
-from cadastro.models import Contrato
+from core.models import Contrato
 
 
 class CobrancaService:

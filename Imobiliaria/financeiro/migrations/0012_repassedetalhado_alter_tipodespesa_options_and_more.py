@@ -9,7 +9,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sisimob', '0006_remove_cobranca_contrato_remove_cobranca_inquilino_and_more'),
+        ('core', '0006_remove_cobranca_contrato_remove_cobranca_inquilino_and_more'),
         ('financeiro', '0011_asaasintegracao_linha_digitavel_and_more'),
     ]
 
@@ -78,11 +78,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='repassedetalhado',
             name='contrato',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='sisimob.contrato'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.contrato'),
         ),
         migrations.AddField(
             model_name='repassedetalhado',
             name='proprietario',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='sisimob.cliente'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.cliente'),
         ),
     ]

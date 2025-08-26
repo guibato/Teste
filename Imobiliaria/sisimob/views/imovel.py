@@ -5,8 +5,8 @@ from django.db.models import Q
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 
-from cadastro.models import Imovel
-from sisimob.forms import ImovelForm, ImovelFiltroForm, ImovelBuscaForm
+from core.models import Imovel
+from core.forms import ImovelForm, ImovelFiltroForm, ImovelBuscaForm
 
 def detalhes_imovel(request, id):
     """

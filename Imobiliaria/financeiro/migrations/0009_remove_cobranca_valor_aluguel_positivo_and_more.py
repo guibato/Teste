@@ -9,7 +9,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sisimob', '0006_remove_cobranca_contrato_remove_cobranca_inquilino_and_more'),
+        ('core', '0006_remove_cobranca_contrato_remove_cobranca_inquilino_and_more'),
         ('financeiro', '0008_alter_cobranca_options'),
     ]
 
@@ -132,7 +132,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='cobranca',
             name='contrato',
-            field=models.ForeignKey(help_text='Contrato base desta cobrança', on_delete=django.db.models.deletion.CASCADE, related_name='cobrancas_financeiro', to='sisimob.contrato'),
+            field=models.ForeignKey(help_text='Contrato base desta cobrança', on_delete=django.db.models.deletion.CASCADE, related_name='cobrancas_financeiro', to='core.contrato'),
         ),
         migrations.AlterField(
             model_name='cobranca',

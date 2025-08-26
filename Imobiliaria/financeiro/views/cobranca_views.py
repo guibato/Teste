@@ -23,7 +23,7 @@ from decimal import Decimal
 import json
 import traceback
 from financeiro.models.reajuste import ReajusteAluguel
-from cadastro.models import Contrato
+from core.models import Contrato
 
 from ..models import Cobranca
 from ..forms.cobranca_forms import (
@@ -440,7 +440,7 @@ def obter_contratos_elegiveis_periodo(mes_referencia, ano_referencia, contratos_
     """
     from datetime import date
     import calendar
-    from cadastro.models import Contrato
+    from core.models import Contrato
     
     try:
         # Calcular período
@@ -766,7 +766,7 @@ def cobranca_api_despesas_contrato(request, contrato_id):
     API para buscar despesas de um contrato (AJAX)
     """
     try:
-        from cadastro.models import Contrato
+        from core.models import Contrato
         contrato = get_object_or_404(Contrato, pk=contrato_id)
         
         # Usar service se disponível
@@ -938,7 +938,7 @@ def gerar_cobrancas_manualmente(ids_contratos, mes, ano):
     """Função de compatibilidade"""
     try:
         from ..models.cobranca import criar_cobranca_do_contrato
-        from cadastro.models import Contrato
+        from core.models import Contrato
         
         cobrancas_criadas = 0
         
@@ -1405,7 +1405,7 @@ def cobranca_gerar_selecionadas(request):
         
         # Buscar contratos selecionados
         try:
-            from cadastro.models import Contrato
+            from core.models import Contrato
             
             contratos = Contrato.objects.filter(
                 id__in=cobrancas_selecionadas,
@@ -1636,7 +1636,7 @@ def teste_calcular_vencimento():
     Função para testar o cálculo de vencimento
     """
     from datetime import date
-    from cadastro.models import Contrato
+    from core.models import Contrato
     
     print("🧪 TESTE: Cálculo de Data de Vencimento")
     print("=" * 50)
@@ -1679,7 +1679,7 @@ def teste_api_preview_sem_vencimento():
     print(f"📤 Dados de entrada: {dados_teste}")
     
     try:
-        from cadastro.models import Contrato
+        from core.models import Contrato
         
         # Verificar contratos disponíveis
         contratos = Contrato.objects.filter(ativo=True)
@@ -1717,7 +1717,7 @@ def verificar_estrutura_contrato():
     """
     Verifica se o modelo Contrato tem campos necessários
     """
-    from cadastro.models import Contrato
+    from core.models import Contrato
     
     print("🔍 VERIFICAÇÃO: Estrutura do Modelo Contrato")
     print("=" * 50)
@@ -2521,7 +2521,7 @@ def obter_contratos_validos_por_periodo_FINAL(mes_referencia, ano_referencia, co
     from datetime import date
     import calendar
     from django.db.models import Q
-    from cadastro.models import Contrato
+    from core.models import Contrato
     
     try:
         # Calcular período da cobrança
@@ -2627,7 +2627,7 @@ def obter_contratos_validos_por_periodo_RENOVACAO(mes_referencia, ano_referencia
     from datetime import date
     import calendar
     from django.db.models import Q
-    from cadastro.models import Contrato
+    from core.models import Contrato
     
     try:
         # Calcular período da cobrança

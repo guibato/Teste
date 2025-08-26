@@ -31,7 +31,7 @@ class Cobranca(models.Model):
 
     # === RELACIONAMENTOS ===
     contrato = models.ForeignKey(
-        'sisimob.Contrato', 
+        'core.Contrato', 
         on_delete=models.CASCADE, 
         related_name='cobrancas_financeiro',
         help_text="Contrato base desta cobrança"

@@ -13,7 +13,7 @@ class ContaCorrenteProprietario(models.Model):
     Conta corrente centralizada do proprietário para controle financeiro completo
     """
     proprietario = models.OneToOneField(
-        'sisimob.Cliente', 
+        'core.Cliente', 
         on_delete=models.CASCADE, 
         related_name='conta_corrente'
     )
@@ -139,7 +139,7 @@ class MovimentoContaCorrente(models.Model):
     
     # Referências aos objetos relacionados
     contrato = models.ForeignKey(
-        'sisimob.Contrato', 
+        'core.Contrato', 
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True
@@ -873,7 +873,7 @@ class GerarExtratosMensaisCommand(BaseCommand):
         parser.add_argument('--enviar', action='store_true')
     
     def handle(self, *args, **options):
-        from cadastro.models import Cliente
+        from core.models import Cliente
         
         mes = options['mes']
         ano = options['ano']

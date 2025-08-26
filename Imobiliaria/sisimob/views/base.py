@@ -51,7 +51,7 @@ def autocomplete_field(request, model_name, field_name):
     query = request.GET.get('q', '')
     
     try:
-        Model = apps.get_model('sisimob', model_name)
+        Model = apps.get_model('core', model_name)
         suggestions = Model.objects.filter(
             **{f"{field_name}__icontains": query}
         ).values_list(field_name, flat=True).distinct()[:10]
@@ -65,7 +65,7 @@ def nacionalidade_autocomplete(request):
     """
     View AJAX para autocomplete de nacionalidade
     """
-    from cadastro.models import Cliente
+    from core.models import Cliente
     
     query = request.GET.get('q', '')
     suggestions = Cliente.objects.filter(
@@ -79,7 +79,7 @@ def confirmar_exclusao(request, model_name, id):
     """
     View genérica para confirmação de exclusão
     """
-    from cadastro.models import Cliente, Imovel, Contrato
+    from core.models import Cliente, Imovel, Contrato
     
     models = {
         'cliente': Cliente,

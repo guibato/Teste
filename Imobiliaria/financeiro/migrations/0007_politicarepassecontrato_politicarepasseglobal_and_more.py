@@ -8,7 +8,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sisimob', '0005_remove_contrato_data_ultimo_reajuste_and_more'),
+        ('core', '0005_remove_contrato_data_ultimo_reajuste_and_more'),
         ('financeiro', '0006_alter_asaasintegracao_options_alter_cobranca_options_and_more'),
     ]
 
@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
                 ('data_criacao', models.DateTimeField(auto_now_add=True)),
                 ('data_atualizacao', models.DateTimeField(auto_now=True)),
                 ('observacoes', models.TextField(blank=True, null=True)),
-                ('contrato', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='politica_repasse', to='sisimob.contrato')),
+                ('contrato', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='politica_repasse', to='core.contrato')),
             ],
             options={
                 'verbose_name': 'Política de Repasse do Contrato',
@@ -73,7 +73,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='repasse',
             name='contrato',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='repasses_contrato', to='sisimob.contrato'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='repasses_contrato', to='core.contrato'),
         ),
         migrations.DeleteModel(
             name='PoliticaRepasse',

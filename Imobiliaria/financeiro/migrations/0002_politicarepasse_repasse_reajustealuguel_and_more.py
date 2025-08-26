@@ -8,7 +8,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sisimob', '0002_lembreteenviado'),
+        ('core', '0002_lembreteenviado'),
         ('financeiro', '0001_initial'),
     ]
 
@@ -54,8 +54,8 @@ class Migration(migrations.Migration):
                 ('observacoes', models.TextField(blank=True, null=True)),
                 ('comprovante', models.FileField(blank=True, null=True, upload_to='repasses/comprovantes/')),
                 ('cobranca', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='repasses_cobranca', to='financeiro.cobranca')),
-                ('contrato', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reprepasses_financeiroasses', to='sisimob.contrato')),
-                ('proprietario', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='repasses_recebidos', to='sisimob.cliente')),
+                ('contrato', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reprepasses_financeiroasses', to='core.contrato')),
+                ('proprietario', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='repasses_recebidos', to='core.cliente')),
             ],
             options={
                 'verbose_name': 'Repasse',
@@ -74,7 +74,7 @@ class Migration(migrations.Migration):
                 ('data_reajuste', models.DateField(help_text='Data em que o novo valor passa a valer')),
                 ('observacao', models.TextField(blank=True, null=True)),
                 ('data_cadastro', models.DateTimeField(auto_now_add=True)),
-                ('contrato', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reajustes', to='sisimob.contrato')),
+                ('contrato', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reajustes', to='core.contrato')),
             ],
             options={
                 'verbose_name': 'Reajuste de Aluguel',
@@ -95,9 +95,9 @@ class Migration(migrations.Migration):
                 ('detalhes_processamento', models.TextField(blank=True, null=True)),
                 ('data_criacao', models.DateTimeField(auto_now_add=True)),
                 ('data_atualizacao', models.DateTimeField(auto_now=True)),
-                ('contrato', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='agendamentos_repasse', to='sisimob.contrato')),
+                ('contrato', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='agendamentos_repasse', to='core.contrato')),
                 ('politica', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='financeiro.politicarepasse')),
-                ('proprietario', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='agendamentos_repasse', to='sisimob.cliente')),
+                ('proprietario', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='agendamentos_repasse', to='core.cliente')),
             ],
             options={
                 'verbose_name': 'Agendamento de Repasse',

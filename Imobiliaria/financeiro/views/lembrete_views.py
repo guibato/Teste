@@ -318,7 +318,7 @@ def _buscar_cliente_com_telefone(nome):
         return None
     
     try:
-        from cadastro.models import Cliente
+        from core.models import Cliente
         
         # Busca exata
         clientes = Cliente.objects.filter(nome__iexact=nome)

@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from decimal import Decimal
 from datetime import date
 from ..models.repasse import Repasse, PoliticaRepasseContrato, PoliticaRepasseGlobal
-from cadastro.models import Contrato, Cliente
+from core.models import Contrato, Cliente
 
 try:
     from ..models.cobranca import Cobranca

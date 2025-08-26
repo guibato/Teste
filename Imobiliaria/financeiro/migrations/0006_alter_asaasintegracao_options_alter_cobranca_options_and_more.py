@@ -10,7 +10,7 @@ import django.utils.timezone
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sisimob', '0005_remove_contrato_data_ultimo_reajuste_and_more'),
+        ('core', '0005_remove_contrato_data_ultimo_reajuste_and_more'),
         ('financeiro', '0005_melhorias_cobranca'),
     ]
 
@@ -155,7 +155,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='cobranca',
             name='contrato',
-            field=models.ForeignKey(help_text='Contrato ao qual esta cobrança se refere', on_delete=django.db.models.deletion.CASCADE, related_name='cobrancas_financeiro', to='sisimob.contrato'),
+            field=models.ForeignKey(help_text='Contrato ao qual esta cobrança se refere', on_delete=django.db.models.deletion.CASCADE, related_name='cobrancas_financeiro', to='core.contrato'),
         ),
         migrations.AlterField(
             model_name='cobranca',

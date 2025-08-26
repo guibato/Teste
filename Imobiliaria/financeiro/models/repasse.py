@@ -29,9 +29,9 @@ class Repasse(models.Model):
         ('outros', 'Outros'),
     ]
 
-    proprietario = models.ForeignKey('sisimob.Cliente', on_delete=models.CASCADE, related_name='repasses_recebidos')
+    proprietario = models.ForeignKey('core.Cliente', on_delete=models.CASCADE, related_name='repasses_recebidos')
     cobranca = models.ForeignKey('financeiro.Cobranca', on_delete=models.SET_NULL, null=True, blank=True, related_name='repasses_cobranca')
-    contrato = models.ForeignKey('sisimob.Contrato', on_delete=models.CASCADE, related_name='repasses_contrato')
+    contrato = models.ForeignKey('core.Contrato', on_delete=models.CASCADE, related_name='repasses_contrato')
 
     valor = models.DecimalField(max_digits=10, decimal_places=2)
     valor_desconto = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
@@ -133,7 +133,7 @@ class PoliticaRepasseContrato(models.Model):
 
     # Relacionamento com contrato (um-para-um)
     contrato = models.OneToOneField(
-        'sisimob.Contrato', 
+        'core.Contrato', 
         on_delete=models.CASCADE, 
         related_name='politica_repasse'
     )
@@ -636,8 +636,8 @@ class AgendamentoRepasse(models.Model):
         ('cancelado', 'Cancelado'),
     ]
 
-    proprietario = models.ForeignKey('sisimob.Cliente', on_delete=models.CASCADE, related_name='agendamentos_repasse')
-    contrato = models.ForeignKey('sisimob.Contrato', on_delete=models.CASCADE, related_name='agendamentos_repasse')
+    proprietario = models.ForeignKey('core.Cliente', on_delete=models.CASCADE, related_name='agendamentos_repasse')
+    contrato = models.ForeignKey('core.Contrato', on_delete=models.CASCADE, related_name='agendamentos_repasse')
     politica_contrato = models.ForeignKey(PoliticaRepasseContrato, on_delete=models.SET_NULL, null=True, blank=True)
     politica_global = models.ForeignKey(PoliticaRepasseGlobal, on_delete=models.SET_NULL, null=True, blank=True)
 
@@ -741,9 +741,9 @@ class RepasseDetalhado(models.Model):
     ]
 
     # Relacionamentos básicos
-    proprietario = models.ForeignKey('sisimob.Cliente', on_delete=models.CASCADE)
+    proprietario = models.ForeignKey('core.Cliente', on_delete=models.CASCADE)
     cobranca = models.ForeignKey('financeiro.Cobranca', on_delete=models.CASCADE)
-    contrato = models.ForeignKey('sisimob.Contrato', on_delete=models.CASCADE)
+    contrato = models.ForeignKey('core.Contrato', on_delete=models.CASCADE)
 
     # Valores financeiros
     valor_bruto_total = models.DecimalField(

@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sisimob', '0004_remove_contrato_valor_aluguel_and_more'),
+        ('core', '0004_remove_contrato_valor_aluguel_and_more'),
         ('financeiro', '0003_alter_tipodespesa_options_remove_tipodespesa_codigo_and_more'),
     ]
 

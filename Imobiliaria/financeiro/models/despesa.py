@@ -56,7 +56,7 @@ class Despesa(models.Model):
         ('nao', 'Não - Isenta de taxa administrativa'),
         ('parcial', 'Parcial - Apenas parte tem incidência'),
     ]
-    contrato = models.ForeignKey('sisimob.Contrato', on_delete=models.CASCADE, related_name='despesas_financeiro')
+    contrato = models.ForeignKey('core.Contrato', on_delete=models.CASCADE, related_name='despesas_financeiro')
     tipo = models.ForeignKey(TipoDespesa, on_delete=models.PROTECT, related_name='despesas')
     descricao = models.CharField(max_length=255, null=True, blank=True)
     valor_total = models.DecimalField(max_digits=10, decimal_places=2)

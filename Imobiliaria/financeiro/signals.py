@@ -7,6 +7,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+from sisimob.signals import contrato_assinado, enviar_cobrancas_asaas
+from financeiro.services.cobranca_service import CobrancaService
+from financeiro.services.asaas_service import enviar_cobrancas as enviar_cobrancas_asaas_service
+
 # Import dos modelos (com fallbacks seguros)
 try:
     from .models.cobranca import Cobranca
@@ -35,6 +39,34 @@ except ImportError:
     Contrato = None
 
 
+# === Eventos disparados pelo core ===
+@receiver(contrato_assinado)
+def criar_cobranca_inicial(sender, contrato, **kwargs):
+    """Gera automaticamente a primeira cobrança quando um contrato é assinado."""
+    preview = CobrancaService.criar_cobranca_preview(
+        contrato,
+        contrato.data_inicio.month,
+        contrato.data_inicio.year,
+    )
+    if preview and Cobranca:
+        Cobranca.objects.create(
+            contrato=preview["contrato"],
+            mes_referencia=preview["mes_referencia"],
+            ano_referencia=preview["ano_referencia"],
+            valor_aluguel=preview["valor_aluguel"],
+            valor_despesas=preview["valor_despesas"],
+            valor_total=preview["valor_total"],
+            data_vencimento=preview["data_vencimento"],
+            descricao=preview["descricao"],
+        )
+
+
+@receiver(enviar_cobrancas_asaas)
+def processar_envio_cobrancas(sender, mes, ano, stdout=None, stderr=None, **kwargs):
+    """Processa o envio de cobranças para o Asaas."""
+    enviar_cobrancas_asaas_service(mes, ano, stdout=stdout, stderr=stderr)
+
+
 # === SIGNAL PRINCIPAL ===
 if Cobranca and Repasse:
     @receiver(post_save, sender=Cobranca)
@@ -60,13 +92,6 @@ if Cobranca and Repasse:
             if repasse:
                 logger.info(f"✅ Repasse {repasse.id} criado automaticamente para cobrança {instance.id}")
                 print(f"✅ Repasse {repasse.id} criado automaticamente para cobrança {instance.id}")
-            else:
-                logger.warning(f"⚠️ Não foi possível criar repasse para cobrança {instance.id}")
-                print(f"⚠️ Não foi possível criar repasse para cobrança {instance.id}")
-                
-        except Exception as e:
-            logger.error(f"❌ Erro ao criar repasse automático para cobrança {instance.id}: {e}")
-            print(f"❌ Erro ao criar repasse automático para cobrança {instance.id}: {e}")
 
 
     @receiver(pre_save, sender=Cobranca)

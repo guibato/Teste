@@ -17,7 +17,7 @@ from financeiro.models.cobranca import Cobranca, AsaasIntegracao
 
 # Tentar importar outros modelos
 try:
-    from cadastro.models import Cliente, Contrato
+    from core.models import Cliente, Contrato
 except ImportError:
     try:
         from financeiro.models import Cliente, Contrato

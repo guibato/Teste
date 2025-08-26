@@ -13,7 +13,7 @@ from django.views.decorators.http import require_http_methods
 from django.core.exceptions import ValidationError
 import json
 
-from cadastro.models import Contrato
+from core.models import Contrato
 from financeiro.models.reajuste import ReajusteAluguel
 from financeiro.services.reajuste_service import ReajusteService
 

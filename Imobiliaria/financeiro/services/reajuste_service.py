@@ -8,7 +8,7 @@ from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
-from cadastro.models import Contrato
+from core.models import Contrato
 from financeiro.models.reajuste import ReajusteAluguel
 from financeiro.models.indice import IndiceInflacao
 

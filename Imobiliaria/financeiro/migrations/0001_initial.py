@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('sisimob', '0002_lembreteenviado'),
+        ('core', '0002_lembreteenviado'),
     ]
 
     operations = [
@@ -39,8 +39,8 @@ class Migration(migrations.Migration):
                 ('lembrete_10_enviado', models.BooleanField(default=False)),
                 ('lembrete_3_enviado', models.BooleanField(default=False)),
                 ('lembrete_0_enviado', models.BooleanField(default=False)),
-                ('contrato', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cobrancas_financeiro', to='sisimob.contrato')),
-                ('inquilino', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='cobrancas_recebidas', to='sisimob.cliente')),
+                ('contrato', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cobrancas_financeiro', to='core.contrato')),
+                ('inquilino', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='cobrancas_recebidas', to='core.cliente')),
             ],
             options={
                 'verbose_name': 'Cobrança',
@@ -74,7 +74,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('saldo_atual', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=10)),
                 ('ultima_atualizacao', models.DateTimeField(auto_now=True)),
-                ('proprietario', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='saldo_financeiro', to='sisimob.cliente')),
+                ('proprietario', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='saldo_financeiro', to='core.cliente')),
             ],
             options={
                 'verbose_name': 'Saldo de Proprietário',
@@ -91,8 +91,8 @@ class Migration(migrations.Migration):
                 ('data', models.DateField(auto_now_add=True)),
                 ('data_referencia', models.DateField(blank=True, null=True)),
                 ('origem_simplificada', models.BooleanField(default=False, help_text='Indica se foi um lançamento manual/simplificado')),
-                ('contrato', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='movimentos_financeiro', to='sisimob.contrato')),
-                ('proprietario', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='movimentos_financeiro', to='sisimob.cliente')),
+                ('contrato', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='movimentos_financeiro', to='core.contrato')),
+                ('proprietario', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='movimentos_financeiro', to='core.cliente')),
             ],
             options={
                 'verbose_name': 'Movimento de Conta',
@@ -158,7 +158,7 @@ class Migration(migrations.Migration):
                 ('data_atualizacao', models.DateTimeField(auto_now=True)),
                 ('comprovante', models.FileField(blank=True, null=True, upload_to='despesas/comprovantes/')),
                 ('observacoes', models.TextField(blank=True, null=True)),
-                ('contrato', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='despesas_financeiro', to='sisimob.contrato')),
+                ('contrato', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='despesas_financeiro', to='core.contrato')),
                 ('tipo', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='despesas', to='financeiro.tipodespesa')),
             ],
             options={

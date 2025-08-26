@@ -6,7 +6,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from financeiro.models.repasse import Repasse
-from cadastro.models import Contrato
+from core.models import Contrato
 
 try:
     from financeiro.models.cobranca import Cobranca

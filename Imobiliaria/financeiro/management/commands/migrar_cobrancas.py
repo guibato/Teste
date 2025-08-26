@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from financeiro.models import Cobranca as NovaCobranca
-from cadastro.models import Cobranca as CobrancaAntiga
+from core.models import Cobranca as CobrancaAntiga
 
 
 class Command(BaseCommand):

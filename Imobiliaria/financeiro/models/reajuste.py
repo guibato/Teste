@@ -7,7 +7,7 @@ from financeiro.models.indice import IndiceInflacao
 
 
 class ReajusteAluguel(models.Model):
-    contrato = models.ForeignKey('sisimob.Contrato', on_delete=models.CASCADE, related_name='reajustes')
+    contrato = models.ForeignKey('core.Contrato', on_delete=models.CASCADE, related_name='reajustes')
     valor_anterior = models.DecimalField(max_digits=10, decimal_places=2)
     valor_reajustado = models.DecimalField(max_digits=10, decimal_places=2)
     fator_aplicado = models.DecimalField(

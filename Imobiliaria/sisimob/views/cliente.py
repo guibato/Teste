@@ -6,9 +6,9 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 import traceback
 
-from cadastro.models import Cliente
-from sisimob.forms import ClienteForm, ClienteFiltroForm, ClienteBuscaForm
-from sisimob.utils.integracao_asaas import cadastrar_cliente_no_asaas
+from core.models import Cliente
+from core.forms import ClienteForm, ClienteFiltroForm, ClienteBuscaForm
+from core.utils.integracao_asaas import cadastrar_cliente_no_asaas
 
 
 

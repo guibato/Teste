@@ -14,7 +14,7 @@ from decimal import Decimal
 import csv
 
 from financeiro.models.movimento import MovimentoConta, SaldoProprietario
-from cadastro.models import Cliente, Contrato
+from core.models import Cliente, Contrato
 from financeiro.forms.movimento_forms import (
     MovimentoManualForm, AjusteSaldoForm, FiltroMovimentoForm, 
     ImportacaoExtratoForm, ConciliacaoForm
