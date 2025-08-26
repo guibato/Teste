@@ -1,0 +1,55 @@
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-tasks me-2"></i> Ações em Lote</span>
+            <button class="btn btn-sm btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAcoes">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        </h5>
+    </div>
+    <div class="collapse" id="collapseAcoes">
+        <div class="card-body">
+            <form method="post" action="{% url 'acao_em_lote' %}" id="formAcaoLote">
+                {% csrf_token %}
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <select name="acao" class="form-select" id="selectAcao" required>
+                            <option value="">-- Selecione uma ação --</option>
+                            <option value="marcar_pago">Marcar como Pago</option>
+                            <option value="fazer_repasse">Fazer Repasse</option>
+                            <option value="cancelar">Cancelar Cobranças</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8">
+                        <!-- Opções para Pagamento -->
+                        <div id="opcoesPagamento" class="row g-2" style="display: none;">
+                            <div class="col-md-4">
+                                <label for="{{ pagamento_form.data_pagamento.id_for_label }}" class="form-label">Data de Pagamento</label>
+                                {{ pagamento_form.data_pagamento }}
+                            </div>
+                            <div class="col-md-8">
+                                <label for="{{ pagamento_form.observacao.id_for_label }}" class="form-label">Observação</label>
+                                {{ pagamento_form.observacao }}
+                            </div>
+                        </div>
+
+                        <!-- Opções para Repasse -->
+                        <div id="opcoesRepasse" class="row g-2" style="display: none;">
+                            <div class="col-md-4">
+                                <label for="{{ repasse_form.data_repasse.id_for_label }}" class="form-label">Data de Repasse</label>
+                                {{ repasse_form.data_repasse }}
+                            </div>
+                            <div class="col-md-8">
+                                <label for="{{ repasse_form.observacao.id_for_label }}" class="form-label">Observação</label>
+                                {{ repasse_form.observacao }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success" id="btnAcaoLote" disabled>
+                    <i class="fas fa-play me-2"></i> Executar Ação
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

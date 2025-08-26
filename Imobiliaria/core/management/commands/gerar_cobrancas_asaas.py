@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from sisimob.signals import enviar_cobrancas_asaas
+from core.signals import enviar_cobrancas_asaas
 
 
 class Command(BaseCommand):

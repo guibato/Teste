@@ -28,7 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
-    'imobiliaria',
+    
     'django.contrib.humanize',
     'django_select2',
     'financeiro',
@@ -57,7 +57,7 @@ ROOT_URLCONF = 'Imobiliaria.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR.parent / 'templates'],  # ← MUDANÇA AQUI
+        'DIRS': [BASE_DIR / 'core' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

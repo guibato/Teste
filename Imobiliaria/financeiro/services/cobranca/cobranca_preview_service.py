@@ -106,7 +106,7 @@ class CobrancaPreviewService:
         opcoes = opcoes or {}
         
         try:
-            Contrato = apps.get_model('sisimob', 'Contrato')
+            Contrato = apps.get_model('core', 'Contrato')
             
             if contratos_ids:
                 contratos = Contrato.objects.filter(

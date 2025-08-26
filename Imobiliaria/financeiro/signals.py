@@ -7,7 +7,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from sisimob.signals import contrato_assinado, enviar_cobrancas_asaas
+from core.signals import contrato_assinado, enviar_cobrancas_asaas
 from financeiro.services.cobranca_service import CobrancaService
 from financeiro.services.asaas_service import enviar_cobrancas as enviar_cobrancas_asaas_service
 

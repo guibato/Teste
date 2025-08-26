@@ -17,7 +17,7 @@ class CobrancaService:
     @staticmethod
     def listar_contratos_sem_cobranca(mes, ano):
         """Lista contratos ativos que não possuem cobrança para o período"""
-        Contrato = apps.get_model('sisimob', 'Contrato')
+        Contrato = apps.get_model('core', 'Contrato')
         
         # Buscar contratos ativos
         contratos_ativos = Contrato.objects.filter(

@@ -1,0 +1,136 @@
+{% extends 'imoveis/base.html' %}
+
+{% block content %}
+<h2 class="text-3xl font-bold text-gray-100 mb-8 text-center">Editar Cobrança</h2>
+
+<div class="max-w-4xl mx-auto p-6 bg-gray-800 rounded-lg shadow-lg">
+    <form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+        <div class="col-span-full p-4 bg-red-900 text-red-200 rounded-lg">
+            {% for error in form.non_field_errors %}
+            {{ error }}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Tipo de Despesa -->
+        <div>
+            <label class="block text-sm font-medium text-gray-200 mb-2">Tipo de Despesa</label>
+            <select name="{{ form.tipo.name }}" id="{{ form.tipo.id_for_label }}" class="block w-full p-2 border border-gray-700 bg-gray-900 text-white rounded-md">
+                {% for value, label in form.tipo.field.choices %}
+                <option value="{{ value }}" {% if form.tipo.value == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            {% if form.tipo.errors %}
+            <span class="text-red-400 text-sm">{{ form.tipo.errors|join:", " }}</span>
+            {% endif %}
+        </div>
+
+        <!-- Quem Paga -->
+        <div>
+            <label class="block text-sm font-medium text-gray-200 mb-2">Quem Paga?</label>
+            <select name="{{ form.paga.name }}" id="{{ form.paga.id_for_label }}" class="block w-full p-2 border border-gray-700 bg-gray-900 text-white rounded-md">
+                {% for value, label in form.paga.field.choices %}
+                <option value="{{ value }}" {% if form.paga.value == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            {% if form.paga.errors %}
+            <span class="text-red-500 text-sm">{{ form.paga.errors|join:", " }}</span>
+            {% endif %}
+        </div>
+
+        <!-- Valor Total -->
+        <div>
+            <label class="block text-sm font-medium text-gray-200 mb-2">Valor Total</label>
+            <input type="text" name="valor" value="{{ form.valor_total.value|floatformat:2 }}" class="form-control block w-full p-2 border border-gray-700 bg-gray-900 text-white rounded-md">
+            {% if form.valor_total.errors %}
+            <span class="text-red-400 text-sm">{{ form.valor_total.errors|join:", " }}</span>
+            {% endif %}
+        </div>
+
+        <!-- Número de Parcelas -->
+        <div>
+            <label class="block text-sm font-medium text-gray-200 mb-2">Número de Parcelas</label>
+            <input type="number" name="{{ form.numero_parcelas.name }}" id="{{ form.numero_parcelas.id_for_label }}" class="block w-full p-2 border border-gray-700 bg-gray-900 text-white rounded-md" value="{{ form.numero_parcelas.value|default_if_none:'' }}">
+            {% if form.numero_parcelas.errors %}
+            <span class="text-red-400 text-sm">{{ form.numero_parcelas.errors|join:", " }}</span>
+            {% endif %}
+        </div>
+
+        <!-- Data de Início -->
+        <div>
+            <label class="block text-sm font-medium text-gray-200 mb-2">Data de Início</label>
+            <input type="date" name="data" value="{{ form.data_inicio.value|date:'Y-m-d' }}" class="block w-full p-2 border border-gray-700 bg-gray-900 text-white rounded-md form-control">
+            {% if form.data_inicio.errors %}
+            <span class="text-red-400 text-sm">{{ form.data_inicio.errors|join:", " }}</span>
+            {% endif %}
+        </div>
+
+        <!-- Cobrança de Referência -->
+        <div>
+            <label class="block text-sm font-medium text-gray-200 mb-2">Cobrança de Referência</label>
+            <input type="text" name="{{ form.cobranca_referencia.name }}" id="{{ form.cobranca_referencia.id_for_label }}" class="block w-full p-2 border border-gray-700 bg-gray-900 text-white rounded-md" value="{{ form.cobranca_referencia.value|default_if_none:'' }}">
+            <p class="text-gray-400 text-xs mt-1">Ex: 01/2023 para IPTU ou nome do condomínio</p>
+            {% if form.cobranca_referencia.errors %}
+            <span class="text-red-400 text-sm">{{ form.cobranca_referencia.errors|join:", " }}</span>
+            {% endif %}
+        </div>
+
+        <!-- Percentual Repassado -->
+        <div>
+            <label class="block text-sm font-medium text-gray-200 mb-2">Percentual Repassado</label>
+            <input type="text" name="{{ form.percentual_repassado.name }}" id="{{ form.percentual_repassado.id_for_label }}" class="block w-full p-2 border border-gray-700 bg-gray-900 text-white rounded-md" value="{{ form.percentual_repassado.value|default_if_none:'' }}">
+            <p class="text-gray-400 text-xs mt-1">Percentual da despesa que será repassado ao inquilino.</p>
+            {% if form.percentual_repassado.errors %}
+            <span class="text-red-400 text-sm">{{ form.percentual_repassado.errors|join:", " }}</span>
+            {% endif %}
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="col-span-full flex justify-end gap-4 mt-6">
+            <a href="{% url 'dashboard' id=despesa.contrato.id %}" class="px-6 py-2 bg-gray-700 text-gray-200 rounded-md hover:bg-gray-600 transition-colors">
+                Cancelar
+            </a>
+            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                Salvar Alterações
+            </button>
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    console.log("✅ O JavaScript foi carregado corretamente!");
+
+    const valorTotalInput = document.querySelector('input[name="valor_total"]');
+    if (valorTotalInput) {
+        console.log("🟢 Elemento de valor total encontrado:", valorTotalInput);
+
+        new Cleave(valorTotalInput, {
+            numeral: true,
+            numeralThousandsGroupStyle: 'thousand',
+            prefix: 'R$ ',
+            rawValueTrimPrefix: true
+        });
+
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(e) {
+            // Garantir que o valor seja enviado corretamente sem a formatação
+            let valorFormatado = valorTotalInput.rawValue;  // Valor não formatado
+            console.log("📤 Tentando enviar - Valor digitado:", valorTotalInput.value);
+            console.log("🔄 Valor convertido para envio:", valorFormatado);
+
+            // Definindo o valor no campo oculto para envio ao backend
+            valorTotalInput.value = valorFormatado;  // Envia o valor sem o prefixo "R$"
+        });
+    } else {
+        console.error("❌ O campo de valor total NÃO foi encontrado!");
+    }
+});
+
+</script>
+
+{% endblock %}

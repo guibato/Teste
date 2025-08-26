@@ -5,4 +5,4 @@ class SisimobConfig(AppConfig):
 
     def ready(self):
         # Importa os sinais do core
-        import sisimob.signals  # noqa: F401
+        import Imobiliaria.core.signals  # noqa: F401

@@ -12,7 +12,7 @@ class AsaasIntegracaoService:
         Cria cobrança no Asaas
         """
         try:
-            from core.utils.cobrancas_asaas import (
+            from financeiro.utils.cobrancas_asaas import (
                 gerar_cobranca,
                 buscar_pix_qrcode,
             )

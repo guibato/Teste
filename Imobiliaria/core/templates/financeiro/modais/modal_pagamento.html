@@ -1,0 +1,27 @@
+<div class="modal fade" id="modalPagamento" tabindex="-1" aria-labelledby="modalPagamentoLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="formPagamento" method="post" action="#">
+      {% csrf_token %}
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Registrar Pagamento #<span id="pagamento-id"></span></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="{{ pagamento_form.data_pagamento.id_for_label }}" class="form-label">Data de Pagamento</label>
+            {{ pagamento_form.data_pagamento }}
+          </div>
+          <div class="mb-3">
+            <label for="{{ pagamento_form.observacao.id_for_label }}" class="form-label">Observação</label>
+            {{ pagamento_form.observacao }}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Salvar</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

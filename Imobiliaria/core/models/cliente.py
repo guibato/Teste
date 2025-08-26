@@ -175,7 +175,7 @@ class Cliente(TimestampedModel):
         super().save(*args, **kwargs)
         
         # Integração com Asaas (importar aqui para evitar imports circulares)
-        from core.utils.integracao_asaas import cadastrar_cliente_no_asaas, atualizar_cliente_no_asaas
+        from financeiro.utils.integracao_asaas import cadastrar_cliente_no_asaas, atualizar_cliente_no_asaas
         
         if self.asaas_id:
             atualizado = atualizar_cliente_no_asaas(self)

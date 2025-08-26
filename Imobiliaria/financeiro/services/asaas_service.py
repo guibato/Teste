@@ -1,7 +1,7 @@
 """Serviços de integração com o Asaas"""
 
 from financeiro.models.cobranca import Cobranca
-from core.utils.cobrancas_asaas import gerar_cobranca
+from financeiro.utils.cobrancas_asaas import gerar_cobranca
 
 
 def enviar_cobrancas(mes: int, ano: int, stdout=None, stderr=None) -> None:

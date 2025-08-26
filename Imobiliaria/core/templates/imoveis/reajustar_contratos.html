@@ -1,0 +1,99 @@
+{% extends 'imoveis/base.html' %}
+{% block content %}
+<h2 class="text-3xl font-bold text-gray-100 mb-8 text-center">Reajustar Contratos de Aluguel</h2>
+<div class="max-w-full mx-auto p-6 bg-gray-800 rounded-lg shadow-lg">
+    <form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% csrf_token %}
+        <!-- Mensagens de erro globais -->
+        {% if form.non_field_errors %}
+        <div class="col-span-full p-4 bg-red-900 text-red-200 rounded-lg">
+            {% for error in form.non_field_errors %}
+            {{ error }}
+            {% endfor %}
+        </div>
+        {% endif %}
+        <!-- Data de Início -->
+        <div>
+            <label class="block text-sm font-medium text-gray-200 mb-2">Data de Início do Reajuste</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
+                    </svg>
+                </span>
+                {{ form.data_inicio }}
+            </div>
+            {% if form.data_inicio.errors %}
+            <span class="text-red-400 text-sm">{{ form.data_inicio.errors|join:", " }}</span>
+            {% endif %}
+        </div>
+        <!-- Valor Manual -->
+        <div>
+            <label class="block text-sm font-medium text-gray-200 mb-2">Valor Manual de Reajuste (%)</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M8.445 14.832A1 1 0 0010 14v-2.798c0-.407-.28-.783-.674-1.008C8.928 10.033 8 9.418 8 8.649V7.32c0-.407.28-.783.674-1.008C9.072 6.145 10 5.53 10 4.761V3a1 1 0 00-1.555-.832l-2 2.914A1 1 0 006 7v1.32c0 .407-.28.783-.674 1.008C4.928 9.967 4 10.582 4 11.351v1.299c0 .407.28.783.674 1.008C5.072 13.855 6 14.47 6 15.239V17a1 1 0 001.555.832l2-2.914A1 1 0 0010 14v-1.202zM14 11a1 1 0 100-2 1 1 0 000 2z" />
+                    </svg>
+                </span>
+                {{ form.valor_manual }}
+            </div>
+            <p class="text-gray-400 text-xs mt-1">Deixe em branco para usar os índices.</p>
+            {% if form.valor_manual.errors %}
+            <span class="text-red-400 text-sm">{{ form.valor_manual.errors|join:", " }}</span>
+            {% endif %}
+        </div>
+        <!-- Botões de Ação -->
+        <div class="col-span-full flex justify-end gap-4 mt-6">
+            <a href="{% url 'home' %}" class="px-6 py-2 bg-gray-700 text-gray-200 rounded-md hover:bg-gray-600 transition-colors">
+                Cancelar
+            </a>
+            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                Verificar Contratos
+            </button>
+        </div>
+    </form>
+    <!-- Exibir contratos com 12 índices disponíveis -->
+    {% if contratos_com_indices %}
+    <div class="mt-8 p-6 bg-gray-700 rounded-lg shadow-lg">
+        <h3 class="text-xl font-bold text-gray-100 mb-4">Contratos com 12 Índices Disponíveis</h3>
+        <table class="w-full text-left text-sm text-gray-400">
+            <thead class="bg-gray-900 text-gray-100">
+                <tr>
+                    <th scope="col" class="py-3 px-6">Contrato ID</th>
+                    <th scope="col" class="py-3 px-6">Imóvel</th>
+                    <th scope="col" class="py-3 px-6">Valor Atual</th>
+                    <th scope="col" class="py-3 px-6">Fator Acumulado</th>
+                    <th scope="col" class="py-3 px-6">Valor Projetado</th>
+                    <th scope="col" class="py-3 px-6">Índices (12 últimos)</th>
+                    <th scope="col" class="py-3 px-6">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in contratos_com_indices %}
+                <tr class="border-b bg-gray-800 border-gray-700">
+                    <td class="py-4 px-6">{{ item.contrato.id }}</td>
+                    <td class="py-4 px-6">{{ item.contrato.imovel }}</td>
+                    <td class="py-4 px-6">{{ item.contrato.valor_base_aluguel|floatformat:2 }}</td>
+                    <td class="py-4 px-6">{{ item.fator_acumulado|floatformat:4 }}</td>
+                    <td class="py-4 px-6">{{ item.valor_projetado|floatformat:2 }}</td>
+                    <td class="py-4 px-6">
+                        <ul>
+                            {% for indice in item.indices %}
+                            <li>{{ indice.data_referencia|date:"Y-m" }}: {{ indice.valor|floatformat:2 }}%</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td class="py-4 px-6">
+                        <a href="{% url 'reajustar_contrato_individual' contrato_id=item.contrato.id %}?data_inicio={{ data_inicio|date:'Y-m-d' }}&valor_manual={{ valor_manual }}" class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+                            Reajustar
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

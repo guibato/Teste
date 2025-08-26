@@ -1,0 +1,40 @@
+<div class="modal fade" id="modalDetalhes" tabindex="-1" aria-labelledby="modalDetalhesLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Detalhes da Cobrança #<span id="detalhe-id"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Referência:</strong> <span id="detalhe-referencia"></span></p>
+            <p><strong>Vencimento:</strong> <span id="detalhe-vencimento"></span></p>
+            <p><strong>Status:</strong> <span id="detalhe-status"></span></p>
+            <p><strong>Valor:</strong> R$ <span id="detalhe-valor"></span></p>
+            <p><strong>Taxa Admin:</strong> R$ <span id="detalhe-taxa"></span></p>
+            <p><strong>Líquido:</strong> R$ <span id="detalhe-liquido"></span></p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Imóvel:</strong> <span id="detalhe-imovel"></span></p>
+            <p><strong>Inquilino:</strong> <span id="detalhe-inquilino"></span></p>
+            <p><strong>Proprietário(s):</strong> <span id="detalhe-proprietario"></span></p>
+          </div>
+        </div>
+        <hr>
+        <div id="detalhes-pagamento" style="display: none;">
+          <h6>Pagamento</h6>
+          <p><strong>Data de Pagamento:</strong> <span id="detalhe-data-pagamento"></span></p>
+          <p><strong>Status Repasse:</strong> <span id="detalhe-status-repasse"></span></p>
+        </div>
+        <div id="detalhes-repasse" style="display: none;">
+          <h6>Repasse</h6>
+          <p><strong>Data de Repasse:</strong> <span id="detalhe-data-repasse"></span></p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>

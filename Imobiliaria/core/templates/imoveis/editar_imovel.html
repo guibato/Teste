@@ -1,0 +1,104 @@
+{% extends 'imoveis/base.html' %}
+{% block content %}
+<h2 class="text-3xl font-bold text-gray-100 mb-6">{{ titulo|default:"Editar Imóvel" }}</h2>
+<div class="container mx-auto p-4">
+    
+
+    <!-- Formulário de edição -->
+    <form method="post" class="max-w-6xl mx-auto">
+        {% csrf_token %}
+        
+        <!-- Renderiza os campos do formulário -->
+        <div class="flex flex-wrap gap-4">
+            <div class="mb-6">
+                <label for="id_cep" class="block text-sm font-medium text-gray-300 mb-2">CEP</label>
+                {{ form.cep }}
+            </div>
+            <div class="mb-6">
+                <label for="id_endereco" class="block text-sm font-medium text-gray-300 mb-2">Endereço</label>
+                {{ form.endereco }}
+            </div>
+            <div class="mb-6">
+                <label for="id_numero" class="block text-sm font-medium text-gray-300 mb-2">Número</label>
+                {{ form.numero }}
+            </div>
+            <div class="mb-6">
+                <label for="id_complemento" class="block text-sm font-medium text-gray-300 mb-2">Complemento</label>
+                {{ form.complemento }}
+            </div>
+            <div class="mb-6">
+                <label for="id_bairro" class="block text-sm font-medium text-gray-300 mb-2">Bairro</label>
+                {{ form.bairro }}
+            </div>
+            <div class="mb-6">
+                <label for="id_cidade" class="block text-sm font-medium text-gray-300 mb-2">Cidade</label>
+                {{ form.cidade }}
+            </div>
+            <div class="mb-6">
+                <label for="id_estado" class="block text-sm font-medium text-gray-300 mb-2">Estado</label>
+                {{ form.estado }}
+            </div>
+            <div class="mb-6">
+                <label for="id_iptu" class="block text-sm font-medium text-gray-300 mb-2">IPTU</label>
+                {{ form.iptu }}
+            </div>
+            <div class="mb-6">
+                <label for="id_comgas" class="block text-sm font-medium text-gray-300 mb-2">Comgás</label>
+                {{ form.comgas }}
+            </div>
+            <div class="mb-6">
+                <label for="id_sabesp" class="block text-sm font-medium text-gray-300 mb-2">Sabesp</label>
+                {{ form.sabesp }}
+            </div>
+            <div class="mb-6">
+                <label for="id_enel" class="block text-sm font-medium text-gray-300 mb-2">Enel</label>
+                {{ form.enel }}
+            </div>
+        </div>
+
+        <!-- Botão de salvar -->
+        <button type="submit" class="w-full bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors">
+            Salvar Alterações
+        </button>
+    </form>
+</div>
+
+<!-- Adicionando classes Tailwind aos inputs -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputs = document.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.classList.add('bg-white', 'text-gray-900', 'p-2', 'rounded-lg', 'border', 'border-gray-300', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500');
+        });
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Seleciona o campo IPTU pelo atributo class
+        const iptuInput = document.querySelector('.iptu-mask');
+        if (iptuInput) {
+            // Adiciona um evento de input para formatar o valor
+            iptuInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, ''); // Remove caracteres não numéricos
+                if (value.length > 12) value = value.slice(0, 12); // Limita a 12 dígitos
+                // Aplica a máscara xxx.xxx.xxxx-x
+                if (value.length > 8) {
+                    value = value.slice(0, 3) + '.' + value.slice(3, 6) + '.' + value.slice(6, 10) + '-' + value.slice(10, 12);
+                } else if (value.length > 6) {
+                    value = value.slice(0, 3) + '.' + value.slice(3, 6) + '.' + value.slice(6);
+                } else if (value.length > 3) {
+                    value = value.slice(0, 3) + '.' + value.slice(3);
+                }
+                e.target.value = value;
+            });
+    
+            // Remove a máscara antes de enviar o formulário
+            const form = document.getElementById('imovel-form');
+            form.addEventListener('submit', function() {
+                let value = iptuInput.value.replace(/\D/g, ''); // Remove todos os caracteres não numéricos
+                iptuInput.value = value; // Atualiza o valor do campo com apenas números
+            });
+        }
+    });
+    </script>
+{% endblock %}

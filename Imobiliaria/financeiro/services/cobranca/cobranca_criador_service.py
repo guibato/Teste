@@ -13,7 +13,7 @@ class CobrancaCriadorService:
         Cria uma cobrança individual
         """
         try:
-            Contrato = apps.get_model('sisimob', 'Contrato')
+            Contrato = apps.get_model('core', 'Contrato')
             from ..models import Cobranca
             
             contrato = get_object_or_404(Contrato, id=dados['contrato_id'])
