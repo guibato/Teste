@@ -9,7 +9,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0006_remove_cobranca_contrato_remove_cobranca_inquilino_and_more'),
+        ('core', '0001_initial'),
         ('financeiro', '0008_alter_cobranca_options'),
     ]
 

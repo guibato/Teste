@@ -2034,3 +2034,8 @@ INFO 2025-08-24 03:03:22,742 asaas_service PIX copia e cola encontrado: 00020101
 INFO 2025-08-24 03:03:22,742 asaas_service Dados completos coletados para pay_fovl269lztpgunuk - Erros: 0
 INFO 2025-08-24 03:03:22,747 asaas_utils Integração Asaas atualizada com sucesso para cobrança 152
 WARNING 2025-08-24 03:03:22,750 asaas_utils Cobrança 122 não tem integração Asaas
+WARNING 2025-08-27 00:31:14,868 signals Modelo Contrato não encontrado
+WARNING 2025-08-27 00:31:32,112 signals Modelo Contrato não encontrado
+WARNING 2025-08-27 00:31:52,906 signals Modelo Contrato não encontrado
+WARNING 2025-08-27 00:33:15,991 signals Modelo Contrato não encontrado
+WARNING 2025-08-27 00:33:23,770 signals Modelo Contrato não encontrado

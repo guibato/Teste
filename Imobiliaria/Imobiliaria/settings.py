@@ -75,9 +75,7 @@ WSGI_APPLICATION = 'Imobiliaria.wsgi.application'
 # Configurações de arquivos estáticos
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [
-    BASE_DIR / 'core' / 'static',
-]
+STATICFILES_DIRS = []
 
 USE_TZ = True
 # ============================================================================
