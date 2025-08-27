@@ -32,11 +32,7 @@ except ImportError:
         PoliticaRepasseContrato = None
         AgendamentoRepasse = None
 
-try:
-    from cadastro.models import Contrato
-except ImportError:
-    logger.warning("Modelo Contrato não encontrado")
-    Contrato = None
+from core.models import Contrato
 
 
 # === Eventos disparados pelo core ===
