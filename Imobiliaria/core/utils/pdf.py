@@ -9,6 +9,7 @@ from django.http import FileResponse
 from datetime import date
 from decimal import Decimal
 from django.utils.text import Truncator
+from django.conf import settings
 import os
 
 def gerar_pdf_extrato_repasses(proprietario, data_inicial, data_final, cobrancas):
@@ -19,7 +20,7 @@ def gerar_pdf_extrato_repasses(proprietario, data_inicial, data_final, cobrancas
     topo_atual = altura - 3 * cm
 
     # Logo
-    caminho_logo = os.path.join("staticfiles", "images", "logo.png")
+    caminho_logo = os.path.join(settings.STATIC_ROOT, "images", "logo.png")
     if os.path.exists(caminho_logo):
         logo = ImageReader(caminho_logo)
         largura_logo = 6 * cm

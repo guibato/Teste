@@ -1,9 +1,7 @@
-from core.models import (
-    TimestampedModel,
-    Cliente,
-    Imovel,
-    Contrato,
-)
+from .base import TimestampedModel
+from .cliente import Cliente
+from .imovel import Imovel
+from .contrato import Contrato
 
 __all__ = [
     'TimestampedModel',

@@ -85,13 +85,18 @@ if Cobranca and Repasse:
         
         try:
             logger.info(f"🚀 Processando cobrança {instance.id} para criação automática de repasse")
-            
+
             # Criar repasse usando função segura
             repasse = _criar_repasse_seguro(instance)
-            
+
             if repasse:
                 logger.info(f"✅ Repasse {repasse.id} criado automaticamente para cobrança {instance.id}")
                 print(f"✅ Repasse {repasse.id} criado automaticamente para cobrança {instance.id}")
+
+        except Exception as e:
+            logger.error(
+                f"Erro ao criar repasse automaticamente para cobrança {instance.id}: {e}"
+            )
 
 
     @receiver(pre_save, sender=Cobranca)
