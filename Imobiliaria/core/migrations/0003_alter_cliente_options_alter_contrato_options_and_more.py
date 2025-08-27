@@ -3,6 +3,8 @@
 import django.db.models.deletion
 from decimal import Decimal
 from django.db import migrations, models
+from django.utils import timezone
+
 
 
 class Migration(migrations.Migration):
@@ -214,13 +216,14 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='contrato',
             name='data_fim',
-            field=models.DateField(default=0, verbose_name='Fim'),
+            field=models.DateField(default=timezone.now, verbose_name='Fim'),
+            
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='contrato',
             name='data_inicio',
-            field=models.DateField(default=0, verbose_name='Início'),
+            field=models.DateField(default=timezone.now, verbose_name='Início'),
             preserve_default=False,
         ),
         migrations.AddField(

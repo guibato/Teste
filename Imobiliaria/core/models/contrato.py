@@ -95,12 +95,12 @@ class Contrato(TimestampedModel):
     )
 
     # Datas e períodos
-    data_inicio = models.DateField(verbose_name="Início")
-    data_fim = models.DateField(verbose_name="Fim")
+    data_inicio = models.DateField(default=timezone.now, verbose_name="Início")
+    data_fim = models.DateField(default=timezone.now, verbose_name="Fim")
     carencia_dias = models.IntegerField(
-        verbose_name="Carência (dias)", 
-        null=True, 
-        blank=True, 
+        verbose_name="Carência (dias)",
+        null=True,
+        blank=True,
         default=0
     )
 
