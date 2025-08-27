@@ -7,10 +7,10 @@ from dateutil.relativedelta import relativedelta
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-
-from sisimob.models import Contrato
 from financeiro.models.reajuste import ReajusteAluguel
 from financeiro.models.indice import IndiceInflacao
+from django.apps import apps
+Contrato = apps.get_model("sisimob", "Contrato")
 
 
 class ReajusteService:

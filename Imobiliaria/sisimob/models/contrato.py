@@ -262,7 +262,7 @@ class Contrato(TimestampedModel):
         """
         Calcula o valor do aluguel reajustado com base no índice de inflação (ex.: IPCA).
         """
-        from .base import IndiceInflacao
+        from financeiro.models.indice import IndiceInflacao
         
         indices = IndiceInflacao.objects.filter(
             tipo=self.fator_reajuste,
@@ -278,7 +278,7 @@ class Contrato(TimestampedModel):
         """
         Calcula o Aluguel Projetado com base na inflação acumulada desde o início do contrato até o mês e ano atual.
         """
-        from .base import IndiceInflacao
+        from financeiro.models.indice import IndiceInflacao
         
         hoje = timezone.now().date()
         max_data_final = self.data_inicio + relativedelta(months=+12)

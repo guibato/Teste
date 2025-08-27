@@ -1,18 +1,19 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Q, Sum, F
+from django.db.models import Q
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.utils import timezone
 from datetime import date, datetime
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
-
 from sisimob.models import Contrato, Cliente, Imovel
 from sisimob.forms import ContratoForm, ContratoFiltroForm, ReajusteContratosForm
-from financeiro.models.cobranca import Cobranca
-from financeiro.models.despesa import Despesa
+from financeiro.services.contrato_financeiro import (
+    ContratoFinanceiroService,
+)
+from financeiro.models.indice import IndiceInflacao
 
 
 
@@ -120,53 +121,17 @@ def detalhes_contrato(request, contrato_id):
     View para exibir detalhes completos de um contrato
     """
     contrato = get_object_or_404(Contrato, id=contrato_id)
-    
-    # Buscar cobranças usando o related_name correto
-    try:
-        cobrancas = contrato.cobrancas_financeiro.all().order_by('-data_vencimento')
-    except AttributeError:
-        # Fallback se o related_name mudar
-        try:
-            cobrancas = contrato.cobrancas.all().order_by('-data_vencimento')
-        except AttributeError:
-            cobrancas = []
-    
-    # Buscar repasses se existir
-    try:
-        repasses = contrato.repasses.all().order_by('-data_repasse')
-    except AttributeError:
-        try:
-            repasses = contrato.repasse_set.all().order_by('-data_repasse')
-        except AttributeError:
-            repasses = []
-    
-    # Calcular estatísticas das cobranças
-    cobrancas_pagas = cobrancas.filter(status='paga') if cobrancas else []
-    cobrancas_pendentes = cobrancas.filter(status='pendente') if cobrancas else []
-    cobrancas_atrasadas = cobrancas.filter(status='atrasada') if cobrancas else []
-    
-    # Calcular totais financeiros
-    total_pago = cobrancas_pagas.aggregate(total=Sum('valor_total'))['total'] or 0
-    total_pendente = cobrancas_pendentes.aggregate(total=Sum('valor_total'))['total'] or 0
-    total_atrasado = cobrancas_atrasadas.aggregate(total=Sum('valor_total'))['total'] or 0
-    
-    # Buscar informações do inquilino (ManyToMany)
+
+    financeiro = ContratoFinanceiroService.obter_detalhes_contrato(contrato)
     inquilinos = contrato.inquilino.all()
     inquilino_principal = inquilinos.first() if inquilinos.exists() else None
-    
-    # Buscar informações do proprietário (ManyToMany)
+
     proprietarios = contrato.proprietario.all()
     proprietario_principal = proprietarios.first() if proprietarios.exists() else None
-    
-    # Informações do imóvel
+
     imovel = contrato.imovel
-    
-    # Últimas cobranças para exibição rápida
-    ultimas_cobrancas = cobrancas[:5] if cobrancas else []
-    
-    # Status do contrato
     contrato_ativo = contrato.esta_ativo if hasattr(contrato, 'esta_ativo') else contrato.ativo
-    
+
     context = {
         'contrato': contrato,
         'imovel': imovel,
@@ -174,33 +139,15 @@ def detalhes_contrato(request, contrato_id):
         'inquilino_principal': inquilino_principal,
         'proprietarios': proprietarios,
         'proprietario_principal': proprietario_principal,
-        'cobrancas': cobrancas,
-        'ultimas_cobrancas': ultimas_cobrancas,
-        'repasses': repasses,
-        
-        # Estatísticas
-        'total_cobrancas': cobrancas.count() if cobrancas else 0,
-        'cobrancas_pagas': cobrancas_pagas,
-        'cobrancas_pendentes': cobrancas_pendentes,
-        'cobrancas_atrasadas': cobrancas_atrasadas,
-        
-        # Totais financeiros
-        'total_pago': total_pago,
-        'total_pendente': total_pendente,
-        'total_atrasado': total_atrasado,
-        'total_geral': total_pago + total_pendente + total_atrasado,
-        
-        # Status
         'contrato_ativo': contrato_ativo,
         'status_vencimento': getattr(contrato, 'status_vencimento', 'normal'),
         'dias_restantes': getattr(contrato, 'dias_restantes', 0),
-        
-        # Valores
         'valor_aluguel_atual': getattr(contrato, 'valor_aluguel', contrato.valor_base),
         'valor_taxa_administracao': contrato.valor_taxa_administracao(),
         'valor_repasse': getattr(contrato, 'valor_repasse', 0),
     }
-    
+    context.update(financeiro)
+
     return render(request, 'contratos/detalhes_contrato.html', context)
 
 
@@ -226,6 +173,8 @@ def debug_contrato_relationships(request, contrato_id):
     
     for rel_name in cobranca_tests:
         try:
+    
+    
             if hasattr(contrato, rel_name):
                 manager = getattr(contrato, rel_name)
                 relationships[rel_name] = {
@@ -612,70 +561,19 @@ class ContratoUpdateView(UpdateView):
 
 def dashboard_contrato(request, id):
     contrato = get_object_or_404(Contrato, id=id)
-    
-    # Filtros
+
     ano_selecionado = int(request.GET.get('ano', timezone.now().year))
     status_selecionado = request.GET.get('status', '')
-    
-    # Cobranças base
-    cobrancas = Cobranca.objects.filter(contrato=contrato)
-    
-    if ano_selecionado:
-        cobrancas = cobrancas.filter(ano_referencia=ano_selecionado)
-    
-    if status_selecionado:
-        cobrancas = cobrancas.filter(status=status_selecionado)
-    
-    # Despesas do contrato específico
-    despesas = contrato.despesas_financeiro.all()
-    
-    # Cálculos financeiros CORRETOS
-    cobrancas_pagas = cobrancas.filter(status='paga')
-    despesas = contrato.despesas_financeiro.all()
-    
-    # Usar as properties que criamos
-    total_receitas = sum(c.valor_aluguel for c in cobrancas_pagas)
-    total_taxa_admin = sum(c.valor_administracao for c in cobrancas_pagas)
-    total_repasse = sum(c.valor_liquido for c in cobrancas_pagas)
-    
-    # Despesas apropriadas (só das cobranças pagas)
-    total_despesas_apropriadas = 0
-    for cobranca in cobrancas_pagas:
-        try:
-            despesas_cobranca = cobranca.get_despesas_cobranca()
-            total_despesas_apropriadas += sum(d.calcular_valor_parcela() for d in despesas_cobranca)
-        except:
-            pass
-    
-    # Total das despesas (para comparação)
-    total_despesas = despesas.aggregate(total=Sum('valor_total')).get('total', 0)
-    
-    # Anos disponíveis
-    anos_disponiveis = cobrancas.dates('data_vencimento', 'year', order='DESC')
-    
-    context = {
+
+    context = ContratoFinanceiroService.obter_dashboard_contrato(
+        contrato,
+        ano_selecionado=ano_selecionado,
+        status_selecionado=status_selecionado,
+    )
+    context.update({
         'contrato': contrato,
-        'cobrancas': cobrancas.order_by('data_vencimento'),
-        'despesas': despesas.order_by('-data_inicio'),
-        'cobrancas_pagas': cobrancas_pagas,
-        
-        # Valores financeiros corretos
-        'total_receitas': total_receitas,
-        'total_despesas': total_despesas_apropriadas,  # ✅ USAR APROPRIADAS
-        'total_despesas_apropriadas': total_despesas_apropriadas,
-        'total_taxa_admin': total_taxa_admin,
-        'total_repasse': total_repasse,
-        
-        
-        # Cálculos derivados
-        'saldo': total_receitas - total_despesas_apropriadas,
-        'saldo_positivo': (total_receitas - total_despesas_apropriadas) >= 0,
-        'lucro_administradora': total_taxa_admin,
-        
-        # Filtros
-        'anos_disponiveis': anos_disponiveis,
         'ano_selecionado': ano_selecionado,
         'status_selecionado': status_selecionado,
-    }
-    
+    })
+
     return render(request, 'contratos/dashboard.html', context)

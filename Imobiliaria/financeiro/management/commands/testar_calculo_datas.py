@@ -128,7 +128,7 @@ class Command(BaseCommand):
 
 from django.core.management.base import BaseCommand
 from financeiro.models.repasse import PoliticaRepasseContrato
-from sisimob.models import Contrato
+Contrato = apps.get_model("sisimob", "Contrato")
 from datetime import date, timedelta
 import calendar
 

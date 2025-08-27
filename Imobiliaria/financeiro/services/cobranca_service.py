@@ -8,7 +8,7 @@ from django.db import transaction
 from django.apps import apps
 
 from financeiro.models import Cobranca
-from sisimob.models import Contrato
+Contrato = apps.get_model("sisimob", "Contrato")
 
 
 class CobrancaService:

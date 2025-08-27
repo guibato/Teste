@@ -1,10 +1,13 @@
+
 # financeiro/forms/movimento_forms.py
 from django import forms
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 from datetime import date
+from django.apps import apps
 from financeiro.models.movimento import MovimentoConta
-from sisimob.models import Contrato
+from django.apps import apps
+Contrato = apps.get_model("sisimob", "Contrato")
 
 
 class MovimentoManualForm(forms.Form):

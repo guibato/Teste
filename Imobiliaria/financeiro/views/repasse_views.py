@@ -24,7 +24,8 @@ try:
 except ImportError:
     Cobranca = None
 
-from sisimob.models import Contrato, Cliente
+from django.apps import apps
+Contrato = apps.get_model("sisimob", "Contrato")
 
 # Imports dos services e forms
 try:
@@ -2857,7 +2858,8 @@ try:
 except ImportError:
     Cobranca = None
 
-from sisimob.models import Contrato, Cliente
+from django.apps import apps
+Contrato = apps.get_model("sisimob", "Contrato")
 
 # Imports dos services e forms (assumindo que existem)
 try:

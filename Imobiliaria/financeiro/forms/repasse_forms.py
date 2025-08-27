@@ -1,10 +1,12 @@
-# financeiro/forms/repasse_forms.py
 from django import forms
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 from datetime import date
+from django.apps import apps
 from ..models.repasse import Repasse, PoliticaRepasseContrato, PoliticaRepasseGlobal
-from sisimob.models import Contrato, Cliente
+
+Contrato = apps.get_model("sisimob", "Contrato")
+Cliente = apps.get_model("sisimob", "Cliente")
 
 try:
     from ..models.cobranca import Cobranca

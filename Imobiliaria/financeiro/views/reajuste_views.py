@@ -12,11 +12,10 @@ from django.db.models import Q
 from django.views.decorators.http import require_http_methods
 from django.core.exceptions import ValidationError
 import json
-
-from sisimob.models import Contrato
 from financeiro.models.reajuste import ReajusteAluguel
 from financeiro.services.reajuste_service import ReajusteService
-
+from django.apps import apps
+Contrato = apps.get_model("sisimob", "Contrato")
 
 
 def lista_reajustes(request):

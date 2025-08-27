@@ -1811,3 +1811,60 @@ INFO 2025-08-23 03:05:09,892 asaas_mixin Cliente Asaas: cus_000118148479
 INFO 2025-08-23 03:05:09,893 asaas_service Criando cobrança - Valor: 1300.0
 INFO 2025-08-23 03:05:10,259 asaas_mixin Integração concluída - Asaas ID: pay_fovl269lztpgunuk
 WARNING 2025-08-23 03:05:10,966 asaas_mixin Integração 99 não pode ser processada: ['Data de vencimento não pode ser anterior a hoje']
+INFO 2025-08-27 11:54:13,029 indice_service Iniciando atualização do IPCA
+INFO 2025-08-27 11:54:15,643 indice_service Recalculando acumulados para IPCA...
+INFO 2025-08-27 11:54:17,522 indice_service Acumulados recalculados: 0
+INFO 2025-08-27 11:54:17,523 indice_service IPCA atualizado: 1 criados, 0 atualizados
+INFO 2025-08-27 11:54:17,523 indice_service Iniciando atualização do IGPM
+INFO 2025-08-27 11:54:18,421 indice_service IGPM atualizado: 0 criados, 0 atualizados
+INFO 2025-08-27 11:56:49,211 lembrete_views Enviando WhatsApp para 5511960614367 via Z-API
+INFO 2025-08-27 11:56:50,299 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB06E42186E920F92F096
+INFO 2025-08-27 11:56:50,301 lembrete_views REAL - Lembrete para Artur Carlos de Figueiredo Pacheco Filho - ID: 3EB06E42186E920F92F096
+INFO 2025-08-27 11:56:50,346 lembrete_views Enviando WhatsApp para 5511983492444 via Z-API
+INFO 2025-08-27 11:56:51,040 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB08CADC8C6974E2B78D5
+INFO 2025-08-27 11:56:51,042 lembrete_views REAL - Lembrete para Thaina Capellani Agostinho - ID: 3EB08CADC8C6974E2B78D5
+INFO 2025-08-27 11:56:51,077 lembrete_views Enviando WhatsApp para 5511959326279 via Z-API
+INFO 2025-08-27 11:56:51,804 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0636F55E6CBCD0E5DE9
+INFO 2025-08-27 11:56:51,806 lembrete_views REAL - Lembrete para Auzenir Pereira dos Santos - ID: 3EB0636F55E6CBCD0E5DE9
+INFO 2025-08-27 11:56:51,865 lembrete_views Enviando WhatsApp para 5511951998139 via Z-API
+INFO 2025-08-27 11:56:52,558 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB066036A016AEB07CC62
+INFO 2025-08-27 11:56:52,560 lembrete_views REAL - Lembrete para Maria Socorro Medeiros - ID: 3EB066036A016AEB07CC62
+INFO 2025-08-27 11:56:52,599 lembrete_views Enviando WhatsApp para 5511996114893 via Z-API
+INFO 2025-08-27 11:56:53,113 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB064290DF8C3943025F9
+INFO 2025-08-27 11:56:53,116 lembrete_views REAL - Lembrete para Luigi Pinto - ID: 3EB064290DF8C3943025F9
+INFO 2025-08-27 11:56:53,156 lembrete_views Enviando WhatsApp para 5511996061545 via Z-API
+INFO 2025-08-27 11:56:53,697 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0435652269E5756AB3F
+INFO 2025-08-27 11:56:53,699 lembrete_views REAL - Lembrete para Wilson Monteiro do Nascimento - ID: 3EB0435652269E5756AB3F
+INFO 2025-08-27 11:56:53,730 lembrete_views Enviando WhatsApp para 5511986199049 via Z-API
+INFO 2025-08-27 11:56:54,244 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0F9F280DECF09B6E1FF
+INFO 2025-08-27 11:56:54,246 lembrete_views REAL - Lembrete para Renato Batalha da Silva Cordeiro - ID: 3EB0F9F280DECF09B6E1FF
+INFO 2025-08-27 11:56:54,282 lembrete_views Enviando WhatsApp para 5511920120583 via Z-API
+INFO 2025-08-27 11:56:55,087 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB04355613AB4BBC94647
+INFO 2025-08-27 11:56:55,089 lembrete_views REAL - Lembrete para Walter Zago Ujvari - ID: 3EB04355613AB4BBC94647
+INFO 2025-08-27 11:56:55,117 lembrete_views Enviando WhatsApp para 5511949235702 via Z-API
+INFO 2025-08-27 11:56:55,624 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB09D7C6FC3B2F1CE3C3F
+INFO 2025-08-27 11:56:55,626 lembrete_views REAL - Lembrete para Elaine Cristina Viana da Silva - ID: 3EB09D7C6FC3B2F1CE3C3F
+INFO 2025-08-27 11:56:55,656 lembrete_views Enviando WhatsApp para 5511985748927 via Z-API
+INFO 2025-08-27 11:56:56,243 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB094C59D279BE39EFD33
+INFO 2025-08-27 11:56:56,245 lembrete_views REAL - Lembrete para Cledson Alves de Souza - ID: 3EB094C59D279BE39EFD33
+INFO 2025-08-27 11:56:56,291 lembrete_views Enviando WhatsApp para 5511951942466 via Z-API
+INFO 2025-08-27 11:56:56,966 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB050A8F1DC4CECEA6AE3
+INFO 2025-08-27 11:56:56,968 lembrete_views REAL - Lembrete para Elenice Claudino de Freitas - ID: 3EB050A8F1DC4CECEA6AE3
+INFO 2025-08-27 11:56:56,990 lembrete_views Enviando WhatsApp para 5511998291813 via Z-API
+INFO 2025-08-27 11:56:57,507 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB02B595145045BEB9C1E
+INFO 2025-08-27 11:56:57,508 lembrete_views REAL - Lembrete para Gabriel Henrique dos Santos - ID: 3EB02B595145045BEB9C1E
+INFO 2025-08-27 11:56:57,530 lembrete_views Enviando WhatsApp para 5511956505525 via Z-API
+INFO 2025-08-27 11:56:58,262 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0AAFBDD22F05C64D190
+INFO 2025-08-27 11:56:58,263 lembrete_views REAL - Lembrete para Amir Al Jbawi 23708414861 - ID: 3EB0AAFBDD22F05C64D190
+INFO 2025-08-27 11:56:58,294 lembrete_views Enviando WhatsApp para 5511986896440 via Z-API
+INFO 2025-08-27 11:56:58,833 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB04D7478B8CA377E4234
+INFO 2025-08-27 11:56:58,834 lembrete_views REAL - Lembrete para Arlete Rodrigues Ferreira - ID: 3EB04D7478B8CA377E4234
+INFO 2025-08-27 11:56:58,866 lembrete_views Enviando WhatsApp para 5511960614367 via Z-API
+INFO 2025-08-27 11:56:59,397 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB067D3DC74D81EDD0DCE
+INFO 2025-08-27 11:56:59,399 lembrete_views REAL - Lembrete para Artur Carlos de Figueiredo Pacheco Filho - ID: 3EB067D3DC74D81EDD0DCE
+INFO 2025-08-27 11:56:59,430 lembrete_views Enviando WhatsApp para 5511983492444 via Z-API
+INFO 2025-08-27 11:56:59,965 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB0917E21CBEF80D76CB3
+INFO 2025-08-27 11:56:59,967 lembrete_views REAL - Lembrete para Thaina Capellani Agostinho - ID: 3EB0917E21CBEF80D76CB3
+INFO 2025-08-27 11:56:59,997 lembrete_views Enviando WhatsApp para 5511959326279 via Z-API
+INFO 2025-08-27 11:57:00,678 lembrete_views WhatsApp enviado com sucesso via Z-API - ID: 3EB05F437C6E971578910C
+INFO 2025-08-27 11:57:00,679 lembrete_views REAL - Lembrete para Auzenir Pereira dos Santos - ID: 3EB05F437C6E971578910C

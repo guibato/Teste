@@ -245,7 +245,7 @@ class RepasseService:
     def debug_politica_contrato(contrato_id):
         """🔍 Debug da política de repasse de um contrato específico - MODELO REAL"""
         try:
-            from sisimob.models import Contrato
+            Contrato = apps.get_model("sisimob", "Contrato")
             
             contrato = Contrato.objects.get(id=contrato_id)
             
@@ -403,7 +403,7 @@ def testar_politica_contrato(contrato_id):
                     self.data_pagamento = data_pagamento
                     self.id = 'TESTE'
             
-            from sisimob.models import Contrato
+            Contrato = apps.get_model("sisimob", "Contrato")
             contrato = Contrato.objects.get(id=contrato_id)
             cobranca_mock = MockCobranca(contrato, data_teste)
             
@@ -425,7 +425,7 @@ def testar_politica_contrato(contrato_id):
 def listar_contratos_com_politica():
     """📋 Lista contratos que têm política de repasse - MODELO REAL"""
     try:
-        from sisimob.models import Contrato
+        Contrato = apps.get_model("sisimob", "Contrato")
         
         print("📋 CONTRATOS COM POLÍTICA DE REPASSE")
         print("=" * 60)

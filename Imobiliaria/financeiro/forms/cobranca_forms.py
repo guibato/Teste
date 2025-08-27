@@ -8,7 +8,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from datetime import date, timedelta
 from decimal import Decimal
-
+from django.apps import apps
 from ..models import Cobranca
 
 
@@ -107,11 +107,11 @@ class CobrancaBaseForm(forms.ModelForm):
         """Configura queryset para contratos ativos"""
         if 'contrato' in self.fields:
             try:
-                from sisimob.models import Contrato
+                Contrato = apps.get_model("sisimob", "Contrato")
                 self.fields['contrato'].queryset = Contrato.objects.filter(
                     ativo=True
                 ).order_by('-data_inicio')
-            except ImportError:
+            except LookupError:
                 pass
     
     def _configurar_opcoes_mes(self):

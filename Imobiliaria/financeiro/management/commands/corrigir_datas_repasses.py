@@ -6,7 +6,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from financeiro.models.repasse import Repasse
-from sisimob.models import Contrato
+Contrato = apps.get_model("sisimob", "Contrato")
 
 try:
     from financeiro.models.cobranca import Cobranca

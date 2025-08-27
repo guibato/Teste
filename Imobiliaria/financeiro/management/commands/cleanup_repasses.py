@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from datetime import date, timedelta
 import logging
-
+from django.apps import apps
 from ...models.repasse import Repasse, AgendamentoRepasse
 
 logger = logging.getLogger(__name__)
@@ -112,7 +112,7 @@ class Command(BaseCommand):
         )
         
         # Agendamentos órfãos (sem contrato ativo)
-        from sisimob.models import Contrato
+        Contrato = apps.get_model("sisimob", "Contrato")
         
         agendamentos_orfaos = AgendamentoRepasse.objects.filter(
             status='agendado'

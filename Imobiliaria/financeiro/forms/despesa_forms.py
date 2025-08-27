@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal
-
+from django.apps import apps
 from ..models import Despesa, TipoDespesa
 
 
@@ -217,11 +217,11 @@ class DespesaForm(forms.ModelForm):
         
         # Configurar campo contrato
         try:
-            from sisimob.models import Contrato
+            Contrato = apps.get_model("sisimob", "Contrato")
             self.fields['contrato'].queryset = Contrato.objects.filter(
                 ativo=True
             ).order_by('-data_inicio')
-        except ImportError:
+        except LookupError:
             pass
         
         # Campo is_ativa marcado por padrão para novos registros

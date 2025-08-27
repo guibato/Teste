@@ -2,6 +2,7 @@
 from django.core.management.base import BaseCommand
 from datetime import date, timedelta
 import logging
+from django.apps import apps
 
 from ...services.repasse_service import RepasseService
 
@@ -57,7 +58,7 @@ class Command(BaseCommand):
             else:
                 # Simular agendamento
                 from ...models.repasse import PoliticaRepasse
-                from sisimob.models import Contrato
+                Contrato = apps.get_model("sisimob", "Contrato")
                 
                 politicas_ativas = PoliticaRepasse.objects.filter(ativa=True)
                 data_limite = date.today() + timedelta(days=dias_futuro)
